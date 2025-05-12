@@ -1,18 +1,24 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { getSocialAccounts } from "@/lib/firebase/social-accounts"
 import { SocialConnect } from "@/components/dashboard/social-connect"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2 } from "lucide-react"
+import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { SocialAccounts } from "@/types/social"
 
 export default function ConnectionsPage() {
   const [accounts, setAccounts] = useState<SocialAccounts>({})
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
+  const searchParams = useSearchParams()
+
+  const success = searchParams.get("success")
+  const error = searchParams.get("error")
 
   const loadAccounts = async () => {
     setIsLoading(true)
@@ -35,6 +41,24 @@ export default function ConnectionsPage() {
     loadAccounts()
   }, [])
 
+  useEffect(() => {
+    if (success) {
+      toast({
+        title: "Account connected",
+        description: "Your social media account has been connected successfully.",
+      })
+    } else if (error) {
+      toast({
+        variant: "destructive",
+        title: "Connection failed",
+        description:
+          error === "access_denied"
+            ? "You denied access to your account."
+            : "There was a problem connecting your account.",
+      })
+    }
+  }, [success, error, toast])
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -49,6 +73,26 @@ export default function ConnectionsPage() {
         <h1 className="text-2xl font-bold tracking-tight">Social Media Connections</h1>
         <p className="text-muted-foreground">Connect your social media accounts to enable scheduling</p>
       </div>
+
+      {success && (
+        <Alert variant="default" className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/30">
+          <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <AlertTitle>Success</AlertTitle>
+          <AlertDescription>Your social media account has been connected successfully.</AlertDescription>
+        </Alert>
+      )}
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            {error === "access_denied"
+              ? "You denied access to your account."
+              : "There was a problem connecting your account."}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Tabs defaultValue="instagram" className="space-y-6">
         <TabsList>

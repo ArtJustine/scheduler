@@ -4,6 +4,7 @@ export interface SocialAccount {
   id?: string
   username: string
   accessToken: string
+  refreshToken?: string
   profileUrl?: string
   connected: boolean
   connectedAt: string

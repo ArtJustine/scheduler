@@ -2,11 +2,9 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
-import { connectSocialAccount, disconnectSocialAccount } from "@/lib/firebase/social-accounts"
+import { disconnectSocialAccount } from "@/lib/firebase/social-accounts"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,8 +29,6 @@ interface SocialConnectProps {
 export function SocialConnect({ platform, connectedAccount, onConnect, onDisconnect }: SocialConnectProps) {
   const [isConnecting, setIsConnecting] = useState(false)
   const [isDisconnecting, setIsDisconnecting] = useState(false)
-  const [username, setUsername] = useState("")
-  const [accessToken, setAccessToken] = useState("")
   const { toast } = useToast()
 
   const getPlatformIcon = () => {
@@ -52,38 +48,30 @@ export function SocialConnect({ platform, connectedAccount, onConnect, onDisconn
     return platform.charAt(0).toUpperCase() + platform.slice(1)
   }
 
-  const handleConnect = async () => {
-    if (!username || !accessToken) {
-      toast({
-        variant: "destructive",
-        title: "Missing information",
-        description: "Please provide both username and access token.",
-      })
-      return
+  const getAuthProvider = () => {
+    switch (platform) {
+      case "instagram":
+        return "Facebook" // Instagram uses Facebook login
+      case "youtube":
+        return "Google"
+      case "tiktok":
+        return "TikTok"
+      default:
+        return ""
     }
+  }
 
+  const handleConnect = async () => {
     setIsConnecting(true)
     try {
-      await connectSocialAccount(platform, {
-        username,
-        accessToken,
-        connected: true,
-        connectedAt: new Date().toISOString(),
-      })
-      toast({
-        title: "Account connected",
-        description: `Your ${getPlatformName()} account has been connected successfully.`,
-      })
-      setUsername("")
-      setAccessToken("")
-      onConnect()
+      // Redirect to the OAuth flow
+      window.location.href = `/api/auth/${platform}`
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Connection failed",
         description: `There was a problem connecting your ${getPlatformName()} account.`,
       })
-    } finally {
       setIsConnecting(false)
     }
   }
@@ -124,27 +112,23 @@ export function SocialConnect({ platform, connectedAccount, onConnect, onDisconn
       <CardContent>
         {!connectedAccount ? (
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor={`${platform}-username`}>Username</Label>
-              <Input
-                id={`${platform}-username`}
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder={`Your ${getPlatformName()} username`}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor={`${platform}-token`}>Access Token</Label>
-              <Input
-                id={`${platform}-token`}
-                type="password"
-                value={accessToken}
-                onChange={(e) => setAccessToken(e.target.value)}
-                placeholder="Access token for API authorization"
-              />
-              <p className="text-xs text-muted-foreground">
-                You can get your access token from your {getPlatformName()} developer account
+            <div className="rounded-lg border p-4 text-center">
+              <p className="mb-4 text-sm text-muted-foreground">
+                Connect your {getPlatformName()} account to schedule posts and view analytics.
               </p>
+              <Button onClick={handleConnect} disabled={isConnecting} className="w-full">
+                {isConnecting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    {getPlatformIcon()}
+                    <span className="ml-2">Login with {getAuthProvider()}</span>
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         ) : (
@@ -169,18 +153,7 @@ export function SocialConnect({ platform, connectedAccount, onConnect, onDisconn
         )}
       </CardContent>
       <CardFooter className="flex justify-end">
-        {!connectedAccount ? (
-          <Button onClick={handleConnect} disabled={isConnecting}>
-            {isConnecting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              "Connect Account"
-            )}
-          </Button>
-        ) : (
+        {connectedAccount && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive">

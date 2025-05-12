@@ -30,11 +30,11 @@ function getOAuthUrl(platform: string, state: string): URL {
   switch (platform) {
     case "instagram":
       return new URL(
-        `https://api.instagram.com/oauth/authorize?client_id=${process.env.1873987296766962}&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_URL + "/api/auth/callback/instagram")}&scope=user_profile,user_media&response_type=code&state=${state}`,
+        `https://api.instagram.com/oauth/authorize?client_id=${process.env.1873987296766962}&redirect_uri=${encodeURIComponent(process.env.https://v0-social-media-scheduler-ppzft2zfk.vercel.app/ + "/api/auth/callback/instagram")}&scope=user_profile,user_media&response_type=code&state=${state}`,
       )
     case "youtube":
       return new URL(
-        `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.913909744920-eq12dpthfkp3ur4qahh4teuf1b69vcu0.apps.googleusercontent.com}&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_URL + "/api/auth/callback/youtube")}&scope=https://www.googleapis.com/auth/youtube&response_type=code&access_type=offline&state=${state}`,
+        `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.913909744920-eq12dpthfkp3ur4qahh4teuf1b69vcu0.apps.googleusercontent.com}&redirect_uri=${encodeURIComponent(process.env.https://v0-social-media-scheduler-ppzft2zfk.vercel.app/ + "/api/auth/callback/youtube")}&scope=https://www.googleapis.com/auth/youtube&response_type=code&access_type=offline&state=${state}`,
       ) /*
     case "tiktok":
       return new URL(

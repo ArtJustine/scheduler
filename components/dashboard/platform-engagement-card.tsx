@@ -1,61 +1,49 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Instagram, Youtube, Video } from "lucide-react"
 import { getPlatformColor } from "@/lib/utils"
 
 interface PlatformEngagementCardProps {
   platform: string
-  data: {
-    followers: number
-    engagement: number
-    impressions: number
-    reachGrowth: number
+  stats: {
+    likes: number
+    comments: number
+    shares: number
+    saves?: number
   }
-  isLoading: boolean
 }
 
-export function PlatformEngagementCard({ platform, data, isLoading }: PlatformEngagementCardProps) {
-  const platformColor = getPlatformColor(platform.toLowerCase())
-
-  const getIcon = () => {
-    switch (platform.toLowerCase()) {
-      case "instagram":
-        return <Instagram className="h-5 w-5" style={{ color: platformColor.text }} />
-      case "youtube":
-        return <Youtube className="h-5 w-5" style={{ color: platformColor.text }} />
-      case "tiktok":
-        return <Video className="h-5 w-5" style={{ color: platformColor.text }} />
-      default:
-        return null
-    }
-  }
+export function PlatformEngagementCard({ platform, stats }: PlatformEngagementCardProps) {
+  const colors = getPlatformColor(platform)
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-sm font-medium">{platform}</CardTitle>
-        <div
-          className="h-8 w-8 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: platformColor.bg }}
-        >
-          {getIcon()}
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base font-medium">{platform}</CardTitle>
+          <div className="rounded-full p-1" style={{ backgroundColor: colors.bg }}>
+            <span className="h-3 w-3 rounded-full block" style={{ backgroundColor: colors.text }} />
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Followers</p>
-            <p className="text-xl font-bold">{isLoading ? "Loading..." : data.followers.toLocaleString()}</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col">
+            <span className="text-sm text-muted-foreground">Likes</span>
+            <span className="text-xl font-bold">{stats.likes.toLocaleString()}</span>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Engagement</p>
-              <p className="text-lg font-semibold">{isLoading ? "..." : data.engagement + "%"}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Growth</p>
-              <p className="text-lg font-semibold text-green-500">+{isLoading ? "..." : data.reachGrowth + "%"}</p>
-            </div>
+          <div className="flex flex-col">
+            <span className="text-sm text-muted-foreground">Comments</span>
+            <span className="text-xl font-bold">{stats.comments.toLocaleString()}</span>
           </div>
+          <div className="flex flex-col">
+            <span className="text-sm text-muted-foreground">Shares</span>
+            <span className="text-xl font-bold">{stats.shares.toLocaleString()}</span>
+          </div>
+          {stats.saves !== undefined && (
+            <div className="flex flex-col">
+              <span className="text-sm text-muted-foreground">Saves</span>
+              <span className="text-xl font-bold">{stats.saves.toLocaleString()}</span>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

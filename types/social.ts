@@ -1,22 +1,23 @@
 export type SocialAccountType = "instagram" | "youtube" | "tiktok"
 
 export interface SocialAccount {
-  id?: string
   username: string
   accessToken: string
   refreshToken?: string
-  profileUrl?: string
+  tokenExpiry?: string
   connected: boolean
   connectedAt: string
   followers?: number
   followersGrowth?: number
   engagement?: number
-  impression?: number
+  impressions?: number
   posts?: number
+  profileUrl?: string
+  updatedAt?: string
 }
 
 export interface SocialAccounts {
-  instagram?: SocialAccount
-  youtube?: SocialAccount
-  tiktok?: SocialAccount
+  instagram?: SocialAccount | null
+  youtube?: SocialAccount | null
+  tiktok?: SocialAccount | null
 }

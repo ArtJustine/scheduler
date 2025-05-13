@@ -4,37 +4,61 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock, Plus } from "lucide-react"
+import { Calendar, Clock, Plus, Info } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { getScheduledPosts } from "@/lib/firebase/posts"
+import { getScheduledPosts, getSocialAccounts } from "@/lib/data-service"
 import { ScheduledPostCard } from "@/components/dashboard/scheduled-post-card"
 import { PlatformStats } from "@/components/dashboard/platform-stats"
 import { UpcomingPostsList } from "@/components/dashboard/upcoming-posts-list"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { PostType } from "@/types/post"
-import { getSocialAccounts } from "@/lib/firebase/social-accounts"
 import type { SocialAccounts } from "@/types/social"
+
+// Determine if we're in preview mode
+const isPreviewMode = () => {
+  return (
+    process.env.NODE_ENV === "development" &&
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname.includes("vercel.app"))
+  )
+}
 
 export default function DashboardPage() {
   const [posts, setPosts] = useState<PostType[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter()
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
+  const [isPreview, setIsPreview] = useState(false)
+  const router = useRouter()
+
+  // Check if we're in preview mode
+  useEffect(() => {
+    setIsPreview(isPreviewMode())
+  }, [])
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true)
+      // Use Promise.all to fetch data in parallel
+      const [fetchedPosts, fetchedAccounts] = await Promise.all([getScheduledPosts(), getSocialAccounts()])
+
+      setPosts(fetchedPosts || [])
+      setSocialAccounts(fetchedAccounts || {})
+    } catch (error) {
+      console.error("Error loading data:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [fetchedPosts, fetchedAccounts] = await Promise.all([getScheduledPosts(), getSocialAccounts()])
-        setPosts(fetchedPosts)
-        setSocialAccounts(fetchedAccounts)
-      } catch (error) {
-        console.error("Error fetching data:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     loadData()
   }, [])
+
+  // Safely count posts by platform
+  const getPostCount = (platform: string) => {
+    if (!posts || !Array.isArray(posts)) return 0
+    return posts.filter((p) => p?.platform?.toLowerCase() === platform.toLowerCase()).length
+  }
 
   return (
     <div className="space-y-6">
@@ -49,6 +73,16 @@ export default function DashboardPage() {
         </Button>
       </div>
 
+      {isPreview && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertTitle>Preview Mode</AlertTitle>
+          <AlertDescription>
+            You're viewing demo data in preview mode. In production, this will show your actual data.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -60,21 +94,21 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <PlatformStats
               platform="Instagram"
-              postCount={posts.filter((p) => p.platform === "instagram").length}
-              followers={socialAccounts.instagram?.followers}
-              connected={!!socialAccounts.instagram}
+              postCount={getPostCount("instagram")}
+              followers={socialAccounts?.instagram?.followers}
+              connected={!!socialAccounts?.instagram?.connected}
             />
             <PlatformStats
               platform="TikTok"
-              postCount={posts.filter((p) => p.platform === "tiktok").length}
-              followers={socialAccounts.tiktok?.followers}
-              connected={!!socialAccounts.tiktok}
+              postCount={getPostCount("tiktok")}
+              followers={socialAccounts?.tiktok?.followers}
+              connected={!!socialAccounts?.tiktok?.connected}
             />
             <PlatformStats
               platform="YouTube"
-              postCount={posts.filter((p) => p.platform === "youtube").length}
-              followers={socialAccounts.youtube?.followers}
-              connected={!!socialAccounts.youtube}
+              postCount={getPostCount("youtube")}
+              followers={socialAccounts?.youtube?.followers}
+              connected={!!socialAccounts?.youtube?.connected}
             />
           </div>
 
@@ -92,7 +126,7 @@ export default function DashboardPage() {
                   <div className="flex justify-center p-4">
                     <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                   </div>
-                ) : posts.length > 0 ? (
+                ) : posts && posts.length > 0 ? (
                   <UpcomingPostsList posts={posts.slice(0, 5)} />
                 ) : (
                   <div className="text-center py-6 text-muted-foreground">No upcoming posts. Create one now!</div>
@@ -133,7 +167,7 @@ export default function DashboardPage() {
                     <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                   </Card>
                 ))
-            ) : posts.length > 0 ? (
+            ) : posts && posts.length > 0 ? (
               posts.map((post) => <ScheduledPostCard key={post.id} post={post} />)
             ) : (
               <div className="col-span-full text-center py-12 text-muted-foreground">

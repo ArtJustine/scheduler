@@ -1,94 +1,168 @@
+"use client"
+
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword as firebaseSignIn,
+  signInWithEmailAndPassword,
   signOut as firebaseSignOut,
-  updateProfile as firebaseUpdateProfile,
+  onAuthStateChanged,
+  updateProfile,
+  type User,
 } from "firebase/auth"
-import { doc, setDoc, getDoc } from "firebase/firestore"
+import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import { auth, db, storage } from "./config"
+import { firebaseAuth, firebaseDb, firebaseStorage } from "../firebase-client"
 
-export async function signUp(email: string, password: string, displayName: string) {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-  const user = userCredential.user
+// Sign up a new user
+export const signUp = async (email: string, password: string, displayName: string) => {
+  if (!firebaseAuth) throw new Error("Auth is not initialized")
 
-  // Update profile with display name
-  await firebaseUpdateProfile(user, { displayName })
+  try {
+    const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password)
 
-  // Create user document in Firestore
-  await setDoc(doc(db, "users", user.uid), {
-    uid: user.uid,
-    email: user.email,
-    displayName,
-    createdAt: new Date().toISOString(),
+    if (userCredential.user) {
+      await updateProfile(userCredential.user, { displayName })
+
+      // Create user document in Firestore
+      if (firebaseDb) {
+        await setDoc(doc(firebaseDb, "users", userCredential.user.uid), {
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          displayName,
+          createdAt: new Date().toISOString(),
+        })
+      }
+    }
+
+    return { user: userCredential.user }
+  } catch (error: any) {
+    console.error("Error signing up:", error)
+    throw error
+  }
+}
+
+// Sign in an existing user
+export const signIn = async (email: string, password: string) => {
+  if (!firebaseAuth) throw new Error("Auth is not initialized")
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password)
+    return { user: userCredential.user }
+  } catch (error: any) {
+    console.error("Error signing in:", error)
+    throw error
+  }
+}
+
+// Sign out the current user
+export const signOut = async () => {
+  if (!firebaseAuth) throw new Error("Auth is not initialized")
+
+  try {
+    await firebaseSignOut(firebaseAuth)
+    return { success: true }
+  } catch (error) {
+    console.error("Error signing out:", error)
+    throw error
+  }
+}
+
+// Get the current user
+export const getCurrentUser = (): Promise<User | null> => {
+  if (!firebaseAuth) return Promise.resolve(null)
+
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
+      unsubscribe()
+      resolve(user)
+    })
   })
-
-  return user
 }
 
-export async function signIn(email: string, password: string) {
-  const userCredential = await firebaseSignIn(auth, email, password)
-  return userCredential.user
+// Listen to auth state changes
+export const onAuthStateChange = (callback: (user: User | null) => void) => {
+  if (!firebaseAuth) return () => {}
+
+  return onAuthStateChanged(firebaseAuth, callback)
 }
 
-export async function signOut() {
-  return firebaseSignOut(auth)
-}
-
-export async function updateUserProfile(profileData: { displayName?: string; photoURL?: string }) {
-  const user = auth.currentUser
-
-  if (!user) {
-    throw new Error("No authenticated user")
+export const updateUserProfile = async (data: { displayName?: string; photoURL?: string }) => {
+  if (!firebaseAuth || !firebaseAuth.currentUser) {
+    throw new Error("User not authenticated")
   }
 
-  await firebaseUpdateProfile(user, profileData)
+  try {
+    await updateProfile(firebaseAuth.currentUser, data)
 
-  // Update user document in Firestore
-  await setDoc(
-    doc(db, "users", user.uid),
-    {
-      ...profileData,
-      updatedAt: new Date().toISOString(),
-    },
-    { merge: true },
-  )
+    // Update user document in Firestore
+    if (firebaseDb) {
+      const userDocRef = doc(firebaseDb, "users", firebaseAuth.currentUser.uid)
+      await updateDoc(userDocRef, {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      })
+    }
 
-  return user
+    return { success: true }
+  } catch (error: any) {
+    console.error("Error updating profile:", error)
+    throw error
+  }
 }
 
-export async function updateUserAvatar(file: File) {
-  const user = auth.currentUser
-
-  if (!user) {
-    throw new Error("No authenticated user")
+export const updateUserAvatar = async (file: File): Promise<string> => {
+  if (!firebaseAuth || !firebaseAuth.currentUser || !firebaseStorage) {
+    throw new Error("User not authenticated or storage not initialized")
   }
 
-  // Upload image to Firebase Storage
-  const storageRef = ref(storage, `avatars/${user.uid}/${Date.now()}_${file.name}`)
-  await uploadBytes(storageRef, file)
+  try {
+    const storageRef = ref(firebaseStorage, `avatars/${firebaseAuth.currentUser.uid}/${file.name}`)
+    await uploadBytes(storageRef, file)
+    const photoURL = await getDownloadURL(storageRef)
 
-  // Get download URL
-  const photoURL = await getDownloadURL(storageRef)
+    await updateProfile(firebaseAuth.currentUser, { photoURL })
 
-  // Update user profile
-  await updateUserProfile({ photoURL })
+    // Update user document in Firestore
+    if (firebaseDb) {
+      const userDocRef = doc(firebaseDb, "users", firebaseAuth.currentUser.uid)
+      await updateDoc(userDocRef, {
+        photoURL,
+        updatedAt: new Date().toISOString(),
+      })
+    }
 
-  return photoURL
+    return photoURL
+  } catch (error: any) {
+    console.error("Error updating avatar:", error)
+    throw error
+  }
 }
 
-export async function getUserProfile() {
-  const user = auth.currentUser
-
-  if (!user) {
-    throw new Error("No authenticated user")
+export const getUserProfile = async () => {
+  if (!firebaseAuth || !firebaseAuth.currentUser || !firebaseDb) {
+    throw new Error("User not authenticated or database not initialized")
   }
 
-  const userDoc = await getDoc(doc(db, "users", user.uid))
+  try {
+    const userDocRef = doc(firebaseDb, "users", firebaseAuth.currentUser.uid)
+    const userDoc = await getDoc(userDocRef)
 
-  if (!userDoc.exists()) {
-    throw new Error("User document not found")
+    if (!userDoc.exists()) {
+      // Create user document if it doesn't exist
+      const userData = {
+        uid: firebaseAuth.currentUser.uid,
+        email: firebaseAuth.currentUser.email,
+        displayName: firebaseAuth.currentUser.displayName,
+        photoURL: firebaseAuth.currentUser.photoURL,
+        createdAt: new Date().toISOString(),
+      }
+
+      await setDoc(userDocRef, userData)
+      return userData
+    }
+
+    return userDoc.data()
+  } catch (error: any) {
+    console.error("Error getting user profile:", error)
+    throw error
   }
-
-  return userDoc.data()
 }

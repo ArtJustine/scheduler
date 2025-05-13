@@ -7,35 +7,83 @@ import { SocialConnect } from "@/components/dashboard/social-connect"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Loader2, AlertCircle, CheckCircle2, WifiOff, Info } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import type { SocialAccounts } from "@/types/social"
 
 export default function ConnectionsPage() {
   const [accounts, setAccounts] = useState<SocialAccounts>({})
   const [isLoading, setIsLoading] = useState(true)
+  const [isOffline, setIsOffline] = useState(false)
+  const [isPreview, setIsPreview] = useState(false)
   const { toast } = useToast()
   const searchParams = useSearchParams()
 
   const success = searchParams.get("success")
   const error = searchParams.get("error")
 
+  // Check if we're in preview mode
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV === "development" &&
+      typeof window !== "undefined" &&
+      window.location.hostname === "localhost"
+    ) {
+      setIsPreview(true)
+    }
+  }, [])
+
   const loadAccounts = async () => {
     setIsLoading(true)
+    setIsOffline(false)
     try {
       const socialAccounts = await getSocialAccounts()
       setAccounts(socialAccounts)
     } catch (error) {
       console.error("Error loading social accounts:", error)
-      toast({
-        variant: "destructive",
-        title: "Failed to load accounts",
-        description: "There was a problem loading your connected accounts.",
-      })
+
+      // Check if the error is due to being offline
+      if (error.message?.includes("offline")) {
+        setIsOffline(true)
+        toast({
+          variant: "destructive",
+          title: "You're offline",
+          description: "Using demo data for preview. In production, please check your internet connection.",
+        })
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Failed to load accounts",
+          description: "There was a problem loading your connected accounts.",
+        })
+      }
     } finally {
       setIsLoading(false)
     }
   }
+
+  // Check online status
+  useEffect(() => {
+    const handleOnline = () => {
+      if (isOffline) {
+        setIsOffline(false)
+        loadAccounts()
+      }
+    }
+
+    const handleOffline = () => {
+      setIsOffline(true)
+    }
+
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("offline", handleOffline)
+
+    return () => {
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+    }
+  }, [isOffline])
 
   useEffect(() => {
     loadAccounts()
@@ -67,12 +115,65 @@ export default function ConnectionsPage() {
     )
   }
 
+  const formatAccountsForConnect = () => {
+    const result = []
+
+    if (accounts.instagram) {
+      result.push({
+        platform: "Instagram",
+        username: accounts.instagram.username,
+        connected: true,
+      })
+    }
+
+    if (accounts.youtube) {
+      result.push({
+        platform: "YouTube",
+        username: accounts.youtube.username,
+        connected: true,
+      })
+    }
+
+    if (accounts.tiktok) {
+      result.push({
+        platform: "TikTok",
+        username: accounts.tiktok.username,
+        connected: true,
+      })
+    }
+
+    return result
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Social Media Connections</h1>
         <p className="text-muted-foreground">Connect your social media accounts to enable scheduling</p>
       </div>
+
+      {isPreview && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertTitle>Preview Mode</AlertTitle>
+          <AlertDescription>
+            You're viewing demo data in preview mode. In production, this will show your actual connected accounts.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isOffline && !isPreview && (
+        <Alert variant="destructive">
+          <WifiOff className="h-4 w-4" />
+          <AlertTitle>You're offline</AlertTitle>
+          <AlertDescription className="flex flex-col gap-2">
+            <span>Using demo data for preview. In production, please check your internet connection.</span>
+            <Button onClick={loadAccounts} variant="outline" className="w-fit">
+              Retry Connection
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {success && (
         <Alert variant="default" className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/30">
@@ -94,6 +195,14 @@ export default function ConnectionsPage() {
         </Alert>
       )}
 
+      <div className="mb-6">
+        <SocialConnect
+          connectedAccounts={formatAccountsForConnect()}
+          onConnect={() => {}}
+          onDisconnect={() => loadAccounts()}
+        />
+      </div>
+
       <Tabs defaultValue="instagram" className="space-y-6">
         <TabsList>
           <TabsTrigger value="instagram">Instagram</TabsTrigger>
@@ -102,13 +211,6 @@ export default function ConnectionsPage() {
         </TabsList>
 
         <TabsContent value="instagram" className="space-y-6">
-          <SocialConnect
-            platform="instagram"
-            connectedAccount={accounts.instagram}
-            onConnect={loadAccounts}
-            onDisconnect={loadAccounts}
-          />
-
           {accounts.instagram && (
             <Card>
               <CardHeader>
@@ -140,13 +242,6 @@ export default function ConnectionsPage() {
         </TabsContent>
 
         <TabsContent value="tiktok" className="space-y-6">
-          <SocialConnect
-            platform="tiktok"
-            connectedAccount={accounts.tiktok}
-            onConnect={loadAccounts}
-            onDisconnect={loadAccounts}
-          />
-
           {accounts.tiktok && (
             <Card>
               <CardHeader>
@@ -178,13 +273,6 @@ export default function ConnectionsPage() {
         </TabsContent>
 
         <TabsContent value="youtube" className="space-y-6">
-          <SocialConnect
-            platform="youtube"
-            connectedAccount={accounts.youtube}
-            onConnect={loadAccounts}
-            onDisconnect={loadAccounts}
-          />
-
           {accounts.youtube && (
             <Card>
               <CardHeader>

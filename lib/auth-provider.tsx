@@ -3,12 +3,11 @@
 import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { type User, onAuthStateChanged } from "firebase/auth"
-import { auth } from "@/lib/firebase/config"
 import { Button } from "@/components/ui/button"
+import { getCurrentUser, onAuthStateChange } from "./data-service"
 
 interface AuthContextType {
-  user: User | null
+  user: any
   loading: boolean
 }
 
@@ -18,7 +17,7 @@ const AuthContext = createContext<AuthContextType>({
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [authError, setAuthError] = useState<Error | null>(null)
 
@@ -26,28 +25,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check if we are in a browser environment
     if (typeof window === "undefined") {
       setLoading(false)
-      return
+      return () => {}
     }
 
     try {
-      const unsubscribe = onAuthStateChanged(
-        auth,
-        (user) => {
-          setUser(user)
-          setLoading(false)
-        },
-        (error) => {
-          console.error("Auth state change error:", error)
-          setAuthError(error)
-          setLoading(false)
-        },
-      )
+      // First, get the current user synchronously if possible
+      const currentUser = getCurrentUser()
+      if (currentUser) {
+        setUser(currentUser)
+        setLoading(false)
+      }
 
-      return () => unsubscribe()
+      // Then set up the auth state listener
+      const unsubscribe = onAuthStateChange((authUser) => {
+        setUser(authUser)
+        setLoading(false)
+      })
+
+      return unsubscribe
     } catch (error) {
       console.error("Auth provider error:", error)
       setAuthError(error instanceof Error ? error : new Error(String(error)))
       setLoading(false)
+      return () => {}
     }
   }, [])
 

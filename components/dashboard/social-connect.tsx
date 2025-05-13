@@ -3,8 +3,19 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Instagram, Youtube, MessageSquare } from "lucide-react"
+import { Instagram, Youtube, Video, Trash2, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface SocialConnectProps {
   connectedAccounts?: {
@@ -19,6 +30,7 @@ interface SocialConnectProps {
 export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect }: SocialConnectProps) {
   const { toast } = useToast()
   const [isConnecting, setIsConnecting] = useState<string | null>(null)
+  const [isDisconnecting, setIsDisconnecting] = useState<string | null>(null)
 
   const handleConnect = async (platform: string) => {
     setIsConnecting(platform)
@@ -37,13 +49,12 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
         description: `Could not connect to ${platform}. Please try again.`,
         variant: "destructive",
       })
-    } finally {
       setIsConnecting(null)
     }
   }
 
   const handleDisconnect = async (platform: string) => {
-    setIsConnecting(platform)
+    setIsDisconnecting(platform)
 
     try {
       if (onDisconnect) {
@@ -61,7 +72,7 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
         variant: "destructive",
       })
     } finally {
-      setIsConnecting(null)
+      setIsDisconnecting(null)
     }
   }
 
@@ -72,7 +83,7 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
       case "youtube":
         return <Youtube className="h-5 w-5" />
       case "tiktok":
-        return <MessageSquare className="h-5 w-5" />
+        return <Video className="h-5 w-5" />
       default:
         return null
     }
@@ -120,16 +131,52 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
             </CardContent>
             <CardFooter>
               {isConnected ? (
-                <Button
-                  variant="outline"
-                  onClick={() => handleDisconnect(platform.name)}
-                  disabled={isConnecting === platform.name}
-                >
-                  {isConnecting === platform.name ? "Disconnecting..." : "Disconnect"}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="text-destructive hover:text-destructive">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Disconnect
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will disconnect your {platform.name} account. Any scheduled posts for this platform will
+                        remain but cannot be published automatically.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDisconnect(platform.name)}
+                        disabled={isDisconnecting === platform.name}
+                      >
+                        {isDisconnecting === platform.name ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Disconnecting...
+                          </>
+                        ) : (
+                          "Disconnect"
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               ) : (
                 <Button onClick={() => handleConnect(platform.name)} disabled={isConnecting === platform.name}>
-                  {isConnecting === platform.name ? "Connecting..." : `Login with ${platform.name}`}
+                  {isConnecting === platform.name ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      {getPlatformIcon(platform.name)}
+                      <span className="ml-2">Login with {platform.name}</span>
+                    </>
+                  )}
                 </Button>
               )}
             </CardFooter>

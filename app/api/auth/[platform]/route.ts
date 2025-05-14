@@ -22,6 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: { platform
   let authUrl = ""
 
   switch (platform.toLowerCase()) {
+  /*
     case "instagram":
       // Instagram uses Facebook Login
       authUrl = `https://api.instagram.com/oauth/authorize?client_id=${process.env.1873987296766962}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user_profile,user_media&response_type=code&state=${state}`
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest, { params }: { params: { platform
       // YouTube uses Google OAuth
       authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.913909744920-eq12dpthfkp3ur4qahh4teuf1b69vcu0.apps.googleusercontent.com}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=https://www.googleapis.com/auth/youtube&response_type=code&state=${state}&access_type=offline&prompt=consent`
       break
-/*
+
     case "tiktok":
       // TikTok OAuth
       authUrl = `https://www.tiktok.com/auth/authorize?client_key=${process.env.TIKTOK_CLIENT_KEY}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user.info.basic&response_type=code&state=${state}`

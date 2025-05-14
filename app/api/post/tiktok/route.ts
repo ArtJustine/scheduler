@@ -1,3 +1,5 @@
+// Comment out the TikTok posting API
+/*
 import { type NextRequest, NextResponse } from "next/server"
 import { firebaseDb, firebaseAuth } from "@/lib/firebase-client"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
@@ -108,4 +110,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: "Failed to post to TikTok" }, { status: 500 })
   }
+}
+*/
+
+// Placeholder response for disabled TikTok integration
+import { type NextRequest, NextResponse } from "next/server"
+
+export async function POST(request: NextRequest) {
+  return NextResponse.json({ error: "TikTok posting is currently disabled" }, { status: 503 })
 }

@@ -1,72 +1,54 @@
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Info } from "lucide-react"
+
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Separator } from "@/components/ui/separator"
 
 interface PlatformDimensionsInfoProps {
   platform: string
-  contentType: string
 }
 
-export function PlatformDimensionsInfo({ platform, contentType }: PlatformDimensionsInfoProps) {
-  const getDimensionsInfo = () => {
-    if (platform === "instagram") {
-      switch (contentType) {
-        case "image":
-          return {
-            title: "Instagram Post",
-            description: "Recommended size: 1080 x 1080 pixels (1:1 square ratio)",
-          }
-        case "story":
-          return {
-            title: "Instagram Story",
-            description: "Recommended size: 1080 x 1920 pixels (9:16 portrait ratio)",
-          }
-        case "reel":
-          return {
-            title: "Instagram Reel",
-            description: "Recommended size: 1080 x 1920 pixels (9:16 portrait ratio)",
-          }
-        case "carousel":
-          return {
-            title: "Instagram Carousel",
-            description: "Recommended size: 1080 x 1080 pixels (1:1 square ratio) for all images",
-          }
-        default:
-          return null
-      }
-    } else if (platform === "tiktok") {
-      return {
-        title: "TikTok Video",
-        description: "Recommended size: 1080 x 1920 pixels (9:16 portrait ratio)",
-      }
-    } else if (platform === "youtube") {
-      switch (contentType) {
-        case "video":
-          return {
-            title: "YouTube Video",
-            description: "Recommended size: 1920 x 1080 pixels (16:9 landscape ratio)",
-          }
-        case "shorts":
-          return {
-            title: "YouTube Shorts",
-            description: "Recommended size: 1080 x 1920 pixels (9:16 portrait ratio)",
-          }
-        default:
-          return null
-      }
-    }
-
-    return null
+export function PlatformDimensionsInfo({ platform }: PlatformDimensionsInfoProps) {
+  const dimensionsInfo = {
+    instagram: {
+      "Feed Post": "1080 x 1080 px (1:1 square)",
+      Portrait: "1080 x 1350 px (4:5 vertical)",
+      Landscape: "1080 x 566 px (1.91:1 horizontal)",
+      Stories: "1080 x 1920 px (9:16 vertical)",
+      Reels: "1080 x 1920 px (9:16 vertical)",
+    },
+    youtube: {
+      Thumbnail: "1280 x 720 px (16:9)",
+      "Channel Cover": "2560 x 1440 px",
+      "Profile Picture": "800 x 800 px",
+    },
+    tiktok: {
+      Video: "1080 x 1920 px (9:16 vertical)",
+      "Profile Picture": "200 x 200 px",
+    },
   }
 
-  const info = getDimensionsInfo()
-
-  if (!info) return null
+  const info = dimensionsInfo[platform as keyof typeof dimensionsInfo] || {}
 
   return (
-    <Alert>
-      <Info className="h-4 w-4" />
-      <AlertTitle>{info.title}</AlertTitle>
-      <AlertDescription>{info.description}</AlertDescription>
-    </Alert>
+    <Popover>
+      <PopoverTrigger className="inline-flex items-center text-xs text-muted-foreground hover:text-foreground">
+        <Info className="mr-1 h-3 w-3" />
+        Recommended dimensions
+      </PopoverTrigger>
+      <PopoverContent className="w-80">
+        <div className="space-y-2">
+          <h4 className="font-medium capitalize">{platform} Recommended Dimensions</h4>
+          <Separator />
+          <div className="space-y-2">
+            {Object.entries(info).map(([type, dimensions]) => (
+              <div key={type} className="grid grid-cols-2">
+                <div className="text-sm font-medium">{type}</div>
+                <div className="text-sm">{dimensions}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }

@@ -1,3 +1,5 @@
+// Comment out the TikTok callback handler
+/*
 import { type NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { firebaseDb, firebaseAuth } from "@/lib/firebase-client"
@@ -104,4 +106,12 @@ export async function GET(request: NextRequest) {
     // Redirect to the connections page with an error message
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_URL}/dashboard/connections?error=connection_failed`)
   }
+}
+*/
+
+// Placeholder response for disabled TikTok integration
+import { type NextRequest, NextResponse } from "next/server"
+
+export async function GET(request: NextRequest) {
+  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_URL}/dashboard/connections?error=tiktok_disabled`)
 }

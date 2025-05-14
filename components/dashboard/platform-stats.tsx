@@ -1,62 +1,55 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Instagram, Youtube, Video } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getPlatformColor } from "@/lib/utils"
-import Link from "next/link"
 
-interface PlatformStatsProps {
+interface PlatformStat {
+  id: string
   platform: string
-  postCount?: number
-  followers?: number
-  connected?: boolean
+  followers: number
+  followersGrowth: number
+  engagement: number
+  impressions: number
 }
 
-export function PlatformStats({ platform, postCount = 0, followers, connected = false }: PlatformStatsProps) {
-  // Default to lowercase platform name to avoid case sensitivity issues
-  const platformLower = platform.toLowerCase()
-  const platformColor = getPlatformColor(platformLower)
+interface PlatformStatsProps {
+  stats: PlatformStat[]
+}
 
-  const getIcon = () => {
-    switch (platformLower) {
-      case "instagram":
-        return <Instagram className="h-5 w-5" style={{ color: platformColor.text }} />
-      case "youtube":
-        return <Youtube className="h-5 w-5" style={{ color: platformColor.text }} />
-      case "tiktok":
-        return <Video className="h-5 w-5" style={{ color: platformColor.text }} />
-      default:
-        return null
-    }
-  }
-
+export function PlatformStats({ stats }: PlatformStatsProps) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-sm font-medium">{platform}</CardTitle>
-        <div
-          className="h-8 w-8 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: platformColor.bg }}
-        >
-          {getIcon()}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{postCount}</div>
-        <p className="text-xs text-muted-foreground">Scheduled posts</p>
-
-        {connected ? (
-          <div className="mt-2">
-            <div className="text-sm font-medium">{followers?.toLocaleString() || "0"}</div>
-            <p className="text-xs text-muted-foreground">Followers</p>
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground mt-2">
-            <Link href="/dashboard/connections" className="text-primary underline-offset-4 hover:underline">
-              Connect account
-            </Link>{" "}
-            for more stats
-          </p>
-        )}
-      </CardContent>
-    </Card>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {stats.map((stat) => {
+        const colors = getPlatformColor(stat.platform)
+        return (
+          <Card key={stat.id}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-medium">{stat.platform}</CardTitle>
+              <CardDescription>Platform performance</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">Followers</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-xl font-bold">{stat.followers.toLocaleString()}</div>
+                    <div className="text-xs font-medium" style={{ color: stat.followersGrowth >= 0 ? "green" : "red" }}>
+                      {stat.followersGrowth >= 0 ? "+" : ""}
+                      {stat.followersGrowth}%
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">Engagement</div>
+                  <div className="text-xl font-bold">{stat.engagement}%</div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">Impressions</div>
+                  <div className="text-xl font-bold">{stat.impressions.toLocaleString()}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })}
+    </div>
   )
 }

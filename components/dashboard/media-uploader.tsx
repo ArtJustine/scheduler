@@ -2,121 +2,131 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
+import { Upload, X } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { ImageIcon, FileVideo, Upload, X } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface MediaUploaderProps {
-  onFileSelected: (file: File | null) => void
-  contentType: string
-  platform: string
+  onUpload?: (file: File) => void
+  accept?: string
+  maxSize?: number
 }
 
-export function MediaUploader({ onFileSelected, contentType, platform }: MediaUploaderProps) {
+export function MediaUploader({ onUpload, accept = "image/*", maxSize = 5 * 1024 * 1024 }: MediaUploaderProps) {
+  const [dragActive, setDragActive] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
-  const [fileName, setFileName] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true)
+    } else if (e.type === "dragleave") {
+      setDragActive(false)
+    }
+  }
 
-    if (!file) {
-      setPreview(null)
-      setFileName(null)
-      onFileSelected(null)
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFile(e.dataTransfer.files[0])
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    if (e.target.files && e.target.files[0]) {
+      handleFile(e.target.files[0])
+    }
+  }
+
+  const handleFile = (file: File) => {
+    setError(null)
+
+    // Check file type
+    if (!file.type.match(accept.replace("*", "."))) {
+      setError(`File type not supported. Please upload ${accept} files.`)
       return
     }
 
-    setFileName(file.name)
-    onFileSelected(file)
+    // Check file size
+    if (file.size > maxSize) {
+      setError(`File is too large. Maximum size is ${maxSize / 1024 / 1024}MB.`)
+      return
+    }
 
-    // Create preview for images
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader()
-      reader.onload = () => {
-        setPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-    } else {
-      // For videos, we could use a thumbnail or just show an icon
-      setPreview(null)
+    // Create preview
+    const reader = new FileReader()
+    reader.onload = () => {
+      setPreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+
+    // Call onUpload callback
+    if (onUpload) {
+      onUpload(file)
     }
   }
 
-  const clearFile = () => {
+  const clearPreview = () => {
     setPreview(null)
-    setFileName(null)
-    onFileSelected(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
   }
-
-  const getAcceptedFileTypes = () => {
-    if (contentType === "image") return "image/*"
-    if (contentType === "video" || contentType === "reel") return "video/*"
-    return "image/*,video/*"
-  }
-
-  const isVideoContent = contentType === "video" || contentType === "reel"
 
   return (
-    <div className="space-y-4">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={getAcceptedFileTypes()}
-        onChange={handleFileChange}
-        className="hidden"
-        id="media-upload"
-      />
-
-      {!preview && !fileName ? (
-        <Card
-          className="border-dashed border-2 p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <div className="rounded-full bg-primary/10 p-3 mb-3">
-            {isVideoContent ? (
-              <FileVideo className="h-6 w-6 text-primary" />
-            ) : (
-              <ImageIcon className="h-6 w-6 text-primary" />
-            )}
+    <Card>
+      <CardContent className="p-4">
+        {preview ? (
+          <div className="relative">
+            <img src={preview || "/placeholder.svg"} alt="Preview" className="h-64 w-full rounded-md object-contain" />
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute right-2 top-2 h-8 w-8 rounded-full bg-background/80"
+              onClick={clearPreview}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Remove</span>
+            </Button>
           </div>
-          <div className="text-center space-y-1">
-            <p className="font-medium">{isVideoContent ? "Upload video" : "Upload image"}</p>
-            <p className="text-sm text-muted-foreground">Drag and drop or click to upload</p>
-            <p className="text-xs text-muted-foreground">
-              {isVideoContent ? "MP4, MOV or WebM (max 100MB)" : "PNG, JPG or WebP (max 10MB)"}
-            </p>
+        ) : (
+          <div
+            className={`flex h-64 flex-col items-center justify-center rounded-md border border-dashed p-4 transition-colors ${
+              dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25"
+            }`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <div className="flex flex-col items-center justify-center space-y-2 text-center">
+              <div className="rounded-full bg-primary/10 p-3">
+                <Upload className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium">Drag & drop your file here</p>
+                <p className="text-xs text-muted-foreground">
+                  Supports {accept.replace("*", "")} files up to {maxSize / 1024 / 1024}MB
+                </p>
+              </div>
+              <Label
+                htmlFor="media-upload"
+                className="cursor-pointer rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground"
+              >
+                Browse Files
+              </Label>
+              <Input id="media-upload" type="file" accept={accept} onChange={handleChange} className="hidden" />
+            </div>
           </div>
-        </Card>
-      ) : (
-        <div className="relative">
-          {preview ? (
-            <div className="relative aspect-square w-full max-w-md mx-auto overflow-hidden rounded-md">
-              <img src={preview || "/placeholder.svg"} alt="Preview" className="object-cover w-full h-full" />
-              <Button size="icon" variant="destructive" className="absolute top-2 right-2" onClick={clearFile}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="p-4 border rounded-md flex items-center">
-              <FileVideo className="h-6 w-6 mr-2 text-muted-foreground" />
-              <span className="flex-1 truncate">{fileName}</span>
-              <Button size="icon" variant="ghost" onClick={clearFile}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-
-      <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full">
-        <Upload className="mr-2 h-4 w-4" />
-        {preview || fileName ? "Change media" : "Select media"}
-      </Button>
-    </div>
+        )}
+        {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+      </CardContent>
+    </Card>
   )
 }

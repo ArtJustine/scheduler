@@ -1,3 +1,5 @@
+// Comment out the entire TikTok auth route
+/*
 import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
@@ -27,4 +29,12 @@ export async function GET(request: Request) {
   })
 
   return response
+}
+*/
+
+// Placeholder response for disabled TikTok integration
+import { NextResponse } from "next/server"
+
+export async function GET(request: Request) {
+  return NextResponse.json({ error: "TikTok integration is currently disabled" }, { status: 503 })
 }

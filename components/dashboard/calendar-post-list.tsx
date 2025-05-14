@@ -1,82 +1,90 @@
-import type { PostType } from "@/types/post"
-import { format } from "date-fns"
-import { Instagram, Youtube, Video, Edit } from "lucide-react"
-import { getPlatformColor } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+"use client"
 
-interface CalendarPostListProps {
-  posts: PostType[]
+import Link from "next/link"
+import { Clock, MoreHorizontal } from "lucide-react"
+
+import { formatTime, getPlatformColor, truncateText } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+
+interface Post {
+  id: string
+  title: string
+  content: string
+  platform: string
+  scheduledFor: string
 }
 
-export function CalendarPostList({ posts }: CalendarPostListProps) {
-  const getPlatformIcon = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case "instagram":
-        return <Instagram className="h-4 w-4" />
-      case "youtube":
-        return <Youtube className="h-4 w-4" />
-      case "tiktok":
-        return <Video className="h-4 w-4" />
-      default:
-        return null
-    }
-  }
+interface CalendarPostListProps {
+  date: Date
+  posts: Post[]
+  onEdit?: (id: string) => void
+  onDelete?: (id: string) => void
+}
 
-  if (posts.length === 0) {
-    return <div className="text-center py-6 text-muted-foreground">No posts scheduled for this date.</div>
-  }
-
-  // Sort posts by time
-  const sortedPosts = [...posts].sort((a, b) => {
-    return new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime()
+export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPostListProps) {
+  const formattedDate = date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
   })
 
+  if (!posts || posts.length === 0) {
+    return (
+      <div className="rounded-md border p-4">
+        <h3 className="mb-2 font-medium">{formattedDate}</h3>
+        <div className="flex h-32 flex-col items-center justify-center rounded-md border border-dashed">
+          <p className="text-sm text-muted-foreground">No posts scheduled for this day</p>
+          <Link href="/dashboard/create" className="text-sm font-medium text-primary hover:underline">
+            Create a post
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-4">
-      {sortedPosts.map((post) => {
-        const platformColor = getPlatformColor(post.platform)
-        const postTime = format(new Date(post.scheduledFor), "h:mm a")
+    <div className="rounded-md border p-4">
+      <h3 className="mb-4 font-medium">{formattedDate}</h3>
+      <div className="space-y-3">
+        {posts.map((post) => {
+          const colors = getPlatformColor(post.platform)
+          const postDate = new Date(post.scheduledFor)
 
-        return (
-          <div key={post.id} className="flex flex-col space-y-2 p-3 border rounded-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div
-                  className="h-8 w-8 rounded-full flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: platformColor.bg }}
-                >
-                  {getPlatformIcon(post.platform)}
-                </div>
-                <div>
-                  <p className="font-medium">{post.title}</p>
-                  <p className="text-xs text-muted-foreground">{postTime}</p>
+          return (
+            <div key={post.id} className="flex items-start justify-between rounded-md border p-3">
+              <div className="space-y-1">
+                <Link href={`/dashboard/post/${post.id}`} className="font-medium hover:underline">
+                  {post.title}
+                </Link>
+                <p className="text-sm text-muted-foreground">{truncateText(post.content, 60)}</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center">
+                    <div className="mr-1.5 h-2 w-2 rounded-full" style={{ backgroundColor: colors.text }} />
+                    <span className="text-xs capitalize">{post.platform}</span>
+                  </div>
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Clock className="mr-1 h-3 w-3" />
+                    <span>{formatTime(postDate)}</span>
+                  </div>
                 </div>
               </div>
-              <div
-                className="px-2 py-1 text-xs rounded-full"
-                style={{
-                  backgroundColor: platformColor.bg,
-                  color: platformColor.text,
-                }}
-              >
-                {post.contentType}
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Open menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEdit?.(post.id)}>Edit</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDelete?.(post.id)}>Delete</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-
-            {post.description && <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{post.description}</p>}
-
-            <div className="flex justify-end mt-2">
-              <Link href={`/dashboard/post/${post.id}`}>
-                <Button variant="outline" size="sm">
-                  <Edit className="mr-2 h-3 w-3" />
-                  Edit
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </div>
   )
 }

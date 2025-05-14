@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Instagram, Youtube, Video, Trash2, Loader2 } from "lucide-react"
+import { Instagram, Youtube, Video, Trash2, Loader2, AlertCircle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import {
   AlertDialog,
@@ -33,6 +33,16 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
   const [isDisconnecting, setIsDisconnecting] = useState<string | null>(null)
 
   const handleConnect = async (platform: string) => {
+    // Show a toast for TikTok being disabled
+    if (platform.toLowerCase() === "tiktok") {
+      toast({
+        title: "TikTok Integration Disabled",
+        description: "TikTok integration is currently disabled.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsConnecting(platform)
 
     try {
@@ -101,6 +111,7 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
     {
       name: "TikTok",
       description: "Connect your TikTok account to schedule videos and view analytics",
+      disabled: true, // Mark TikTok as disabled
     },
   ]
 
@@ -118,6 +129,9 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
               <div className="flex items-center gap-2">
                 {getPlatformIcon(platform.name)}
                 <CardTitle>{platform.name}</CardTitle>
+                {platform.disabled && (
+                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Disabled</span>
+                )}
               </div>
               <CardDescription>{platform.description}</CardDescription>
             </CardHeader>
@@ -126,6 +140,12 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
                 <div className="text-sm">
                   <p className="font-medium">Connected as:</p>
                   <p className="text-muted-foreground">{connectedAccount.username}</p>
+                </div>
+              )}
+              {platform.disabled && (
+                <div className="flex items-center gap-2 text-sm text-amber-600 mt-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>Integration temporarily disabled</span>
                 </div>
               )}
             </CardContent>
@@ -165,7 +185,10 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
                   </AlertDialogContent>
                 </AlertDialog>
               ) : (
-                <Button onClick={() => handleConnect(platform.name)} disabled={isConnecting === platform.name}>
+                <Button
+                  onClick={() => handleConnect(platform.name)}
+                  disabled={isConnecting === platform.name || platform.disabled}
+                >
                   {isConnecting === platform.name ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

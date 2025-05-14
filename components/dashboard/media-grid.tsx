@@ -1,141 +1,107 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Download, Trash2, X } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Copy, Download, Trash2, ImageIcon, Video } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
-import { deleteMediaFromLibrary } from "@/lib/firebase/media"
-import type { MediaItem } from "@/types/media"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+
+interface MediaItem {
+  id: string
+  url: string
+  name: string
+  type: string
+  size: number
+  uploadedAt: string
+}
 
 interface MediaGridProps {
   items: MediaItem[]
+  onDelete?: (id: string) => void
 }
 
-export function MediaGrid({ items }: MediaGridProps) {
-  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const { toast } = useToast()
+export function MediaGrid({ items, onDelete }: MediaGridProps) {
+  const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null)
 
-  const handleCopyUrl = (url: string) => {
-    navigator.clipboard.writeText(url)
-    toast({
-      title: "URL copied",
-      description: "Media URL has been copied to clipboard",
-    })
+  const handleClose = () => {
+    setSelectedItem(null)
   }
 
-  const handleDelete = async (id: string) => {
-    setIsDeleting(true)
-    try {
-      await deleteMediaFromLibrary(id)
-      toast({
-        title: "Media deleted",
-        description: "The media has been removed from your library",
-      })
-      setSelectedMedia(null)
-      // You would typically update the parent component's state here
-      // by passing a callback function from the parent
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Delete failed",
-        description: "There was a problem deleting the media",
-      })
-    } finally {
-      setIsDeleting(false)
+  const handleDelete = () => {
+    if (selectedItem && onDelete) {
+      onDelete(selectedItem.id)
+      setSelectedItem(null)
     }
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + " bytes"
+    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB"
+    else return (bytes / 1048576).toFixed(1) + " MB"
   }
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {items.map((item) => (
-          <Card
+          <div
             key={item.id}
-            className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setSelectedMedia(item)}
+            className="group relative aspect-square cursor-pointer overflow-hidden rounded-md border bg-background"
+            onClick={() => setSelectedItem(item)}
           >
-            <div className="aspect-square relative">
-              {item.type === "image" ? (
-                <img src={item.url || "/placeholder.svg"} alt={item.title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <Video className="h-12 w-12 text-muted-foreground" />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
-                <Button variant="secondary" size="sm" className="h-8 w-8 p-0">
-                  {item.type === "image" ? <ImageIcon className="h-4 w-4" /> : <Video className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
-            <CardContent className="p-3">
-              <p className="text-sm font-medium truncate">{item.title}</p>
-              <p className="text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleDateString()}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Dialog open={!!selectedMedia} onOpenChange={(open) => !open && setSelectedMedia(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{selectedMedia?.title}</DialogTitle>
-            <DialogDescription>
-              Added on {selectedMedia?.createdAt ? new Date(selectedMedia.createdAt).toLocaleDateString() : ""}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {selectedMedia?.type === "image" ? (
-              <div className="overflow-hidden rounded-md">
-                <img
-                  src={selectedMedia.url || "/placeholder.svg"}
-                  alt={selectedMedia.title}
-                  className="w-full object-contain max-h-[300px]"
-                />
-              </div>
-            ) : (
-              <div className="overflow-hidden rounded-md">
-                <video src={selectedMedia?.url} controls className="w-full max-h-[300px]" />
-              </div>
-            )}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => selectedMedia && handleCopyUrl(selectedMedia.url)}
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                Copy URL
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => selectedMedia && window.open(selectedMedia.url, "_blank")}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Download
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="flex-1"
-                onClick={() => selectedMedia && handleDelete(selectedMedia.id)}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                ) : (
-                  <Trash2 className="mr-2 h-4 w-4" />
-                )}
-                Delete
+            <img
+              src={item.url || "/placeholder.svg"}
+              alt={item.name}
+              className="h-full w-full object-cover transition-all group-hover:scale-105"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+              <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-white/20">
+                <Download className="h-4 w-4" />
+                <span className="sr-only">Download</span>
               </Button>
             </div>
           </div>
+        ))}
+      </div>
+
+      <Dialog open={!!selectedItem} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{selectedItem?.name}</DialogTitle>
+            <DialogDescription>
+              {selectedItem?.type} • {formatFileSize(selectedItem?.size || 0)}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-center overflow-hidden rounded-md border">
+            <img
+              src={selectedItem?.url || "/placeholder.svg"}
+              alt={selectedItem?.name}
+              className="max-h-[60vh] w-auto object-contain"
+            />
+          </div>
+          <DialogFooter className="flex flex-row items-center justify-between sm:justify-between">
+            <Button variant="outline" size="sm" onClick={handleClose}>
+              <X className="mr-2 h-4 w-4" />
+              Close
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleDelete}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

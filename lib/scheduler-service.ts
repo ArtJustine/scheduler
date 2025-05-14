@@ -51,7 +51,12 @@ async function publishPost(userId: string, postId: string, post: any) {
         publishResult = await publishToYouTube(userId, post)
         break
       case "tiktok":
-        publishResult = await publishToTikTok(userId, post)
+        // Comment out TikTok publishing but keep the case for structure
+        // publishResult = await publishToTikTok(userId, post)
+        publishResult = {
+          success: false,
+          error: "TikTok integration is currently disabled",
+        }
         break
       default:
         throw new Error(`Unsupported platform: ${post.platform}`)
@@ -207,6 +212,8 @@ async function publishToYouTube(userId: string, post: any) {
   }
 }
 
+// Comment out the TikTok publishing function
+/*
 // Function to publish a post to TikTok
 async function publishToTikTok(userId: string, post: any) {
   try {
@@ -261,3 +268,4 @@ async function publishToTikTok(userId: string, post: any) {
     }
   }
 }
+*/

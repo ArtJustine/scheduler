@@ -1,57 +1,85 @@
-import { formatDateTime } from "@/lib/utils"
-import type { PostType } from "@/types/post"
-import { getPlatformColor } from "@/lib/utils"
-import { Instagram, Youtube, Video } from "lucide-react"
+import Link from "next/link"
+import { Calendar, Clock } from "lucide-react"
 
-interface UpcomingPostsListProps {
-  posts: PostType[]
+import { formatDate, formatTime, getPlatformColor } from "@/lib/utils"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+
+interface Post {
+  id: string
+  title: string
+  content: string
+  platform: string
+  scheduledFor: string
 }
 
-export function UpcomingPostsList({ posts = [] }: UpcomingPostsListProps) {
-  if (!posts || !Array.isArray(posts) || posts.length === 0) {
-    return <div className="text-center py-4 text-muted-foreground">No upcoming posts scheduled</div>
-  }
+interface UpcomingPostsListProps {
+  posts: Post[]
+}
 
-  // Sort posts by scheduled date
-  const sortedPosts = [...posts].sort((a, b) => {
-    const dateA = new Date(a.scheduledDate || 0).getTime()
-    const dateB = new Date(b.scheduledDate || 0).getTime()
-    return dateA - dateB
-  })
-
-  const getPlatformIcon = (platform: string) => {
-    const platformColor = getPlatformColor(platform?.toLowerCase() || "")
-
-    switch (platform?.toLowerCase()) {
-      case "instagram":
-        return <Instagram className="h-4 w-4" style={{ color: platformColor.text }} />
-      case "youtube":
-        return <Youtube className="h-4 w-4" style={{ color: platformColor.text }} />
-      case "tiktok":
-        return <Video className="h-4 w-4" style={{ color: platformColor.text }} />
-      default:
-        return null
-    }
+export function UpcomingPostsList({ posts }: UpcomingPostsListProps) {
+  if (!posts || posts.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Upcoming Posts</CardTitle>
+          <CardDescription>You have no upcoming posts scheduled.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center py-6">
+            <Link
+              href="/dashboard/create"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              Create a Post
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
-    <div className="space-y-4">
-      {sortedPosts.map((post) => (
-        <div key={post.id} className="flex items-start gap-3">
-          <div
-            className="mt-0.5 h-7 w-7 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: getPlatformColor(post.platform?.toLowerCase() || "").bg }}
-          >
-            {getPlatformIcon(post.platform || "")}
-          </div>
-          <div className="flex-1 space-y-1">
-            <p className="text-sm font-medium leading-none">{post.caption || "No caption"}</p>
-            <p className="text-xs text-muted-foreground">
-              {post.scheduledDate ? formatDateTime(post.scheduledDate) : "Date not set"}
-            </p>
-          </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Upcoming Posts</CardTitle>
+        <CardDescription>Your next {posts.length} scheduled posts</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {posts.map((post, index) => {
+            const colors = getPlatformColor(post.platform)
+            const date = new Date(post.scheduledFor)
+
+            return (
+              <div key={post.id}>
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <Link href={`/dashboard/post/${post.id}`} className="block font-medium hover:underline">
+                      {post.title}
+                    </Link>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <div className="mr-2 h-2 w-2 rounded-full" style={{ backgroundColor: colors.text }} />
+                      <span className="capitalize">{post.platform}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                    <div className="flex items-center">
+                      <Calendar className="mr-1 h-3 w-3" />
+                      <span>{formatDate(date)}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Clock className="mr-1 h-3 w-3" />
+                      <span>{formatTime(date)}</span>
+                    </div>
+                  </div>
+                </div>
+                {index < posts.length - 1 && <Separator className="mt-4" />}
+              </div>
+            )
+          })}
         </div>
-      ))}
-    </div>
+      </CardContent>
+    </Card>
   )
 }

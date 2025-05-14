@@ -1,40 +1,43 @@
 "use client"
 
-import { UserNav } from "@/components/dashboard/user-nav"
+import Link from "next/link"
+import { Bell, Menu } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useEffect, useState } from "react"
+import { UserNav } from "@/components/dashboard/user-nav"
 
 interface HeaderProps {
-  title: string
+  user: {
+    name?: string
+    email?: string
+    image?: string
+  }
+  onLogout?: () => void
+  onMenuClick?: () => void
 }
 
-export function Header({ title }: HeaderProps) {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    // Initial check
-    checkScreenSize()
-
-    // Add event listener for window resize
-    window.addEventListener("resize", checkScreenSize)
-
-    // Cleanup
-    return () => window.removeEventListener("resize", checkScreenSize)
-  }, [])
-
+export function Header({ user, onLogout, onMenuClick }: HeaderProps) {
   return (
-    <div className="border-b">
-      <div className="flex h-16 items-center px-4">
-        <h1 className="text-xl font-semibold">{title}</h1>
-        <div className="ml-auto flex items-center space-x-2">
+    <header className="sticky top-0 z-10 flex h-16 items-center border-b bg-background px-4 md:px-6">
+      <Button variant="ghost" size="icon" className="mr-2 md:hidden" onClick={onMenuClick}>
+        <Menu className="h-5 w-5" />
+        <span className="sr-only">Toggle menu</span>
+      </Button>
+      <div className="flex flex-1 items-center justify-between">
+        <Link href="/dashboard" className="flex items-center gap-2 md:hidden">
+          <span className="text-xl font-bold">SocialScheduler</span>
+        </Link>
+        <div className="flex items-center gap-2 md:ml-auto">
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            <span className="sr-only">Notifications</span>
+            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
+          </Button>
           <ThemeToggle />
-          <UserNav />
+          <UserNav user={user} onLogout={onLogout} />
         </div>
       </div>
-    </div>
+    </header>
   )
 }

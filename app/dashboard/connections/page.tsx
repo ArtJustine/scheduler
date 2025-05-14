@@ -102,7 +102,9 @@ export default function ConnectionsPage() {
         description:
           error === "access_denied"
             ? "You denied access to your account."
-            : "There was a problem connecting your account.",
+            : error === "tiktok_disabled"
+              ? "TikTok integration is currently disabled."
+              : "There was a problem connecting your account.",
       })
     }
   }, [success, error, toast])
@@ -190,7 +192,9 @@ export default function ConnectionsPage() {
           <AlertDescription>
             {error === "access_denied"
               ? "You denied access to your account."
-              : "There was a problem connecting your account."}
+              : error === "tiktok_disabled"
+                ? "TikTok integration is currently disabled."
+                : "There was a problem connecting your account."}
           </AlertDescription>
         </Alert>
       )}
@@ -242,34 +246,22 @@ export default function ConnectionsPage() {
         </TabsContent>
 
         <TabsContent value="tiktok" className="space-y-6">
-          {accounts.tiktok && (
-            <Card>
-              <CardHeader>
-                <CardTitle>TikTok Account Details</CardTitle>
-                <CardDescription>Information about your connected TikTok account</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Followers</p>
-                    <p className="text-2xl font-bold">{accounts.tiktok.followers?.toLocaleString() || "0"}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Growth</p>
-                    <p className="text-2xl font-bold text-green-500">+{accounts.tiktok.followersGrowth || "0"}%</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Engagement</p>
-                    <p className="text-2xl font-bold">{accounts.tiktok.engagement || "0"}%</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Posts</p>
-                    <p className="text-2xl font-bold">{accounts.tiktok.posts || "0"}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Replace TikTok account details with disabled message */}
+          <Card>
+            <CardHeader>
+              <CardTitle>TikTok Integration Disabled</CardTitle>
+              <CardDescription>TikTok integration is currently unavailable</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Integration Disabled</AlertTitle>
+                <AlertDescription>
+                  TikTok integration has been temporarily disabled. Please check back later.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="youtube" className="space-y-6">

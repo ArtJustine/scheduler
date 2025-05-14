@@ -1,6 +1,8 @@
 "use client"
+import { Line, LineChart, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from "recharts"
 
-import { useEffect, useRef } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
 interface DataPoint {
   date: string
@@ -18,133 +20,59 @@ interface AnalyticsChartProps {
 }
 
 export function AnalyticsChart({ data }: AnalyticsChartProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  // Convert the data format to what recharts expects
+  const chartData = data[0].data.map((point, index) => {
+    const result: any = { date: point.date }
 
-  useEffect(() => {
-    if (!canvasRef.current) return
-
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    // Set canvas dimensions
-    const dpr = window.devicePixelRatio || 1
-    const rect = canvas.getBoundingClientRect()
-    canvas.width = rect.width * dpr
-    canvas.height = rect.height * dpr
-    ctx.scale(dpr, dpr)
-    canvas.style.width = `${rect.width}px`
-    canvas.style.height = `${rect.height}px`
-
-    // Chart dimensions
-    const padding = 40
-    const chartWidth = rect.width - padding * 2
-    const chartHeight = rect.height - padding * 2
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    // Find max value for scaling
-    const allValues = data.flatMap((series) => series.data.map((d) => d.value))
-    const maxValue = Math.max(...allValues) * 1.1 // Add 10% padding
-
-    // Draw axes
-    ctx.beginPath()
-    ctx.strokeStyle = "#e2e8f0"
-    ctx.lineWidth = 1
-    ctx.moveTo(padding, padding)
-    ctx.lineTo(padding, rect.height - padding)
-    ctx.lineTo(rect.width - padding, rect.height - padding)
-    ctx.stroke()
-
-    // Draw x-axis labels
-    const xLabels = data[0].data.map((d) => d.date)
-    ctx.textAlign = "center"
-    ctx.textBaseline = "top"
-    ctx.fillStyle = "#64748b"
-    ctx.font = "12px Inter, sans-serif"
-
-    xLabels.forEach((label, i) => {
-      const x = padding + (i * chartWidth) / (xLabels.length - 1)
-      ctx.fillText(label, x, rect.height - padding + 10)
-    })
-
-    // Draw y-axis labels
-    const yLabelCount = 5
-    ctx.textAlign = "right"
-    ctx.textBaseline = "middle"
-
-    for (let i = 0; i <= yLabelCount; i++) {
-      const value = (maxValue * i) / yLabelCount
-      const y = rect.height - padding - (i * chartHeight) / yLabelCount
-      ctx.fillText(Math.round(value).toLocaleString(), padding - 10, y)
-
-      // Draw horizontal grid lines
-      ctx.beginPath()
-      ctx.strokeStyle = "#e2e8f0"
-      ctx.lineWidth = 0.5
-      ctx.moveTo(padding, y)
-      ctx.lineTo(rect.width - padding, y)
-      ctx.stroke()
-    }
-
-    // Draw data series
     data.forEach((series) => {
-      ctx.beginPath()
-      ctx.strokeStyle = series.color
-      ctx.lineWidth = 2
-
-      series.data.forEach((point, i) => {
-        const x = padding + (i * chartWidth) / (series.data.length - 1)
-        const y = rect.height - padding - (point.value / maxValue) * chartHeight
-
-        if (i === 0) {
-          ctx.moveTo(x, y)
-        } else {
-          ctx.lineTo(x, y)
-        }
-      })
-
-      ctx.stroke()
-
-      // Draw points
-      series.data.forEach((point, i) => {
-        const x = padding + (i * chartWidth) / (series.data.length - 1)
-        const y = rect.height - padding - (point.value / maxValue) * chartHeight
-
-        ctx.beginPath()
-        ctx.fillStyle = "white"
-        ctx.arc(x, y, 4, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.strokeStyle = series.color
-        ctx.lineWidth = 2
-        ctx.stroke()
-      })
+      result[series.name] = series.data[index]?.value || 0
     })
 
-    // Draw legend
-    const legendX = padding
-    const legendY = padding - 15
-    const legendItemWidth = 80
-
-    data.forEach((series, i) => {
-      const x = legendX + i * legendItemWidth
-
-      // Draw color box
-      ctx.fillStyle = series.color
-      ctx.fillRect(x, legendY, 12, 12)
-
-      // Draw series name
-      ctx.fillStyle = "#64748b"
-      ctx.textAlign = "left"
-      ctx.textBaseline = "middle"
-      ctx.fillText(series.name, x + 16, legendY + 6)
-    })
-  }, [data])
+    return result
+  })
 
   return (
-    <div className="w-full h-full">
-      <canvas ref={canvasRef} className="w-full h-full" />
-    </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Analytics Overview</CardTitle>
+        <CardDescription>Performance metrics across platforms</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer
+          config={{
+            ...data.reduce(
+              (acc, series) => ({
+                ...acc,
+                [series.name]: {
+                  label: series.name,
+                  color: series.color,
+                },
+              }),
+              {},
+            ),
+          }}
+          className="h-[400px]"
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Legend />
+              {data.map((series) => (
+                <Line
+                  key={series.name}
+                  type="monotone"
+                  dataKey={series.name}
+                  stroke={`var(--color-${series.name.toLowerCase().replace(/\s+/g, "-")})`}
+                  name={series.name}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   )
 }

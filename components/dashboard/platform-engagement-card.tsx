@@ -1,47 +1,75 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getPlatformColor } from "@/lib/utils"
 
-interface PlatformEngagementCardProps {
+interface EngagementData {
+  id: string
   platform: string
-  stats: {
-    likes: number
-    comments: number
-    shares: number
-    saves?: number
-  }
+  likes: number
+  comments: number
+  shares: number
+  saves: number
 }
 
-export function PlatformEngagementCard({ platform, stats }: PlatformEngagementCardProps) {
-  const colors = getPlatformColor(platform)
+interface PlatformEngagementCardProps {
+  data: EngagementData
+}
+
+export function PlatformEngagementCard({ data }: PlatformEngagementCardProps) {
+  const colors = getPlatformColor(data.platform)
+  const total = data.likes + data.comments + data.shares + data.saves
+
+  const getPercentage = (value: number) => {
+    return ((value / total) * 100).toFixed(1)
+  }
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-medium">{platform}</CardTitle>
-          <div className="rounded-full p-1" style={{ backgroundColor: colors.bg }}>
-            <span className="h-3 w-3 rounded-full block" style={{ backgroundColor: colors.text }} />
-          </div>
-        </div>
+        <CardTitle className="text-base font-medium">{data.platform} Engagement</CardTitle>
+        <CardDescription>Breakdown of user interactions</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">Likes</span>
-            <span className="text-xl font-bold">{stats.likes.toLocaleString()}</span>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full" style={{ backgroundColor: colors.text }} />
+              <div className="text-sm font-medium">Likes</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-sm font-medium">{data.likes.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">({getPercentage(data.likes)}%)</div>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">Comments</span>
-            <span className="text-xl font-bold">{stats.comments.toLocaleString()}</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full" style={{ backgroundColor: colors.text, opacity: 0.8 }} />
+              <div className="text-sm font-medium">Comments</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-sm font-medium">{data.comments.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">({getPercentage(data.comments)}%)</div>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">Shares</span>
-            <span className="text-xl font-bold">{stats.shares.toLocaleString()}</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full" style={{ backgroundColor: colors.text, opacity: 0.6 }} />
+              <div className="text-sm font-medium">Shares</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-sm font-medium">{data.shares.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">({getPercentage(data.shares)}%)</div>
+            </div>
           </div>
-          {stats.saves !== undefined && (
-            <div className="flex flex-col">
-              <span className="text-sm text-muted-foreground">Saves</span>
-              <span className="text-xl font-bold">{stats.saves.toLocaleString()}</span>
+          {data.saves > 0 && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: colors.text, opacity: 0.4 }} />
+                <div className="text-sm font-medium">Saves</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-sm font-medium">{data.saves.toLocaleString()}</div>
+                <div className="text-xs text-muted-foreground">({getPercentage(data.saves)}%)</div>
+              </div>
             </div>
           )}
         </div>

@@ -1,224 +1,204 @@
+import { v4 as uuidv4 } from "uuid"
 import type { SocialAccounts } from "@/types/social"
 
-export function getTotalFollowers(accounts: SocialAccounts) {
+// Fixed data generation without using problematic random numbers
+export function getAnalyticsData() {
+  const platforms = ["Instagram", "YouTube", "TikTok"]
+  const colors = ["#C32AA3", "#FF0000", "#000000"]
+
+  const dates = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date()
+    date.setDate(date.getDate() - (6 - i))
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  })
+
+  return platforms.map((platform, index) => {
+    // Use deterministic values instead of random ones
+    const baseValue = 1000 * (index + 1)
+    const growth = 50 * (index + 1)
+
+    return {
+      id: uuidv4(),
+      name: platform,
+      color: colors[index],
+      data: dates.map((date, i) => ({
+        date,
+        value: baseValue + growth * i,
+      })),
+    }
+  })
+}
+
+export function getPlatformStats() {
+  return [
+    {
+      id: "1",
+      platform: "Instagram",
+      followers: 12500,
+      followersGrowth: 5.2,
+      engagement: 3.8,
+      impressions: 45000,
+    },
+    {
+      id: "2",
+      platform: "YouTube",
+      followers: 38000,
+      followersGrowth: 2.7,
+      engagement: 4.5,
+      impressions: 120000,
+    },
+    {
+      id: "3",
+      platform: "TikTok",
+      followers: 56000,
+      followersGrowth: 8.3,
+      engagement: 6.2,
+      impressions: 250000,
+    },
+  ]
+}
+
+export function getEngagementData() {
+  return [
+    {
+      id: "1",
+      platform: "Instagram",
+      likes: 8500,
+      comments: 1200,
+      shares: 950,
+      saves: 750,
+    },
+    {
+      id: "2",
+      platform: "YouTube",
+      likes: 15000,
+      comments: 2800,
+      shares: 1500,
+      saves: 0,
+    },
+    {
+      id: "3",
+      platform: "TikTok",
+      likes: 45000,
+      comments: 3500,
+      shares: 12000,
+      saves: 8000,
+    },
+  ]
+}
+
+export const getTotalFollowers = (accounts: SocialAccounts): number => {
   let total = 0
-  if (accounts.instagram) {
-    total += accounts.instagram.followers || 0
+  if (accounts.instagram && accounts.instagram.followers) {
+    total += accounts.instagram.followers
   }
-  if (accounts.tiktok) {
-    total += accounts.tiktok.followers || 0
+  if (accounts.youtube && accounts.youtube.followers) {
+    total += accounts.youtube.followers
   }
-  if (accounts.youtube) {
-    total += accounts.youtube.followers || 0
+  if (accounts.tiktok && accounts.tiktok.followers) {
+    total += accounts.tiktok.followers
   }
   return total
 }
 
-export function getAverageEngagement(accounts: SocialAccounts) {
-  let total = 0
+export const getAverageEngagement = (accounts: SocialAccounts): number => {
+  let totalEngagement = 0
   let count = 0
 
-  if (accounts.instagram) {
-    total += accounts.instagram.engagement || 0
-    count += 1
+  if (accounts.instagram && accounts.instagram.engagement) {
+    totalEngagement += accounts.instagram.engagement
+    count++
   }
-  if (accounts.tiktok) {
-    total += accounts.tiktok.engagement || 0
-    count += 1
+  if (accounts.youtube && accounts.youtube.engagement) {
+    totalEngagement += accounts.youtube.engagement
+    count++
   }
-  if (accounts.youtube) {
-    total += accounts.youtube.engagement || 0
-    count += 1
+  if (accounts.tiktok && accounts.tiktok.engagement) {
+    totalEngagement += accounts.tiktok.engagement
+    count++
   }
 
-  return count > 0 ? total / count : 0
+  return count > 0 ? totalEngagement / count : 0
 }
 
-export function getTotalImpressions(accounts: SocialAccounts) {
+export const getTotalImpressions = (accounts: SocialAccounts): number => {
   let total = 0
-  if (accounts.instagram) {
-    total += accounts.instagram.impressions || 0
+  if (accounts.instagram && accounts.instagram.impressions) {
+    total += accounts.instagram.impressions
   }
-  if (accounts.tiktok) {
-    total += accounts.tiktok.impressions || 0
+  if (accounts.youtube && accounts.youtube.impressions) {
+    total += accounts.youtube.impressions
   }
-  if (accounts.youtube) {
-    total += accounts.youtube.impressions || 0
+  if (accounts.tiktok && accounts.tiktok.impressions) {
+    total += accounts.tiktok.impressions
   }
   return total
 }
 
-export function getConnectedPlatformsCount(accounts: SocialAccounts) {
-  let count = 0
-  if (accounts.instagram) count += 1
-  if (accounts.tiktok) count += 1
-  if (accounts.youtube) count += 1
-  return count
+interface ChartDataPoint {
+  date: string
+  [key: string]: number
 }
 
-export function generateChartData(accounts: SocialAccounts) {
-  // Generate mock data for charts based on current follower counts
-  return {
-    instagram: Array(6)
-      .fill(0)
-      .map((_, i) => {
-        const baseValue = accounts.instagram?.followers || 400
-        const monthValue = baseValue - (5 - i) * (baseValue * 0.1 * Math.random())
-        return {
-          date: getMonthName(i),
-          value: Math.round(monthValue),
-        }
-      }),
-    tiktok: Array(6)
-      .fill(0)
-      .map((_, i) => {
-        const baseValue = accounts.tiktok?.followers || 1000
-        const monthValue = baseValue - (5 - i) * (baseValue * 0.15 * Math.random())
-        return {
-          date: getMonthName(i),
-          value: Math.round(monthValue),
-        }
-      }),
-    youtube: Array(6)
-      .fill(0)
-      .map((_, i) => {
-        const baseValue = accounts.youtube?.followers || 200
-        const monthValue = baseValue - (5 - i) * (baseValue * 0.08 * Math.random())
-        return {
-          date: getMonthName(i),
-          value: Math.round(monthValue),
-        }
-      }),
+interface ChartSeries {
+  name: string
+  data: { date: string; value: number }[]
+  color: string
+}
+
+export const generateChartData = (accounts: SocialAccounts): ChartSeries[] => {
+  const mockChartData = {
+    instagram: [
+      { date: "Jan", value: 400 },
+      { date: "Feb", value: 600 },
+      { date: "Mar", value: 500 },
+      { date: "Apr", value: 700 },
+      { date: "May", value: 900 },
+      { date: "Jun", value: 1100 },
+    ],
+    tiktok: [
+      { date: "Jan", value: 1000 },
+      { date: "Feb", value: 1500 },
+      { date: "Mar", value: 2000 },
+      { date: "Apr", value: 3500 },
+      { date: "May", value: 4200 },
+      { date: "Jun", value: 5000 },
+    ],
+    youtube: [
+      { date: "Jan", value: 200 },
+      { date: "Feb", value: 300 },
+      { date: "Mar", value: 250 },
+      { date: "Apr", value: 400 },
+      { date: "May", value: 500 },
+      { date: "Jun", value: 600 },
+    ],
   }
-}
 
-function getMonthName(monthsAgo: number) {
-  const date = new Date()
-  date.setMonth(date.getMonth() - 5 + monthsAgo)
-  return date.toLocaleString("default", { month: "short" })
-}
+  const chartSeries: ChartSeries[] = []
 
-// Generate mock analytics data for demonstration purposes
-export function generateAnalyticsData(platform: string, days = 30) {
-  const data = []
-  const today = new Date()
-
-  for (let i = days; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - i)
-
-    // Format date as MM/DD
-    const formattedDate = `${date.getMonth() + 1}/${date.getDate()}`
-
-    // Generate random values based on platform
-    let baseValue = 0
-    let growth = 0
-
-    switch (platform.toLowerCase()) {
-      case "instagram":
-        baseValue = 1000 + Math.random() * 500
-        growth = 0.05 + Math.random() * 0.1
-        break
-      case "tiktok":
-        baseValue = 2000 + Math.random() * 1000
-        growth = 0.1 + Math.random() * 0.2
-        break
-      case "youtube":
-        baseValue = 500 + Math.random() * 300
-        growth = 0.02 + Math.random() * 0.05
-        break
-      default:
-        baseValue = 100 + Math.random() * 100
-        growth = 0.01 + Math.random() * 0.03
-    }
-
-    // Apply growth trend over time
-    const value = Math.round(baseValue * (1 + (growth * (days - i)) / days))
-
-    data.push({
-      date: formattedDate,
-      value,
+  if (accounts.instagram) {
+    chartSeries.push({
+      name: "Instagram",
+      data: mockChartData.instagram,
+      color: "#E1306C",
     })
   }
 
-  return data
-}
-
-export function generateEngagementData(platform: string, days = 30) {
-  const data = []
-  const today = new Date()
-
-  for (let i = days; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - i)
-
-    // Format date as MM/DD
-    const formattedDate = `${date.getMonth() + 1}/${date.getDate()}`
-
-    // Generate random engagement rate based on platform
-    let baseRate = 0
-
-    switch (platform.toLowerCase()) {
-      case "instagram":
-        baseRate = 2 + Math.random() * 3 // 2-5%
-        break
-      case "tiktok":
-        baseRate = 5 + Math.random() * 10 // 5-15%
-        break
-      case "youtube":
-        baseRate = 1 + Math.random() * 2 // 1-3%
-        break
-      default:
-        baseRate = 0.5 + Math.random() * 1.5 // 0.5-2%
-    }
-
-    // Add some daily variation
-    const dailyVariation = (Math.random() - 0.5) * 0.5
-    const value = baseRate + dailyVariation
-
-    data.push({
-      date: formattedDate,
-      value: Number.parseFloat(value.toFixed(2)),
+  if (accounts.tiktok) {
+    chartSeries.push({
+      name: "TikTok",
+      data: mockChartData.tiktok,
+      color: "#000000",
     })
   }
 
-  return data
-}
-
-export function getAnalyticsOverview(platform: string) {
-  // Generate platform-specific overview stats
-  switch (platform.toLowerCase()) {
-    case "instagram":
-      return {
-        followers: 10000 + Math.floor(Math.random() * 5000),
-        engagement: 3.2 + Math.random() * 1.5,
-        posts: 120 + Math.floor(Math.random() * 30),
-        impressions: 250000 + Math.floor(Math.random() * 50000),
-        reach: 150000 + Math.floor(Math.random() * 30000),
-      }
-    case "tiktok":
-      return {
-        followers: 25000 + Math.floor(Math.random() * 10000),
-        engagement: 8.5 + Math.random() * 3,
-        posts: 80 + Math.floor(Math.random() * 20),
-        impressions: 500000 + Math.floor(Math.random() * 100000),
-        reach: 350000 + Math.floor(Math.random() * 70000),
-      }
-    case "youtube":
-      return {
-        followers: 5000 + Math.floor(Math.random() * 2000),
-        engagement: 2.1 + Math.random() * 1,
-        posts: 45 + Math.floor(Math.random() * 15),
-        impressions: 100000 + Math.floor(Math.random() * 30000),
-        reach: 70000 + Math.floor(Math.random() * 20000),
-      }
-    default:
-      return {
-        followers: 1000 + Math.floor(Math.random() * 500),
-        engagement: 1.5 + Math.random() * 0.8,
-        posts: 30 + Math.floor(Math.random() * 10),
-        impressions: 20000 + Math.floor(Math.random() * 5000),
-        reach: 15000 + Math.floor(Math.random() * 3000),
-      }
+  if (accounts.youtube) {
+    chartSeries.push({
+      name: "YouTube",
+      data: mockChartData.youtube,
+      color: "#FF0000",
+    })
   }
+
+  return chartSeries
 }

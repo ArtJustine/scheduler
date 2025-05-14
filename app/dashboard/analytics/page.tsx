@@ -1,303 +1,136 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getScheduledPosts } from "@/lib/firebase/posts"
-import type { PostType } from "@/types/post"
-import { AnalyticsChart } from "@/components/dashboard/analytics-chart"
+import { BarChart, LineChart } from "@/components/dashboard/analytics-chart"
 import { PlatformEngagementCard } from "@/components/dashboard/platform-engagement-card"
-import { BarChart3, TrendingUp, Users } from "lucide-react"
-import { getSocialAccounts } from "@/lib/firebase/social-accounts"
-import type { SocialAccounts } from "@/types/social"
-import { getTotalFollowers, getAverageEngagement, getTotalImpressions, generateChartData } from "@/lib/social-analytics"
+import { getAnalytics } from "@/lib/data-service"
 
 export default function AnalyticsPage() {
-  const [posts, setPosts] = useState<PostType[]>([])
+  const [analytics, setAnalytics] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState("30")
-  const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadAnalytics = async () => {
       try {
-        const [fetchedPosts, fetchedAccounts] = await Promise.all([getScheduledPosts(), getSocialAccounts()])
-        setPosts(fetchedPosts)
-        setSocialAccounts(fetchedAccounts)
+        setIsLoading(true)
+        const data = await getAnalytics()
+        setAnalytics(data)
       } catch (error) {
-        console.error("Error fetching data:", error)
+        console.error("Error loading analytics:", error)
       } finally {
         setIsLoading(false)
       }
     }
 
-    loadData()
+    loadAnalytics()
   }, [])
 
-  // Mock data for analytics
-  const analyticsData = {
-    instagram: socialAccounts.instagram
-      ? {
-          followers: socialAccounts.instagram.followers || 0,
-          engagement: socialAccounts.instagram.engagement || 0,
-          impressions: socialAccounts.instagram.impressions || 0,
-          reachGrowth: socialAccounts.instagram.followersGrowth || 0,
-        }
-      : {
-          followers: 0,
-          engagement: 0,
-          impressions: 0,
-          reachGrowth: 0,
-        },
-    tiktok: socialAccounts.tiktok
-      ? {
-          followers: socialAccounts.tiktok.followers || 0,
-          engagement: socialAccounts.tiktok.engagement || 0,
-          impressions: socialAccounts.tiktok.impressions || 0,
-          reachGrowth: socialAccounts.tiktok.followersGrowth || 0,
-        }
-      : {
-          followers: 0,
-          engagement: 0,
-          impressions: 0,
-          reachGrowth: 0,
-        },
-    youtube: socialAccounts.youtube
-      ? {
-          followers: socialAccounts.youtube.followers || 0,
-          engagement: socialAccounts.youtube.engagement || 0,
-          impressions: socialAccounts.youtube.impressions || 0,
-          reachGrowth: socialAccounts.youtube.followersGrowth || 0,
-        }
-      : {
-          followers: 0,
-          engagement: 0,
-          impressions: 0,
-          reachGrowth: 0,
-        },
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    )
   }
 
-  // Mock chart data
-  const mockChartData = {
-    instagram: [
-      { date: "Jan", value: 400 },
-      { date: "Feb", value: 600 },
-      { date: "Mar", value: 500 },
-      { date: "Apr", value: 700 },
-      { date: "May", value: 900 },
-      { date: "Jun", value: 1100 },
-    ],
-    tiktok: [
-      { date: "Jan", value: 1000 },
-      { date: "Feb", value: 1500 },
-      { date: "Mar", value: 2000 },
-      { date: "Apr", value: 3500 },
-      { date: "May", value: 4200 },
-      { date: "Jun", value: 5000 },
-    ],
-    youtube: [
-      { date: "Jan", value: 200 },
-      { date: "Feb", value: 300 },
-      { date: "Mar", value: 250 },
-      { date: "Apr", value: 400 },
-      { date: "May", value: 500 },
-      { date: "Jun", value: 600 },
-    ],
+  if (!analytics) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-xl font-semibold mb-2">No Analytics Data Available</h2>
+        <p className="text-muted-foreground">Start posting to see your analytics data.</p>
+      </div>
+    )
   }
-
-  // Generate chart data based on accounts
-  const chartData = generateChartData(socialAccounts)
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
-          <p className="text-muted-foreground">Track performance across your social media platforms</p>
-        </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select time range" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="30">Last 30 days</SelectItem>
-            <SelectItem value="90">Last 90 days</SelectItem>
-            <SelectItem value="365">Last year</SelectItem>
-          </SelectContent>
-        </Select>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
+        <p className="text-muted-foreground">Track your social media performance across platforms</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Total Followers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoading ? "Loading..." : getTotalFollowers(socialAccounts).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-500">+{Math.floor(Math.random() * 10) + 5}%</span> from last month
-            </p>
+            <div className="text-2xl font-bold">{analytics.overview.totalPosts}</div>
+            <p className="text-xs text-muted-foreground">+{Math.floor(Math.random() * 10)}% from last month</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Avg. Engagement Rate</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Engagement</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoading ? "Loading..." : getAverageEngagement(socialAccounts).toFixed(1) + "%"}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-500">+{(Math.random() * 3).toFixed(1)}%</span> from last month
-            </p>
+            <div className="text-2xl font-bold">{analytics.overview.totalEngagement}%</div>
+            <p className="text-xs text-muted-foreground">+{Math.floor(Math.random() * 10)}% from last month</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Impressions</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoading ? "Loading..." : getTotalImpressions(socialAccounts).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-500">+{Math.floor(Math.random() * 10) + 10}%</span> from last month
-            </p>
+            <div className="text-2xl font-bold">{analytics.overview.totalImpressions.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">+{Math.floor(Math.random() * 15)}% from last month</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Scheduled Posts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analytics.overview.scheduledPosts}</div>
+            <p className="text-xs text-muted-foreground">{analytics.overview.scheduledPosts} posts ready to publish</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs defaultValue="engagement" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="instagram">Instagram</TabsTrigger>
-          <TabsTrigger value="tiktok">TikTok</TabsTrigger>
-          <TabsTrigger value="youtube">YouTube</TabsTrigger>
+          <TabsTrigger value="engagement">Engagement</TabsTrigger>
+          <TabsTrigger value="followers">Followers</TabsTrigger>
+          <TabsTrigger value="impressions">Impressions</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="engagement" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Growth Trends</CardTitle>
-              <CardDescription>Follower growth across all platforms</CardDescription>
+              <CardTitle>Engagement Rate</CardTitle>
+              <CardDescription>Average engagement rate across platforms over the last 6 months</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
-              {isLoading ? (
-                <div className="flex h-full items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                </div>
-              ) : (
-                <AnalyticsChart
-                  data={[
-                    {
-                      name: "Instagram",
-                      data: mockChartData.instagram,
-                      color: "#E1306C",
-                    },
-                    {
-                      name: "TikTok",
-                      data: mockChartData.tiktok,
-                      color: "#000000",
-                    },
-                    {
-                      name: "YouTube",
-                      data: mockChartData.youtube,
-                      color: "#FF0000",
-                    },
-                  ]}
-                />
-              )}
+              <LineChart data={analytics.engagement} />
             </CardContent>
           </Card>
-
           <div className="grid gap-4 md:grid-cols-3">
-            <PlatformEngagementCard platform="Instagram" data={analyticsData.instagram} isLoading={isLoading} />
-            <PlatformEngagementCard platform="TikTok" data={analyticsData.tiktok} isLoading={isLoading} />
-            <PlatformEngagementCard platform="YouTube" data={analyticsData.youtube} isLoading={isLoading} />
+            <PlatformEngagementCard platform="Instagram" stats={analytics.platforms.instagram} color="pink" />
+            <PlatformEngagementCard platform="YouTube" stats={analytics.platforms.youtube} color="red" />
+            <PlatformEngagementCard platform="TikTok" stats={analytics.platforms.tiktok} color="blue" />
           </div>
         </TabsContent>
-
-        <TabsContent value="instagram" className="space-y-6">
+        <TabsContent value="followers" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Instagram Performance</CardTitle>
-              <CardDescription>Detailed analytics for your Instagram account</CardDescription>
+              <CardTitle>Follower Growth</CardTitle>
+              <CardDescription>Follower count across platforms over the last 6 months</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
-              {isLoading ? (
-                <div className="flex h-full items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                </div>
-              ) : (
-                <AnalyticsChart
-                  data={[
-                    {
-                      name: "Followers",
-                      data: mockChartData.instagram,
-                      color: "#E1306C",
-                    },
-                  ]}
-                />
-              )}
+              <BarChart data={analytics.followers} />
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="tiktok" className="space-y-6">
+        <TabsContent value="impressions" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>TikTok Performance</CardTitle>
-              <CardDescription>Detailed analytics for your TikTok account</CardDescription>
+              <CardTitle>Impressions</CardTitle>
+              <CardDescription>Total impressions across platforms over the last 6 months</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
-              {isLoading ? (
-                <div className="flex h-full items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                </div>
-              ) : (
-                <AnalyticsChart
-                  data={[
-                    {
-                      name: "Followers",
-                      data: mockChartData.tiktok,
-                      color: "#000000",
-                    },
-                  ]}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="youtube" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>YouTube Performance</CardTitle>
-              <CardDescription>Detailed analytics for your YouTube account</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[300px]">
-              {isLoading ? (
-                <div className="flex h-full items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                </div>
-              ) : (
-                <AnalyticsChart
-                  data={[
-                    {
-                      name: "Followers",
-                      data: mockChartData.youtube,
-                      color: "#FF0000",
-                    },
-                  ]}
-                />
-              )}
+              <BarChart data={analytics.impressions} />
             </CardContent>
           </Card>
         </TabsContent>

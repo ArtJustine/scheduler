@@ -1,49 +1,54 @@
 const fs = require("fs")
 const path = require("path")
 
-// The problematic number pattern
-const pattern = /0\.1873987296766962/
+// The problematic number
+const problematicNumber = "0.1873987296766962"
+const problematicNumberAlt = ".1873987296766962"
 
-// Function to recursively search directories
-function searchFiles(dir) {
-  const files = fs.readdirSync(dir)
+// Function to search for the number in a file
+function searchFile(filePath) {
+  try {
+    const content = fs.readFileSync(filePath, "utf8")
+    if (content.includes(problematicNumber) || content.includes(problematicNumberAlt)) {
+      console.log(`Found in ${filePath}`)
 
-  for (const file of files) {
-    const filePath = path.join(dir, file)
-    const stat = fs.statSync(filePath)
-
-    if (stat.isDirectory()) {
-      // Skip node_modules and .next directories
-      if (file !== "node_modules" && file !== ".next") {
-        searchFiles(filePath)
-      }
-    } else if (
-      stat.isFile() &&
-      (file.endsWith(".js") ||
-        file.endsWith(".jsx") ||
-        file.endsWith(".ts") ||
-        file.endsWith(".tsx") ||
-        file.endsWith(".css"))
-    ) {
-      try {
-        const content = fs.readFileSync(filePath, "utf8")
-        if (pattern.test(content)) {
-          console.log(`Found pattern in: ${filePath}`)
-
-          // Print the context around the match
-          const lines = content.split("\n")
-          for (let i = 0; i < lines.length; i++) {
-            if (pattern.test(lines[i])) {
-              console.log(`Line ${i + 1}: ${lines[i]}`)
-            }
-          }
+      // Find the line number
+      const lines = content.split("\n")
+      lines.forEach((line, index) => {
+        if (line.includes(problematicNumber) || line.includes(problematicNumberAlt)) {
+          console.log(`Line ${index + 1}: ${line.trim()}`)
         }
-      } catch (err) {
-        console.error(`Error reading ${filePath}: ${err.message}`)
-      }
+      })
     }
+  } catch (err) {
+    console.error(`Error reading ${filePath}: ${err.message}`)
   }
 }
 
-// Start searching from the current directory
-searchFiles(".")
+// Function to recursively search directories
+function searchDirectory(dir) {
+  const files = fs.readdirSync(dir)
+
+  files.forEach((file) => {
+    const filePath = path.join(dir, file)
+    const stats = fs.statSync(filePath)
+
+    if (stats.isDirectory()) {
+      searchDirectory(filePath)
+    } else if (
+      stats.isFile() &&
+      (filePath.endsWith(".js") ||
+        filePath.endsWith(".jsx") ||
+        filePath.endsWith(".ts") ||
+        filePath.endsWith(".tsx") ||
+        filePath.endsWith(".css"))
+    ) {
+      searchFile(filePath)
+    }
+  })
+}
+
+// Start the search
+console.log("Searching for problematic number...")
+searchDirectory(".")
+console.log("Search complete.")

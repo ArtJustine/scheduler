@@ -1,78 +1,80 @@
 "use client"
-import { Line, LineChart, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from "recharts"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import {
+  LineChart as RechartsLineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  BarChart as RechartsBarChart,
+  Bar,
+} from "recharts"
 
-interface DataPoint {
+interface ChartData {
   date: string
-  value: number
+  instagram: number
+  youtube: number
+  tiktok: number
+  [key: string]: any
 }
 
-interface ChartSeries {
-  name: string
-  data: DataPoint[]
-  color: string
+interface LineChartProps {
+  data: ChartData[]
 }
 
-interface AnalyticsChartProps {
-  data: ChartSeries[]
-}
-
-export function AnalyticsChart({ data }: AnalyticsChartProps) {
-  // Convert the data format to what recharts expects
-  const chartData = data[0].data.map((point, index) => {
-    const result: any = { date: point.date }
-
-    data.forEach((series) => {
-      result[series.name] = series.data[index]?.value || 0
-    })
-
-    return result
-  })
-
+export function LineChart({ data }: LineChartProps) {
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Analytics Overview</CardTitle>
-        <CardDescription>Performance metrics across platforms</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer
-          config={{
-            ...data.reduce(
-              (acc, series) => ({
-                ...acc,
-                [series.name]: {
-                  label: series.name,
-                  color: series.color,
-                },
-              }),
-              {},
-            ),
-          }}
-          className="h-[400px]"
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Legend />
-              {data.map((series) => (
-                <Line
-                  key={series.name}
-                  type="monotone"
-                  dataKey={series.name}
-                  stroke={`var(--color-${series.name.toLowerCase().replace(/\s+/g, "-")})`}
-                  name={series.name}
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+    <ResponsiveContainer width="100%" height="100%">
+      <RechartsLineChart
+        data={data}
+        margin={{
+          top: 20,
+          right: 30,
+          left: 20,
+          bottom: 10,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Line type="monotone" dataKey="instagram" stroke="#E1306C" strokeWidth={2} />
+        <Line type="monotone" dataKey="youtube" stroke="#FF0000" strokeWidth={2} />
+        <Line type="monotone" dataKey="tiktok" stroke="#69C9D0" strokeWidth={2} />
+      </RechartsLineChart>
+    </ResponsiveContainer>
+  )
+}
+
+interface BarChartProps {
+  data: ChartData[]
+}
+
+export function BarChart({ data }: BarChartProps) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <RechartsBarChart
+        data={data}
+        margin={{
+          top: 20,
+          right: 30,
+          left: 20,
+          bottom: 10,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="instagram" fill="#E1306C" />
+        <Bar dataKey="youtube" fill="#FF0000" />
+        <Bar dataKey="tiktok" fill="#69C9D0" />
+      </RechartsBarChart>
+    </ResponsiveContainer>
   )
 }

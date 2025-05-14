@@ -4,77 +4,66 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { CalendarIcon, Instagram, Youtube, Video, AlertCircle } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CalendarIcon, ImageIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
 import { format } from "date-fns"
+import { cn } from "@/lib/utils"
 import { MediaUploader } from "@/components/dashboard/media-uploader"
 import { PlatformDimensionsInfo } from "@/components/dashboard/platform-dimensions-info"
+import { createPost } from "@/lib/data-service"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { useToast } from "@/components/ui/use-toast"
+import { Info } from "lucide-react"
 
 export default function CreatePostPage() {
-  const [platform, setPlatform] = useState<string>("instagram")
-  const [title, setTitle] = useState<string>("")
-  const [content, setContent] = useState<string>("")
-  const [media, setMedia] = useState<string | null>(null)
-  const [date, setDate] = useState<Date | undefined>(undefined)
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const router = useRouter()
-  const { toast } = useToast()
+  const [title, setTitle] = useState("")
+  const [content, setContent] = useState("")
+  const [platform, setPlatform] = useState("")
+  const [mediaUrl, setMediaUrl] = useState("")
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
 
-    if (!media) {
-      toast({
-        title: "Media Required",
-        description: "Please upload media for your post.",
-        variant: "destructive",
-      })
+    if (!title || !content || !platform || !mediaUrl) {
+      setError("Please fill in all required fields")
       return
     }
-
-    if (platform === "tiktok") {
-      toast({
-        title: "TikTok Disabled",
-        description: "TikTok integration is currently disabled.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsSubmitting(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      setIsSubmitting(true)
 
-      toast({
-        title: "Post Created",
-        description: date
-          ? `Your post has been scheduled for ${format(date, "PPP")}`
-          : "Your post has been created and will be published shortly.",
+      // Create the post
+      await createPost({
+        title,
+        content,
+        platform,
+        mediaUrl,
+        scheduledFor: scheduledDate ? scheduledDate.toISOString() : new Date().toISOString(),
+        status: "scheduled",
       })
 
-      // Redirect to dashboard
+      // Redirect to the dashboard
       router.push("/dashboard")
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was a problem creating your post.",
-        variant: "destructive",
-      })
+      console.error("Error creating post:", error)
+      setError("Failed to create post. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleMediaUpload = (url: string) => {
+    setMediaUrl(url)
   }
 
   return (
@@ -84,52 +73,86 @@ export default function CreatePostPage() {
         <p className="text-muted-foreground">Create and schedule a new social media post</p>
       </div>
 
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertTitle>Demo Mode</AlertTitle>
+        <AlertDescription>
+          This is a UI prototype with mock data. Posts created here won't be actually published.
+        </AlertDescription>
+      </Alert>
+
       <form onSubmit={handleSubmit} className="space-y-8">
         <Card>
           <CardHeader>
-            <CardTitle>Platform</CardTitle>
-            <CardDescription>Select the platform for your post</CardDescription>
+            <CardTitle>Post Details</CardTitle>
+            <CardDescription>Enter the details for your social media post</CardDescription>
           </CardHeader>
-          <CardContent>
-            <RadioGroup value={platform} onValueChange={setPlatform} className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Label
-                htmlFor="instagram"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
-              >
-                <RadioGroupItem value="instagram" id="instagram" className="sr-only" />
-                <Instagram className="mb-3 h-6 w-6" />
-                Instagram
-              </Label>
-              <Label
-                htmlFor="youtube"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
-              >
-                <RadioGroupItem value="youtube" id="youtube" className="sr-only" />
-                <Youtube className="mb-3 h-6 w-6" />
-                YouTube
-              </Label>
-              <Label
-                htmlFor="tiktok"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary relative"
-              >
-                <div className="absolute -top-2 -right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-                  Disabled
-                </div>
-                <RadioGroupItem value="tiktok" id="tiktok" className="sr-only" disabled />
-                <Video className="mb-3 h-6 w-6" />
-                TikTok
-              </Label>
-            </RadioGroup>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="title" className="text-sm font-medium">
+                Title
+              </label>
+              <Input
+                id="title"
+                placeholder="Enter post title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
 
-            {platform === "tiktok" && (
-              <Alert className="mt-4" variant="warning">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>TikTok Integration Disabled</AlertTitle>
-                <AlertDescription>
-                  TikTok integration is currently unavailable. Please select another platform.
-                </AlertDescription>
-              </Alert>
-            )}
+            <div className="space-y-2">
+              <label htmlFor="content" className="text-sm font-medium">
+                Content
+              </label>
+              <Textarea
+                id="content"
+                placeholder="Enter post content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                required
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="platform" className="text-sm font-medium">
+                Platform
+              </label>
+              <Select value={platform} onValueChange={setPlatform} required>
+                <SelectTrigger id="platform">
+                  <SelectValue placeholder="Select platform" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="instagram">Instagram</SelectItem>
+                  <SelectItem value="youtube">YouTube</SelectItem>
+                  <SelectItem value="tiktok">TikTok</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="scheduledDate" className="text-sm font-medium">
+                Schedule Date
+              </label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !scheduledDate && "text-muted-foreground",
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {scheduledDate ? format(scheduledDate, "PPP") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar mode="single" selected={scheduledDate} onSelect={setScheduledDate} initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
           </CardContent>
         </Card>
 
@@ -138,92 +161,44 @@ export default function CreatePostPage() {
             <CardTitle>Media</CardTitle>
             <CardDescription>Upload media for your post</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <MediaUploader onMediaSelected={(url) => setMedia(url)} selectedMedia={media} platform={platform} />
-              <PlatformDimensionsInfo platform={platform} />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Content</CardTitle>
-            <CardDescription>Add content to your post</CardDescription>
-          </CardHeader>
           <CardContent className="space-y-4">
-            {platform === "youtube" && (
+            {platform && <PlatformDimensionsInfo platform={platform} />}
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Upload Media</label>
+              <MediaUploader onUpload={handleMediaUpload} />
+            </div>
+
+            {mediaUrl && (
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  placeholder="Enter a title for your post"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
+                <label className="text-sm font-medium">Preview</label>
+                <div className="border rounded-md overflow-hidden">
+                  <ImageIcon
+                    src={mediaUrl || "/placeholder.svg"}
+                    alt="Media preview"
+                    className="w-full h-auto max-h-[300px] object-contain"
+                  />
+                </div>
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="content">
-                {platform === "instagram" || platform === "tiktok" ? "Caption" : "Description"}
-              </Label>
-              <Textarea
-                id="content"
-                placeholder={`Enter ${
-                  platform === "instagram" || platform === "tiktok" ? "a caption" : "a description"
-                } for your post`}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="min-h-[120px]"
-              />
-            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Schedule</CardTitle>
-            <CardDescription>Choose when to publish your post</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label>Publication Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : "Select a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                    disabled={(date) => date < new Date()}
-                  />
-                </PopoverContent>
-              </Popover>
-              <p className="text-sm text-muted-foreground">
-                {date
-                  ? "Your post will be published on the selected date."
-                  : "If no date is selected, your post will be published immediately."}
-              </p>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => router.back()}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting || platform === "tiktok"}>
-              {isSubmitting ? "Creating..." : date ? "Schedule Post" : "Publish Now"}
-            </Button>
-          </CardFooter>
-        </Card>
+        {error && (
+          <Alert variant="destructive">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="flex justify-end gap-4">
+          <Button variant="outline" onClick={() => router.push("/dashboard")} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Creating..." : "Create Post"}
+          </Button>
+        </div>
       </form>
     </div>
   )

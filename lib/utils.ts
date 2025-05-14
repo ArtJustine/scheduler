@@ -59,9 +59,9 @@ export function truncateText(text: string, maxLength: number): string {
   return text.slice(0, maxLength) + "..."
 }
 
-// Replace Math.random with a more reliable UUID generator
+// Use UUID instead of Math.random
 export function generateRandomId(): string {
-  return uuidv4().substring(0, 13)
+  return uuidv4().substring(0, 12)
 }
 
 export function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
@@ -73,10 +73,12 @@ export function debounce<T extends (...args: any[]) => any>(func: T, wait: numbe
   }
 }
 
+// Use a deterministic approach instead of Math.random
 export function getRandomInt(min: number, max: number): number {
-  min = Math.ceil(min)
-  max = Math.floor(max)
-  return Math.floor(Math.random() * (max - min + 1)) + min
+  // Use a hash of the current timestamp for "randomness"
+  const timestamp = new Date().getTime()
+  const hash = timestamp % (max - min + 1)
+  return min + hash
 }
 
 export function getErrorMessage(error: unknown): string {

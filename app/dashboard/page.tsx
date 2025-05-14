@@ -14,26 +14,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { PostType } from "@/types/post"
 import type { SocialAccounts } from "@/types/social"
 
-// Determine if we're in preview mode
-const isPreviewMode = () => {
-  return (
-    process.env.NODE_ENV === "development" &&
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" || window.location.hostname.includes("vercel.app"))
-  )
-}
-
 export default function DashboardPage() {
   const [posts, setPosts] = useState<PostType[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
-  const [isPreview, setIsPreview] = useState(false)
   const router = useRouter()
-
-  // Check if we're in preview mode
-  useEffect(() => {
-    setIsPreview(isPreviewMode())
-  }, [])
 
   const loadData = async () => {
     try {
@@ -73,15 +58,11 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      {isPreview && (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>Preview Mode</AlertTitle>
-          <AlertDescription>
-            You're viewing demo data in preview mode. In production, this will show your actual data.
-          </AlertDescription>
-        </Alert>
-      )}
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertTitle>Demo Mode</AlertTitle>
+        <AlertDescription>You're viewing demo data. This is a UI prototype with mock data.</AlertDescription>
+      </Alert>
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>

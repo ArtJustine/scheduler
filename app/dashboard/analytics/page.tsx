@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.overview.totalPosts}</div>
-            <p className="text-xs text-muted-foreground">+{Math.floor(Math.random() * 10)}% from last month</p>
+            <p className="text-xs text-muted-foreground">+5% from last month</p>
           </CardContent>
         </Card>
         <Card>
@@ -67,7 +67,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.overview.totalEngagement}%</div>
-            <p className="text-xs text-muted-foreground">+{Math.floor(Math.random() * 10)}% from last month</p>
+            <p className="text-xs text-muted-foreground">+2% from last month</p>
           </CardContent>
         </Card>
         <Card>
@@ -76,7 +76,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.overview.totalImpressions.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+{Math.floor(Math.random() * 15)}% from last month</p>
+            <p className="text-xs text-muted-foreground">+8% from last month</p>
           </CardContent>
         </Card>
         <Card>
@@ -107,9 +107,9 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
           <div className="grid gap-4 md:grid-cols-3">
-            <PlatformEngagementCard platform="Instagram" stats={analytics.platforms.instagram} color="pink" />
-            <PlatformEngagementCard platform="YouTube" stats={analytics.platforms.youtube} color="red" />
-            <PlatformEngagementCard platform="TikTok" stats={analytics.platforms.tiktok} color="blue" />
+            <PlatformEngagementCard platform="Instagram" stats={analytics.platforms.instagram} />
+            <PlatformEngagementCard platform="YouTube" stats={analytics.platforms.youtube} />
+            <PlatformEngagementCard platform="TikTok" stats={analytics.platforms.tiktok} />
           </div>
         </TabsContent>
         <TabsContent value="followers" className="space-y-4">

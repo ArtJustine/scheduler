@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { getPlatformColor } from "@/lib/utils"
 
 interface PlatformEngagementCardProps {
   platform: string
@@ -9,10 +8,23 @@ interface PlatformEngagementCardProps {
     shares: number
     saves?: number
   }
+  color?: string
 }
 
-export function PlatformEngagementCard({ platform, stats }: PlatformEngagementCardProps) {
-  const colors = getPlatformColor(platform)
+export function PlatformEngagementCard({ platform, stats, color }: PlatformEngagementCardProps) {
+  // Get platform color
+  const getPlatformColor = () => {
+    switch (platform.toLowerCase()) {
+      case "instagram":
+        return "#E1306C"
+      case "youtube":
+        return "#FF0000"
+      case "tiktok":
+        return "#69C9D0"
+      default:
+        return color || "#888888"
+    }
+  }
 
   // Calculate total for percentage
   const total = stats.likes + stats.comments + stats.shares + (stats.saves || 0)
@@ -28,9 +40,7 @@ export function PlatformEngagementCard({ platform, stats }: PlatformEngagementCa
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-medium">{platform}</CardTitle>
-          <div className="rounded-full p-1" style={{ backgroundColor: colors.bg }}>
-            <span className="h-3 w-3 rounded-full block" style={{ backgroundColor: colors.text }} />
-          </div>
+          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: getPlatformColor() }} />
         </div>
       </CardHeader>
       <CardContent>

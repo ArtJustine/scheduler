@@ -1,55 +1,63 @@
+"use client"
+
+import { ArrowUpRight, Users } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getPlatformColor } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
-interface PlatformStat {
-  id: string
-  platform: string
-  followers: number
-  followersGrowth: number
-  engagement: number
-  impressions: number
-}
+export function PlatformStats({ platform, postCount = 0, followers = 0, connected = false }) {
+  const router = useRouter()
 
-interface PlatformStatsProps {
-  stats: PlatformStat[]
-}
+  const platformIcon = {
+    Instagram: "/placeholder.svg?height=24&width=24",
+    TikTok: "/placeholder.svg?height=24&width=24",
+    YouTube: "/placeholder.svg?height=24&width=24",
+  }
 
-export function PlatformStats({ stats }: PlatformStatsProps) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {stats.map((stat) => {
-        const colors = getPlatformColor(stat.platform)
-        return (
-          <Card key={stat.id}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-medium">{stat.platform}</CardTitle>
-              <CardDescription>Platform performance</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">Followers</div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-xl font-bold">{stat.followers.toLocaleString()}</div>
-                    <div className="text-xs font-medium" style={{ color: stat.followersGrowth >= 0 ? "green" : "red" }}>
-                      {stat.followersGrowth >= 0 ? "+" : ""}
-                      {stat.followersGrowth}%
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">Engagement</div>
-                  <div className="text-xl font-bold">{stat.engagement}%</div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">Impressions</div>
-                  <div className="text-xl font-bold">{stat.impressions.toLocaleString()}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )
-      })}
-    </div>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{platform}</CardTitle>
+        <div className="h-4 w-4">
+          <img src={platformIcon[platform] || "/placeholder.svg"} alt={platform} className="h-4 w-4" />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{followers.toLocaleString()}</div>
+        <CardDescription className="flex items-center">
+          <Users className="mr-1 h-3 w-3" />
+          Followers
+        </CardDescription>
+        <div className="mt-4">
+          <div className="flex items-center justify-between text-sm">
+            <div>Scheduled Posts</div>
+            <div>{postCount}</div>
+          </div>
+          <div className="mt-4">
+            {connected ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => router.push(`/dashboard/analytics?platform=${platform.toLowerCase()}`)}
+              >
+                View Analytics
+                <ArrowUpRight className="ml-1 h-3 w-3" />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => router.push("/dashboard/connections")}
+              >
+                Connect Account
+                <ArrowUpRight className="ml-1 h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

@@ -6,30 +6,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Calendar, Clock, Plus, Info } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { getScheduledPosts, getSocialAccounts } from "@/lib/data-service"
+import { getPosts, getSocialAccounts } from "@/lib/data-service"
 import { ScheduledPostCard } from "@/components/dashboard/scheduled-post-card"
 import { PlatformStats } from "@/components/dashboard/platform-stats"
 import { UpcomingPostsList } from "@/components/dashboard/upcoming-posts-list"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import type { PostType } from "@/types/post"
-import type { SocialAccounts } from "@/types/social"
 
 export default function DashboardPage() {
-  const [posts, setPosts] = useState<PostType[]>([])
+  const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
+  const [socialAccounts, setSocialAccounts] = useState({})
   const router = useRouter()
 
   const loadData = async () => {
     try {
       setIsLoading(true)
       // Use Promise.all to fetch data in parallel
-      const [fetchedPosts, fetchedAccounts] = await Promise.all([getScheduledPosts(), getSocialAccounts()])
+      const [fetchedPosts, fetchedAccounts] = await Promise.all([getPosts(), getSocialAccounts()])
 
       setPosts(fetchedPosts || [])
       setSocialAccounts(fetchedAccounts || {})
     } catch (error) {
       console.error("Error loading data:", error)
+      // Set default empty arrays/objects to prevent mapping errors
+      setPosts([])
+      setSocialAccounts({})
     } finally {
       setIsLoading(false)
     }
@@ -40,7 +41,7 @@ export default function DashboardPage() {
   }, [])
 
   // Safely count posts by platform
-  const getPostCount = (platform: string) => {
+  const getPostCount = (platform) => {
     if (!posts || !Array.isArray(posts)) return 0
     return posts.filter((p) => p?.platform?.toLowerCase() === platform.toLowerCase()).length
   }
@@ -76,19 +77,19 @@ export default function DashboardPage() {
             <PlatformStats
               platform="Instagram"
               postCount={getPostCount("instagram")}
-              followers={socialAccounts?.instagram?.followers}
+              followers={socialAccounts?.instagram?.followers || 0}
               connected={!!socialAccounts?.instagram?.connected}
             />
             <PlatformStats
               platform="TikTok"
               postCount={getPostCount("tiktok")}
-              followers={socialAccounts?.tiktok?.followers}
+              followers={socialAccounts?.tiktok?.followers || 0}
               connected={!!socialAccounts?.tiktok?.connected}
             />
             <PlatformStats
               platform="YouTube"
               postCount={getPostCount("youtube")}
-              followers={socialAccounts?.youtube?.followers}
+              followers={socialAccounts?.youtube?.followers || 0}
               connected={!!socialAccounts?.youtube?.connected}
             />
           </div>

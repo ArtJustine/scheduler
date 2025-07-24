@@ -8,9 +8,9 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Social Media Scheduler",
-  description: "Schedule your social media posts across platforms",
-    generator: 'v0.dev'
+  title: "Chiyu",
+  description: "Schedule your social media posts across platforms with Chiyu",
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({

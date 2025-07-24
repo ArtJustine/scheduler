@@ -32,14 +32,23 @@ export default function LoginPage() {
     try {
       setIsLoading(true)
 
-      // In a real app, this would authenticate with the backend
       await loginUser(email, password)
 
-      // Redirect to dashboard
       router.push("/dashboard")
     } catch (error: any) {
       console.error("Login error:", error)
-      setError(error.message || "Failed to login. Please try again.")
+      // User-friendly error messages
+      let message = error.message || "Failed to login. Please try again."
+      if (message.includes("auth/user-not-found")) {
+        message = "No account found with that email. Please sign up."
+      } else if (message.includes("auth/wrong-password")) {
+        message = "Incorrect password. Please try again."
+      } else if (message.includes("auth/invalid-email")) {
+        message = "Please enter a valid email address."
+      } else if (message.includes("auth/missing-password")) {
+        message = "Please enter your password."
+      }
+      setError(message)
     } finally {
       setIsLoading(false)
     }

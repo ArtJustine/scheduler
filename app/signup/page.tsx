@@ -39,14 +39,25 @@ export default function SignupPage() {
     try {
       setIsLoading(true)
 
-      // In a real app, this would register with the backend
-      await signupUser(email, password)
+      // Pass all required fields to signupUser
+      await signupUser(name, email, password)
 
       // Redirect to dashboard
       router.push("/dashboard")
     } catch (error: any) {
       console.error("Signup error:", error)
-      setError(error.message || "Failed to sign up. Please try again.")
+      // User-friendly error messages
+      let message = error.message || "Failed to sign up. Please try again."
+      if (message.includes("auth/missing-password")) {
+        message = "Please enter a password."
+      } else if (message.includes("auth/invalid-email")) {
+        message = "Please enter a valid email address."
+      } else if (message.includes("auth/weak-password")) {
+        message = "Password should be at least 6 characters."
+      } else if (message.includes("auth/email-already-in-use")) {
+        message = "An account with that email already exists. Please log in."
+      }
+      setError(message)
     } finally {
       setIsLoading(false)
     }

@@ -60,12 +60,6 @@ export default function SignupPage() {
           <CardDescription>Enter your information to create an account</CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert className="mb-4">
-            <Info className="h-4 w-4" />
-            <AlertTitle>Demo Mode</AlertTitle>
-            <AlertDescription>This is a UI prototype. Click Sign Up to continue with demo data.</AlertDescription>
-          </Alert>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>

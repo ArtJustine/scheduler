@@ -2,76 +2,25 @@ import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, g
 import { firebaseDb, firebaseAuth } from "@/lib/firebase-client"
 import type { PostType } from "@/types/post"
 
-// Mock data for offline scenarios
-const MOCK_POSTS: PostType[] = [
-  {
-    id: "mock-post-1",
-    userId: "mock-user",
-    title: "Summer Collection Launch",
-    description: "Check out our new summer collection! #summer #fashion",
-    platform: "instagram",
-    contentType: "image",
-    mediaUrl: "/placeholder.svg?height=400&width=400",
-    scheduledFor: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
-    status: "scheduled",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "mock-post-2",
-    userId: "mock-user",
-    title: "Product Tutorial",
-    description: "Learn how to use our new product in this quick tutorial!",
-    platform: "youtube",
-    contentType: "video",
-    mediaUrl: "/placeholder.svg?height=400&width=400",
-    scheduledFor: new Date(Date.now() + 172800000).toISOString(), // Day after tomorrow
-    status: "scheduled",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "mock-post-3",
-    userId: "mock-user",
-    title: "Behind the Scenes",
-    description: "Take a look behind the scenes of our latest photoshoot! #bts",
-    platform: "tiktok",
-    contentType: "video",
-    mediaUrl: "/placeholder.svg?height=400&width=400",
-    scheduledFor: new Date(Date.now() + 259200000).toISOString(), // 3 days from now
-    status: "scheduled",
-    createdAt: new Date().toISOString(),
-  },
-]
+// Remove all mock data and preview mode logic. Only use real Firestore data for all post functions.
 
 // Helper function to check if Firestore is available
 const isFirestoreAvailable = () => {
   return typeof window !== "undefined" && firebaseDb !== undefined
 }
 
-// Helper function to check if we're in demo/preview mode
-const isPreviewMode = () => {
-  return (
-    process.env.NODE_ENV === "development" && typeof window !== "undefined" && window.location.hostname === "localhost"
-  )
-}
-
 export async function getScheduledPosts() {
-  // If we're in preview mode, return mock data
-  if (isPreviewMode()) {
-    console.log("Using mock posts for preview mode")
-    return MOCK_POSTS
-  }
-
   // Check if we're in the browser and Firestore is available
   if (!isFirestoreAvailable()) {
-    console.warn("Firestore is not available, using mock posts")
-    return MOCK_POSTS
+    console.warn("Firestore is not available, cannot get scheduled posts")
+    return []
   }
 
   const user = firebaseAuth?.currentUser
 
   if (!user) {
-    console.warn("User not authenticated, using mock posts")
-    return MOCK_POSTS
+    console.warn("User not authenticated, cannot get scheduled posts")
+    return []
   }
 
   try {
@@ -94,38 +43,28 @@ export async function getScheduledPosts() {
   } catch (error) {
     console.error("Error getting scheduled posts:", error)
 
-    // If we get an offline error, return mock data
+    // If we get an offline error, return empty array as fallback
     if (error.message?.includes("offline")) {
-      console.log("Client is offline, using mock posts")
-      return MOCK_POSTS
+      console.log("Client is offline, cannot get scheduled posts")
+      return []
     }
 
-    // Return empty array as fallback
     return []
   }
 }
 
 export async function getPost(postId: string) {
-  // If we're in preview mode, return mock data
-  if (isPreviewMode()) {
-    const mockPost = MOCK_POSTS.find((post) => post.id === postId)
-    if (mockPost) return mockPost
-
-    // If not found, return the first mock post
-    return MOCK_POSTS[0]
-  }
-
   // Check if we're in the browser and Firestore is available
   if (!isFirestoreAvailable()) {
-    console.warn("Firestore is not available, using mock post")
-    return MOCK_POSTS[0]
+    console.warn("Firestore is not available, cannot get post by ID")
+    return null
   }
 
   const user = firebaseAuth?.currentUser
 
   if (!user) {
-    console.warn("User not authenticated, using mock post")
-    return MOCK_POSTS[0]
+    console.warn("User not authenticated, cannot get post by ID")
+    return null
   }
 
   try {
@@ -151,10 +90,10 @@ export async function getPost(postId: string) {
   } catch (error) {
     console.error("Error getting post by ID:", error)
 
-    // If we get an offline error, return mock data
+    // If we get an offline error, return null as fallback
     if (error.message?.includes("offline")) {
-      console.log("Client is offline, using mock post")
-      return MOCK_POSTS[0]
+      console.log("Client is offline, cannot get post by ID")
+      return null
     }
 
     return null
@@ -162,12 +101,6 @@ export async function getPost(postId: string) {
 }
 
 export async function createPost(postData: Omit<PostType, "id" | "createdAt" | "updatedAt">) {
-  // If we're in preview mode, just return a mock ID
-  if (isPreviewMode()) {
-    console.log("Mock creating post in preview mode")
-    return `mock-post-${Date.now()}`
-  }
-
   if (!isFirestoreAvailable()) {
     throw new Error("Firestore is not available")
   }
@@ -196,12 +129,6 @@ export async function createPost(postData: Omit<PostType, "id" | "createdAt" | "
 }
 
 export async function updatePost(postId: string, postData: Partial<PostType>) {
-  // If we're in preview mode, just return success
-  if (isPreviewMode()) {
-    console.log(`Mock updating post ${postId} in preview mode`)
-    return
-  }
-
   if (!isFirestoreAvailable()) {
     throw new Error("Firestore is not available")
   }
@@ -238,12 +165,6 @@ export async function updatePost(postId: string, postData: Partial<PostType>) {
 }
 
 export async function deletePost(postId: string) {
-  // If we're in preview mode, just return success
-  if (isPreviewMode()) {
-    console.log(`Mock deleting post ${postId} in preview mode`)
-    return
-  }
-
   if (!isFirestoreAvailable()) {
     throw new Error("Firestore is not available")
   }

@@ -4,7 +4,6 @@ import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { MOCK_USER } from "@/lib/mock-data"
 
 interface AuthContextType {
   user: any
@@ -23,13 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   useEffect(() => {
-    // For demo purposes, always set the mock user
-    setTimeout(() => {
-      setUser(MOCK_USER)
-      setLoading(false)
-    }, 500)
-
-    // In a real implementation, this would use the onAuthStateChange function
+    // Use real authentication state from Firebase or your auth provider
     // const unsubscribe = onAuthStateChange((user) => {
     //   setUser(user)
     //   setLoading(false)

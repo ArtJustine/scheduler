@@ -16,6 +16,8 @@ import {
   SidebarProvider,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { signOut } from "@/lib/firebase/auth"
+import { useRouter } from "next/navigation"
 
 const sidebarItems = [
   {
@@ -67,13 +69,24 @@ const sidebarItems = [
 
 export function DashboardSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      router.push("/login")
+    } catch (error) {
+      // Optionally show a toast or error message
+      console.error("Logout failed", error)
+    }
+  }
 
   return (
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader className="flex items-center justify-center py-4">
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="text-xl font-bold">SocialScheduler</span>
+            <span className="text-xl font-bold">Chiyu</span>
           </Link>
         </SidebarHeader>
         <SidebarContent>
@@ -90,8 +103,14 @@ export function DashboardSidebar() {
             ))}
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="p-4">
-          <div className="text-xs text-muted-foreground">© {new Date().getFullYear()} SocialScheduler</div>
+        <SidebarFooter className="p-4 flex flex-col gap-2">
+          <div className="text-xs text-muted-foreground">© {new Date().getFullYear()} Chiyu</div>
+          <button
+            onClick={handleLogout}
+            className="mt-2 w-full rounded bg-destructive text-destructive-foreground py-2 text-xs font-medium hover:bg-destructive/90 transition-colors"
+          >
+            Log out
+          </button>
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>

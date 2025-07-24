@@ -1,13 +1,5 @@
-import {
-  MOCK_USER,
-  mockSocialAccounts,
-  mockPosts,
-  mockMedia,
-  mockHashtags,
-  mockCaptions,
-  mockAnalytics,
-} from "./mock-data"
 import type { PostType } from "@/types/post"
+import { signIn, signUp } from "@/lib/firebase/auth"
 
 // Simulate API delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -17,19 +9,41 @@ export const getCurrentUser = async () => {
   // TODO: Implement real user fetching logic for production
   console.log("Getting current user (mock)")
   await delay(500)
-  return MOCK_USER
+  return { id: "mock-user-id", name: "Mock User", email: "mock@example.com" }
 }
 
 export const loginUser = async (email: string, password: string) => {
-  console.log("Logging in (mock)", { email })
-  await delay(800)
-  return MOCK_USER
+  try {
+    const result = await signIn(email, password)
+    if (!result.user) {
+      throw new Error("No account found with that email. Please sign up.")
+    }
+    return result.user
+  } catch (error: any) {
+    if (error.code === "auth/user-not-found") {
+      throw new Error("No account found with that email. Please sign up.")
+    } else if (error.code === "auth/wrong-password") {
+      throw new Error("Incorrect password. Please try again.")
+    } else {
+      throw new Error(error.message || "Failed to login. Please try again.")
+    }
+  }
 }
 
 export const signupUser = async (name: string, email: string, password: string) => {
-  console.log("Signing up (mock)", { name, email })
-  await delay(1000)
-  return MOCK_USER
+  try {
+    const result = await signUp(email, password, name)
+    if (!result.user) {
+      throw new Error("Failed to sign up. Please try again.")
+    }
+    return result.user
+  } catch (error: any) {
+    if (error.code === "auth/email-already-in-use") {
+      throw new Error("An account with that email already exists. Please log in.")
+    } else {
+      throw new Error(error.message || "Failed to sign up. Please try again.")
+    }
+  }
 }
 
 export const logout = async () => {
@@ -43,7 +57,10 @@ export const getSocialAccounts = async () => {
   // TODO: Implement real social account fetching logic for production
   console.log("Getting social accounts (mock)")
   await delay(600)
-  return mockSocialAccounts
+  return [
+    { id: "1", platform: "Instagram", username: "@mock_insta", connected: true },
+    { id: "2", platform: "Twitter", username: "@mock_twitter", connected: false },
+  ]
 }
 
 export const connectSocialAccount = async (platform: string) => {
@@ -63,13 +80,16 @@ export const getPosts = async () => {
   // TODO: Implement real post fetching logic for production
   console.log("Getting posts (mock)")
   await delay(700)
-  return mockPosts
+  return [
+    { id: "1", title: "Mock Post 1", content: "This is a mock post 1.", createdAt: "2023-10-26T10:00:00Z" },
+    { id: "2", title: "Mock Post 2", content: "This is a mock post 2.", createdAt: "2023-10-26T11:00:00Z" },
+  ]
 }
 
 export const getPostById = async (id: string) => {
   console.log("Getting post (mock)", { id })
   await delay(500)
-  return mockPosts.find((post) => post.id === id) || null
+  return { id: "1", title: "Mock Post 1", content: "This is a mock post 1.", createdAt: "2023-10-26T10:00:00Z" }
 }
 
 export const createPost = async (data: Partial<PostType>) => {
@@ -100,7 +120,10 @@ export const schedulePost = async (id: string, date: string) => {
 export const getMediaLibrary = async () => {
   console.log("Getting media (mock)")
   await delay(800)
-  return mockMedia
+  return [
+    { id: "1", url: "/placeholder.svg?height=400&width=400", type: "image", uploadedAt: "2023-10-26T09:00:00Z" },
+    { id: "2", url: "/placeholder.svg?height=400&width=400", type: "video", uploadedAt: "2023-10-26T10:00:00Z" },
+  ]
 }
 
 export const uploadMedia = async (file: File) => {
@@ -119,7 +142,10 @@ export const deleteMedia = async (id: string) => {
 export const getHashtagGroups = async () => {
   console.log("Getting hashtags (mock)")
   await delay(400)
-  return mockHashtags
+  return [
+    { id: "1", name: "Mock Hashtag 1", posts: 10 },
+    { id: "2", name: "Mock Hashtag 2", posts: 5 },
+  ]
 }
 
 export const createHashtag = async (name: string) => {
@@ -138,7 +164,10 @@ export const deleteHashtag = async (id: string) => {
 export const getCaptionTemplates = async () => {
   console.log("Getting captions (mock)")
   await delay(500)
-  return mockCaptions
+  return [
+    { id: "1", text: "Mock Caption 1" },
+    { id: "2", text: "Mock Caption 2" },
+  ]
 }
 
 export const createCaption = async (text: string) => {
@@ -157,5 +186,11 @@ export const deleteCaption = async (id: string) => {
 export const getAnalytics = async () => {
   console.log("Getting analytics (mock)")
   await delay(900)
-  return mockAnalytics
+  return {
+    totalPosts: 100,
+    totalMedia: 50,
+    totalHashtags: 20,
+    totalCaptions: 10,
+    totalUsers: 10,
+  }
 }

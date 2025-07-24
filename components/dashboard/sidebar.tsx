@@ -114,7 +114,7 @@ export function Sidebar() {
               <div className="flex h-14 items-center border-b px-4">
                 <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
                   <Calendar className="h-6 w-6" />
-                  <span>SocialScheduler</span>
+                  <span>Chiyu</span>
                 </Link>
               </div>
               <div className="flex-1 overflow-auto py-2">
@@ -160,7 +160,7 @@ export function Sidebar() {
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
           <Calendar className="h-6 w-6" />
-          {!isCollapsed && <span>SocialScheduler</span>}
+          {!isCollapsed && <span>Chiyu</span>}
         </Link>
       </div>
       <div className="flex-1 overflow-auto py-2">

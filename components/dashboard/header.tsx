@@ -26,7 +26,7 @@ export function Header({ user, onLogout, onMenuClick }: HeaderProps) {
       </Button>
       <div className="flex flex-1 items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-2 md:hidden">
-          <span className="text-xl font-bold">SocialScheduler</span>
+          <span className="text-xl font-bold">Chiyu</span>
         </Link>
         <div className="flex items-center gap-2 md:ml-auto">
           <Button variant="ghost" size="icon" className="relative">

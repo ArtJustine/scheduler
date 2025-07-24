@@ -8,7 +8,7 @@ export default function HelpPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Help & Documentation</h1>
-        <p className="text-muted-foreground">Learn how to use SocialScheduler effectively</p>
+        <p className="text-muted-foreground">Learn how to use Chiyu effectively</p>
       </div>
 
       <Tabs defaultValue="guides" className="space-y-6">
@@ -27,7 +27,7 @@ export default function HelpPage() {
                   <BookOpen className="h-5 w-5" />
                   Getting Started
                 </CardTitle>
-                <CardDescription>Learn the basics of SocialScheduler</CardDescription>
+                <CardDescription>Learn the basics of Chiyu</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -88,7 +88,7 @@ export default function HelpPage() {
                 <HelpCircle className="h-5 w-5" />
                 Advanced Features
               </CardTitle>
-              <CardDescription>Get the most out of SocialScheduler</CardDescription>
+              <CardDescription>Get the most out of Chiyu</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
@@ -196,7 +196,7 @@ export default function HelpPage() {
                   <Video className="h-10 w-10 text-muted-foreground" />
                 </div>
                 <p className="mt-4 text-sm text-muted-foreground">
-                  A complete walkthrough of SocialScheduler's core features and how to get started.
+                  A complete walkthrough of Chiyu's core features and how to get started.
                 </p>
               </CardContent>
             </Card>
@@ -251,7 +251,7 @@ export default function HelpPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <h3 className="font-medium">Email Support</h3>
-                  <p className="text-sm text-muted-foreground">support@socialscheduler.com</p>
+                  <p className="text-sm text-muted-foreground">support@chiyu.com</p>
                 </div>
                 <div className="space-y-2">
                   <h3 className="font-medium">Live Chat</h3>

@@ -10,7 +10,7 @@ export default function Home() {
           <div className="mr-4 flex">
             <Link href="/" className="mr-6 flex items-center space-x-2">
               <Calendar className="h-6 w-6" />
-              <span className="font-bold">SocialScheduler</span>
+              <span className="font-bold">Chiyu</span>
             </Link>
           </div>
           <div className="flex flex-1 items-center justify-end space-x-2">
@@ -61,7 +61,7 @@ export default function Home() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-5 w-5" />
-                        <span className="font-medium">SocialScheduler</span>
+                        <span className="font-medium">Chiyu</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -152,7 +152,7 @@ export default function Home() {
         </section>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full border-t items-center px-4 md:px-6">
-        <p className="text-xs text-gray-500 dark:text-gray-400">© 2025 SocialScheduler. All rights reserved.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">© 2025 Chiyu. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link className="text-xs hover:underline underline-offset-4" href="#">
             Terms of Service

@@ -1,8 +1,43 @@
-// This file is commented out for UI development
-// Will be implemented later when integrating with the backend
-
 import { NextResponse } from "next/server"
+import { createPost } from "@/lib/firebase/posts"
+import { firebaseAuth } from "@/lib/firebase-client"
+import type { Auth as FirebaseAuth } from "firebase/auth"
+
+const auth: FirebaseAuth | undefined = firebaseAuth
 
 export async function POST(request: Request) {
-  return NextResponse.json({ message: "TikTok posting API is not implemented yet" }, { status: 501 })
+  try {
+    // Parse and validate request body
+    const body = await request.json()
+    const { title, content, mediaUrl, scheduledFor } = body
+
+    if (!title || !content || !mediaUrl || !scheduledFor) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
+
+    // Authenticate user
+    const user = auth?.currentUser
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Create the post for TikTok
+    const postData = {
+      title,
+      description: content, // Use content as description
+      mediaUrl,
+      scheduledFor,
+      platform: "tiktok",
+      status: "scheduled" as const,
+      contentType: "video",
+      userId: user.uid,
+    }
+
+    const postId = await createPost(postData)
+
+    return NextResponse.json({ success: true, postId }, { status: 201 })
+  } catch (error: any) {
+    console.error("Error creating TikTok post:", error)
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 })
+  }
 }

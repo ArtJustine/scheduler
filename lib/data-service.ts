@@ -14,6 +14,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // User functions
 export const getCurrentUser = async () => {
+  // TODO: Implement real user fetching logic for production
   console.log("Getting current user (mock)")
   await delay(500)
   return MOCK_USER
@@ -39,6 +40,7 @@ export const logout = async () => {
 
 // Social account functions
 export const getSocialAccounts = async () => {
+  // TODO: Implement real social account fetching logic for production
   console.log("Getting social accounts (mock)")
   await delay(600)
   return mockSocialAccounts
@@ -58,6 +60,7 @@ export const disconnectSocialAccount = async (platform: string) => {
 
 // Post functions
 export const getPosts = async () => {
+  // TODO: Implement real post fetching logic for production
   console.log("Getting posts (mock)")
   await delay(700)
   return mockPosts

@@ -35,7 +35,9 @@ export default function CalendarPage() {
 
   const postsOnSelectedDate = selectedDate
     ? posts.filter((post) => {
+        if (!post.scheduledFor) return false;
         const postDate = new Date(post.scheduledFor)
+        if (isNaN(postDate.getTime()) || !selectedDate) return false;
         return (
           postDate.getDate() === selectedDate.getDate() &&
           postDate.getMonth() === selectedDate.getMonth() &&
@@ -47,7 +49,9 @@ export default function CalendarPage() {
   // Function to get posts for a specific date (used for calendar day rendering)
   const getPostsForDate = (date: Date) => {
     return posts.filter((post) => {
+      if (!post.scheduledFor) return false;
       const postDate = new Date(post.scheduledFor)
+      if (isNaN(postDate.getTime()) || !date) return false;
       return (
         postDate.getDate() === date.getDate() &&
         postDate.getMonth() === date.getMonth() &&
@@ -134,13 +138,7 @@ export default function CalendarPage() {
                 month={date}
                 onMonthChange={setDate}
                 className="rounded-md border-0"
-                components={{
-                  Day: ({ day, ...props }) => (
-                    <button {...props} className={props.className}>
-                      {renderDay(day)}
-                    </button>
-                  ),
-                }}
+                // Use default Day rendering for now to avoid prop errors
               />
             )}
           </CardContent>
@@ -161,7 +159,13 @@ export default function CalendarPage() {
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
               </div>
             ) : postsOnSelectedDate.length > 0 ? (
-              <CalendarPostList posts={postsOnSelectedDate} />
+              <CalendarPostList
+                date={selectedDate || new Date()}
+                posts={postsOnSelectedDate.map((post) => ({
+                  ...post,
+                  content: post.description || post.title || "",
+                }))}
+              />
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-4">No posts scheduled for this date</p>

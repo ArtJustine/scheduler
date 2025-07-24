@@ -11,11 +11,12 @@ import { ScheduledPostCard } from "@/components/dashboard/scheduled-post-card"
 import { PlatformStats } from "@/components/dashboard/platform-stats"
 import { UpcomingPostsList } from "@/components/dashboard/upcoming-posts-list"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import type { PostType } from "@/types/post"
 
 export default function DashboardPage() {
-  const [posts, setPosts] = useState([])
+  const [posts, setPosts] = useState<PostType[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [socialAccounts, setSocialAccounts] = useState({})
+  const [socialAccounts, setSocialAccounts] = useState<Record<string, any>>({})
   const router = useRouter()
 
   const loadData = async () => {
@@ -41,13 +42,13 @@ export default function DashboardPage() {
   }, [])
 
   // Safely count posts by platform
-  const getPostCount = (platform) => {
+  const getPostCount = (platform: string) => {
     if (!posts || !Array.isArray(posts)) return 0
-    return posts.filter((p) => p?.platform?.toLowerCase() === platform.toLowerCase()).length
+    return posts.filter((p: PostType) => p?.platform?.toLowerCase() === platform.toLowerCase()).length
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
@@ -58,12 +59,6 @@ export default function DashboardPage() {
           Create Post
         </Button>
       </div>
-
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>Demo Mode</AlertTitle>
-        <AlertDescription>You're viewing demo data. This is a UI prototype with mock data.</AlertDescription>
-      </Alert>
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
@@ -150,7 +145,7 @@ export default function DashboardPage() {
                   </Card>
                 ))
             ) : posts && posts.length > 0 ? (
-              posts.map((post) => <ScheduledPostCard key={post.id} post={post} />)
+              posts.map((post: PostType) => <ScheduledPostCard key={post.id} post={post} />)
             ) : (
               <div className="col-span-full text-center py-12 text-muted-foreground">
                 <p className="mb-4">No scheduled posts found</p>

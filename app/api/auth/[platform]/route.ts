@@ -7,14 +7,6 @@ export async function GET(request: NextRequest, { params }: { params: { platform
   // Generate a random state for CSRF protection
   const state = Math.random().toString(36).substring(2, 15)
 
-  // Store state in cookies to verify in callback
-  cookies().set("oauth_state", state, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 10, // 10 minutes
-    path: "/",
-  })
-
   // Get redirect URI
   const redirectUri = `${process.env.NEXT_PUBLIC_URL}/api/auth/callback/${platform}`
 
@@ -22,24 +14,41 @@ export async function GET(request: NextRequest, { params }: { params: { platform
   let authUrl = ""
 
   switch (platform.toLowerCase()) {
-    case "instagram":
-      // Instagram uses Facebook Login
-      authUrl = `https://api.instagram.com/oauth/authorize?client_id=${process.env.1873987296766962}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user_profile,user_media&response_type=code&state=${state}`
+    case "instagram": {
+      const clientId = process.env.INSTAGRAM_CLIENT_ID
+      if (!clientId) {
+        return NextResponse.json({ error: "Missing Instagram client ID" }, { status: 500 })
+      }
+      authUrl = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user_profile,user_media&response_type=code&state=${state}`
       break
-
-    case "youtube":
-      // YouTube uses Google OAuth
-      authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.913909744920-eq12dpthfkp3ur4qahh4teuf1b69vcu0.apps.googleusercontent.com}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=https://www.googleapis.com/auth/youtube&response_type=code&state=${state}&access_type=offline&prompt=consent`
+    }
+    case "youtube": {
+      const clientId = process.env.YOUTUBE_CLIENT_ID
+      if (!clientId) {
+        return NextResponse.json({ error: "Missing YouTube client ID" }, { status: 500 })
+      }
+      authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=https://www.googleapis.com/auth/youtube&response_type=code&state=${state}&access_type=offline&prompt=consent`
       break
-/*
-    case "tiktok":
-      // TikTok OAuth
-      authUrl = `https://www.tiktok.com/auth/authorize?client_key=${process.env.TIKTOK_CLIENT_KEY}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user.info.basic&response_type=code&state=${state}`
-      break */
-
+    }
+    case "tiktok": {
+      const clientKey = process.env.TIKTOK_CLIENT_KEY
+      if (!clientKey) {
+        return NextResponse.json({ error: "Missing TikTok client key" }, { status: 500 })
+      }
+      authUrl = `https://www.tiktok.com/auth/authorize?client_key=${clientKey}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user.info.basic&response_type=code&state=${state}`
+      break
+    }
     default:
       return NextResponse.json({ error: "Unsupported platform" }, { status: 400 })
   }
 
-  return NextResponse.redirect(authUrl)
+  // Set state in cookies on the redirect response
+  const response = NextResponse.redirect(authUrl)
+  response.cookies.set("oauth_state", state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 10, // 10 minutes
+    path: "/",
+  })
+  return response
 }

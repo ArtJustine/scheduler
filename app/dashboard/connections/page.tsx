@@ -7,11 +7,20 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Info } from "lucide-react"
 import { SocialConnect } from "@/components/dashboard/social-connect"
 import { getSocialAccounts } from "@/lib/data-service"
-import type { SocialAccounts } from "@/types/social"
+type SocialAccount = {
+  id: string
+  platform: string
+  username: string
+  connected: boolean
+}
+import { useRouter } from "next/navigation"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export default function ConnectionsPage() {
-  const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
+  const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const isMobile = useIsMobile()
+  const router = useRouter()
 
   useEffect(() => {
     const loadAccounts = async () => {
@@ -29,22 +38,25 @@ export default function ConnectionsPage() {
     loadAccounts()
   }, [])
 
+  // Helper to get account for a platform
+  const getAccount = (platform: string) =>
+    socialAccounts.find((acc) => acc.platform.toLowerCase() === platform)
+
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-center gap-2">
+        {isMobile && (
+          <button
+            onClick={() => router.back()}
+            className="mr-2 p-2 rounded hover:bg-muted"
+            aria-label="Back"
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left h-5 w-5"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+          </button>
+        )}
         <h1 className="text-2xl font-bold tracking-tight">Social Connections</h1>
-        <p className="text-muted-foreground">Connect your social media accounts to schedule and publish content</p>
       </div>
-
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>Demo Mode</AlertTitle>
-        <AlertDescription>
-          This is a UI prototype with mock data. In the real application, you would connect to actual social media
-          accounts.
-        </AlertDescription>
-      </Alert>
-
+      <p className="text-muted-foreground">Connect your social media accounts to schedule and publish content</p>
       <Tabs defaultValue="instagram" className="space-y-4">
         <TabsList>
           <TabsTrigger value="instagram">Instagram</TabsTrigger>
@@ -63,18 +75,7 @@ export default function ConnectionsPage() {
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
               ) : (
-                <SocialConnect
-                  platform="instagram"
-                  account={socialAccounts.instagram}
-                  onConnect={() => {
-                    // In the real app, this would redirect to the Instagram auth endpoint
-                    alert("In a real app, this would connect to Instagram")
-                  }}
-                  onDisconnect={() => {
-                    // In the real app, this would disconnect the account
-                    alert("In a real app, this would disconnect from Instagram")
-                  }}
-                />
+                <SocialConnect connectedAccounts={getAccount("instagram") ? [{ platform: getAccount("instagram")!.platform, username: getAccount("instagram")!.username, connected: getAccount("instagram")!.connected }] : []} />
               )}
             </CardContent>
           </Card>
@@ -91,18 +92,7 @@ export default function ConnectionsPage() {
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
               ) : (
-                <SocialConnect
-                  platform="youtube"
-                  account={socialAccounts.youtube}
-                  onConnect={() => {
-                    // In the real app, this would redirect to the YouTube auth endpoint
-                    alert("In a real app, this would connect to YouTube")
-                  }}
-                  onDisconnect={() => {
-                    // In the real app, this would disconnect the account
-                    alert("In a real app, this would disconnect from YouTube")
-                  }}
-                />
+                <SocialConnect connectedAccounts={getAccount("youtube") ? [{ platform: getAccount("youtube")!.platform, username: getAccount("youtube")!.username, connected: getAccount("youtube")!.connected }] : []} />
               )}
             </CardContent>
           </Card>
@@ -119,18 +109,7 @@ export default function ConnectionsPage() {
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
               ) : (
-                <SocialConnect
-                  platform="tiktok"
-                  account={socialAccounts.tiktok}
-                  onConnect={() => {
-                    // In the real app, this would redirect to the TikTok auth endpoint
-                    alert("In a real app, this would connect to TikTok")
-                  }}
-                  onDisconnect={() => {
-                    // In the real app, this would disconnect the account
-                    alert("In a real app, this would disconnect from TikTok")
-                  }}
-                />
+                <SocialConnect connectedAccounts={getAccount("tiktok") ? [{ platform: getAccount("tiktok")!.platform, username: getAccount("tiktok")!.username, connected: getAccount("tiktok")!.connected }] : []} />
               )}
             </CardContent>
           </Card>

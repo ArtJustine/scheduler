@@ -33,24 +33,14 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
   const [isDisconnecting, setIsDisconnecting] = useState<string | null>(null)
 
   const handleConnect = async (platform: string) => {
-    // Show a toast for TikTok being disabled
-    if (platform.toLowerCase() === "tiktok") {
-      toast({
-        title: "TikTok Integration Disabled",
-        description: "TikTok integration is currently disabled.",
-        variant: "destructive",
-      })
-      return
-    }
-
     setIsConnecting(platform)
 
     try {
-      // In a real implementation, this would redirect to the OAuth flow
+      // Redirect to the OAuth flow
       if (onConnect) {
         onConnect(platform)
       } else {
-        // Simulate OAuth redirect
+        // Use the actual OAuth endpoint
         window.location.href = `/api/auth/${platform.toLowerCase()}`
       }
     } catch (error) {
@@ -103,15 +93,17 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
     {
       name: "Instagram",
       description: "Connect your Instagram account to schedule posts and view analytics",
+      disabled: false,
     },
     {
       name: "YouTube",
       description: "Connect your YouTube channel to schedule videos and view analytics",
+      disabled: false,
     },
     {
       name: "TikTok",
       description: "Connect your TikTok account to schedule videos and view analytics",
-      disabled: true, // Mark TikTok as disabled
+      disabled: false,
     },
   ]
 

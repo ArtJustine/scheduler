@@ -4,16 +4,17 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Info } from "lucide-react"
+import { Info, CheckCircle, XCircle } from "lucide-react"
 import { SocialConnect } from "@/components/dashboard/social-connect"
 import { getSocialAccounts } from "@/lib/data-service"
+import { useToast } from "@/components/ui/use-toast"
 type SocialAccount = {
   id: string
   platform: string
   username: string
   connected: boolean
 }
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 export default function ConnectionsPage() {
@@ -21,6 +22,8 @@ export default function ConnectionsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const isMobile = useIsMobile()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { toast } = useToast()
 
   useEffect(() => {
     const loadAccounts = async () => {
@@ -37,6 +40,34 @@ export default function ConnectionsPage() {
 
     loadAccounts()
   }, [])
+
+  // Handle OAuth callback messages
+  useEffect(() => {
+    const success = searchParams.get("success")
+    const error = searchParams.get("error")
+    const message = searchParams.get("message")
+
+    if (success) {
+      const platform = success.replace("_connected", "")
+      toast({
+        title: "Connection Successful!",
+        description: `Your ${platform} account has been successfully connected.`,
+      })
+      // Clear the URL parameters
+      router.replace("/dashboard/connections")
+    }
+
+    if (error) {
+      const platform = error.replace("_auth_failed", "").replace("_callback_failed", "").replace("_token_failed", "").replace("invalid_", "")
+      toast({
+        title: "Connection Failed",
+        description: message || `Failed to connect your ${platform} account. Please try again.`,
+        variant: "destructive",
+      })
+      // Clear the URL parameters
+      router.replace("/dashboard/connections")
+    }
+  }, [searchParams, toast, router])
 
   // Helper to get account for a platform
   const getAccount = (platform: string) =>

@@ -1,8 +1,49 @@
-// This file is commented out for UI development
-// Will be implemented later when integrating with the backend
+// TikTok OAuth Callback Route
+import { NextRequest, NextResponse } from "next/server"
+import { config } from "@/lib/config"
+import { tiktokOAuth, oauthHelpers } from "@/lib/oauth-utils"
 
-import { NextResponse } from "next/server"
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const code = searchParams.get("code")
+    const state = searchParams.get("state")
+    const error = searchParams.get("error")
 
-export async function GET(request: Request) {
-  return NextResponse.json({ message: "TikTok callback API is not implemented yet" }, { status: 501 })
+    // Handle OAuth errors
+    if (error) {
+      console.error("TikTok OAuth error:", error)
+      return NextResponse.redirect(
+        `${config.app.baseUrl}/dashboard/connections?error=tiktok_auth_failed&message=${error}`
+      )
+    }
+
+    // Validate required parameters
+    if (!code || !state) {
+      return NextResponse.redirect(
+        `${config.app.baseUrl}/dashboard/connections?error=invalid_tiktok_auth`
+      )
+    }
+
+    // Exchange authorization code for access token
+    const tokenData = await tiktokOAuth.exchangeCodeForToken(code)
+
+    // Store the access token securely (implement your storage logic here)
+    // For now, we'll log the successful authentication
+    console.log("TikTok auth successful:", {
+      access_token: tokenData.access_token,
+      platform: tokenData.platform,
+      expires_in: tokenData.expires_in,
+    })
+
+    // Redirect back to dashboard with success
+    return NextResponse.redirect(
+      `${config.app.baseUrl}/dashboard/connections?success=tiktok_connected`
+    )
+  } catch (error) {
+    console.error("TikTok callback error:", error)
+    return NextResponse.redirect(
+      `${config.app.baseUrl}/dashboard/connections?error=tiktok_callback_failed`
+    )
+  }
 }

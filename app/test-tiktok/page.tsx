@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Video } from "lucide-react"
 
 export default function TestTikTokPage() {
+  if (process.env.NODE_ENV === "production") {
+    return null
+  }
   const handleTikTokAuth = () => {
     // Redirect to TikTok OAuth
     window.location.href = "/api/auth/tiktok"

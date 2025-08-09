@@ -12,7 +12,7 @@ export function UpcomingPostsList({ posts = [] }) {
 
   return (
     <div className="space-y-4">
-      {safePostsArray.map((post) => (
+      {safePostsArray.map((post: any) => (
         <Link
           key={post.id}
           href={`/dashboard/post/${post.id}`}
@@ -20,7 +20,7 @@ export function UpcomingPostsList({ posts = [] }) {
         >
           <Calendar className="mt-0.5 h-5 w-5 text-muted-foreground" />
           <div className="flex-1 space-y-1">
-            <p className="font-medium leading-none">{post.content?.substring(0, 50) || "Untitled Post"}...</p>
+            <p className="font-medium leading-none">{(post.description || post.title || "Untitled Post").substring(0, 50)}...</p>
             <p className="text-xs text-muted-foreground">
               {post.scheduledFor
                 ? `Scheduled for ${formatDistanceToNow(new Date(post.scheduledFor), { addSuffix: true })}`

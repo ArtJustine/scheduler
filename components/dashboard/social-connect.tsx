@@ -128,12 +128,7 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
               <CardDescription>{platform.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              {isConnected && (
-                <div className="text-sm">
-                  <p className="font-medium">Connected as:</p>
-                  <p className="text-muted-foreground">{connectedAccount.username}</p>
-                </div>
-              )}
+              {/* Hide "Connected as" label per request */}
               {platform.disabled && (
                 <div className="flex items-center gap-2 text-sm text-amber-600 mt-2">
                   <AlertCircle className="h-4 w-4" />
@@ -141,7 +136,7 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
                 </div>
               )}
             </CardContent>
-            <CardFooter>
+            <CardFooter className="w-full flex justify-center">
               {isConnected ? (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>

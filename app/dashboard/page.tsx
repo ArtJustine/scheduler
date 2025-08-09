@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Calendar, Clock, Plus, Info } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { getPosts, getSocialAccounts } from "@/lib/data-service"
+import { getScheduledPosts } from "@/lib/firebase/posts"
+import { getSocialAccounts } from "@/lib/firebase/social-accounts"
 import { ScheduledPostCard } from "@/components/dashboard/scheduled-post-card"
 import { PlatformStats } from "@/components/dashboard/platform-stats"
 import { UpcomingPostsList } from "@/components/dashboard/upcoming-posts-list"
@@ -23,7 +24,7 @@ export default function DashboardPage() {
     try {
       setIsLoading(true)
       // Use Promise.all to fetch data in parallel
-      const [fetchedPosts, fetchedAccounts] = await Promise.all([getPosts(), getSocialAccounts()])
+      const [fetchedPosts, fetchedAccounts] = await Promise.all([getScheduledPosts(), getSocialAccounts()])
 
       setPosts(fetchedPosts || [])
       setSocialAccounts(fetchedAccounts || {})

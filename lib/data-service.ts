@@ -22,10 +22,12 @@ export const loginUser = async (email: string, password: string) => {
   } catch (error: any) {
     if (error.code === "auth/user-not-found") {
       throw new Error("No account found with that email. Please sign up.")
-    } else if (error.code === "auth/wrong-password") {
-      throw new Error("Incorrect password. Please try again.")
+    } else if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+      throw new Error("That password doesn’t look right. Please try again.")
+    } else if (error.message?.includes("Authentication service is unavailable")) {
+      throw new Error("We’re having trouble reaching the authentication service. Please refresh and try again.")
     } else {
-      throw new Error(error.message || "Failed to login. Please try again.")
+      throw new Error("Couldn’t log you in. Please check your email and password and try again.")
     }
   }
 }
@@ -40,8 +42,14 @@ export const signupUser = async (name: string, email: string, password: string) 
   } catch (error: any) {
     if (error.code === "auth/email-already-in-use") {
       throw new Error("An account with that email already exists. Please log in.")
+    } else if (error.code === "auth/operation-not-allowed") {
+      throw new Error("Email/password sign up is disabled for this project. Please contact support.")
+    } else if (error.code === "auth/weak-password") {
+      throw new Error("Please choose a stronger password (at least 6 characters).")
+    } else if (error.message?.includes("Authentication service is unavailable")) {
+      throw new Error("We’re having trouble reaching the authentication service. Please refresh and try again.")
     } else {
-      throw new Error(error.message || "Failed to sign up. Please try again.")
+      throw new Error("Couldn’t create your account. Please check your details and try again.")
     }
   }
 }
@@ -57,10 +65,7 @@ export const getSocialAccounts = async () => {
   // TODO: Implement real social account fetching logic for production
   console.log("Getting social accounts (mock)")
   await delay(600)
-  return [
-    { id: "1", platform: "Instagram", username: "@mock_insta", connected: true },
-    { id: "2", platform: "Twitter", username: "@mock_twitter", connected: false },
-  ]
+  return []
 }
 
 export const connectSocialAccount = async (platform: string) => {
@@ -77,19 +82,11 @@ export const disconnectSocialAccount = async (platform: string) => {
 
 // Post functions
 export const getPosts = async () => {
-  // TODO: Implement real post fetching logic for production
-  console.log("Getting posts (mock)")
-  await delay(700)
-  return [
-    { id: "1", title: "Mock Post 1", content: "This is a mock post 1.", createdAt: "2023-10-26T10:00:00Z" },
-    { id: "2", title: "Mock Post 2", content: "This is a mock post 2.", createdAt: "2023-10-26T11:00:00Z" },
-  ]
+  return []
 }
 
-export const getPostById = async (id: string) => {
-  console.log("Getting post (mock)", { id })
-  await delay(500)
-  return { id: "1", title: "Mock Post 1", content: "This is a mock post 1.", createdAt: "2023-10-26T10:00:00Z" }
+export const getPostById = async (_id: string) => {
+  return null
 }
 
 export const createPost = async (data: Partial<PostType>) => {

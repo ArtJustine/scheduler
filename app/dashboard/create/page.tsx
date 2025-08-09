@@ -16,9 +16,7 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { MediaUploader } from "@/components/dashboard/media-uploader"
 import { PlatformDimensionsInfo } from "@/components/dashboard/platform-dimensions-info"
-import { createPost } from "@/lib/data-service"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Info } from "lucide-react"
+import { createPost } from "@/lib/firebase/posts"
 
 export default function CreatePostPage() {
   const router = useRouter()
@@ -42,11 +40,12 @@ export default function CreatePostPage() {
     try {
       setIsSubmitting(true)
 
-      // Create the post
+      // Create the post in Firestore
       await createPost({
         title,
-        content,
+        description: content,
         platform,
+        contentType: mediaUrl ? "media" : "text",
         mediaUrl,
         scheduledFor: scheduledDate ? scheduledDate.toISOString() : new Date().toISOString(),
         status: "scheduled",
@@ -73,13 +72,15 @@ export default function CreatePostPage() {
         <p className="text-muted-foreground">Create and schedule a new social media post</p>
       </div>
 
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>Demo Mode</AlertTitle>
-        <AlertDescription>
-          This is a UI prototype with mock data. Posts created here won't be actually published.
-        </AlertDescription>
-      </Alert>
+      {false && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertTitle>Demo Mode</AlertTitle>
+          <AlertDescription>
+            This is a UI prototype with mock data. Posts created here won't be actually published.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <Card>

@@ -89,10 +89,8 @@ export default function ConnectionsPage() {
       </div>
       <p className="text-muted-foreground">Connect your social media accounts to schedule and publish content</p>
       <Tabs defaultValue="instagram" className="space-y-4">
-        <TabsList>
+        <TabsList className="hidden">
           <TabsTrigger value="instagram">Instagram</TabsTrigger>
-          <TabsTrigger value="youtube">YouTube</TabsTrigger>
-          <TabsTrigger value="tiktok">TikTok</TabsTrigger>
         </TabsList>
         <TabsContent value="instagram">
           <Card>
@@ -111,40 +109,7 @@ export default function ConnectionsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="youtube">
-          <Card>
-            <CardHeader>
-              <CardTitle>YouTube</CardTitle>
-              <CardDescription>Connect your YouTube account to schedule and publish videos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center p-4">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                </div>
-              ) : (
-                <SocialConnect connectedAccounts={getAccount("youtube") ? [{ platform: getAccount("youtube")!.platform, username: getAccount("youtube")!.username, connected: getAccount("youtube")!.connected }] : []} />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="tiktok">
-          <Card>
-            <CardHeader>
-              <CardTitle>TikTok</CardTitle>
-              <CardDescription>Connect your TikTok account to schedule and publish videos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center p-4">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                </div>
-              ) : (
-                <SocialConnect connectedAccounts={getAccount("tiktok") ? [{ platform: getAccount("tiktok")!.platform, username: getAccount("tiktok")!.username, connected: getAccount("tiktok")!.connected }] : []} />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* Removed YouTube and TikTok tabs per request */}
       </Tabs>
     </div>
   )

@@ -2,14 +2,14 @@
 // Configuration for all social media platform API keys
 
 export const config = {
-  // Firebase Configuration (already configured)
+  // Firebase Configuration (must be provided via env in production)
   firebase: {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyC9LlfyJStd8YjczRPU82BzVmTKxQmMQZ8",
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "socialmedia-scheduler-eb22f.firebaseapp.com",
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "socialmedia-scheduler-eb22f",
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "socialmedia-scheduler-eb22f.firebasestorage.app",
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "974176191059",
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:974176191059:web:4b29d837e57c00a97abca6",
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
   },
 
   // Instagram API Configuration
@@ -22,16 +22,16 @@ export const config = {
 
   // TikTok API Configuration
   tiktok: {
-    clientKey: "aw5u8oj1rajowvxh",
-    clientSecret: "3f4zg6kHUTnlhjOgLEzv3rjR1uOSe6vR",
-    redirectUri: "http://localhost:3000/api/auth/callback/tiktok",
+    clientKey: process.env.TIKTOK_CLIENT_KEY || "",
+    clientSecret: process.env.TIKTOK_CLIENT_SECRET || "",
+    redirectUri: process.env.TIKTOK_REDIRECT_URI || "",
   },
 
   // YouTube API Configuration
   youtube: {
-    clientId: process.env.YOUTUBE_CLIENT_ID || "913909744920-eq12dpthfkp3ur4qahh4teuf1b69vcu0.apps.googleusercontent.com",
-    clientSecret: process.env.YOUTUBE_CLIENT_SECRET || "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",
-    redirectUri: process.env.YOUTUBE_REDIRECT_URI || "http://localhost:3000/api/auth/callback/youtube",
+    clientId: process.env.YOUTUBE_CLIENT_ID || "",
+    clientSecret: process.env.YOUTUBE_CLIENT_SECRET || "",
+    redirectUri: process.env.YOUTUBE_REDIRECT_URI || "",
     apiKey: process.env.YOUTUBE_API_KEY || "",
     scopes: [
       "https://www.googleapis.com/auth/youtube.upload",
@@ -70,7 +70,7 @@ export const config = {
 
   // General app configuration
   app: {
-    baseUrl: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+    baseUrl: process.env.NEXT_PUBLIC_BASE_URL || "",
     environment: process.env.NODE_ENV || "development",
   },
 }

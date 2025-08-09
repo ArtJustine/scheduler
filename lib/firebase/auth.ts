@@ -10,11 +10,12 @@ import {
 } from "firebase/auth"
 import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import { firebaseAuth, firebaseDb, firebaseStorage } from "../firebase-client"
+import { firebaseAuth, firebaseDb, firebaseStorage, initializeFirebaseIfNeeded } from "../firebase-client"
 
 // Sign up a new user
 export const signUp = async (email: string, password: string, displayName: string) => {
-  if (!firebaseAuth) throw new Error("Auth is not initialized")
+  initializeFirebaseIfNeeded()
+  if (!firebaseAuth) throw new Error("Authentication service is unavailable. Please refresh and try again.")
 
   try {
     const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password)
@@ -42,7 +43,8 @@ export const signUp = async (email: string, password: string, displayName: strin
 
 // Sign in an existing user
 export const signIn = async (email: string, password: string) => {
-  if (!firebaseAuth) throw new Error("Auth is not initialized")
+  initializeFirebaseIfNeeded()
+  if (!firebaseAuth) throw new Error("Authentication service is unavailable. Please refresh and try again.")
 
   try {
     const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password)
@@ -55,7 +57,8 @@ export const signIn = async (email: string, password: string) => {
 
 // Sign out the current user
 export const signOut = async () => {
-  if (!firebaseAuth) throw new Error("Auth is not initialized")
+  initializeFirebaseIfNeeded()
+  if (!firebaseAuth) throw new Error("Authentication service is unavailable. Please refresh and try again.")
 
   try {
     await firebaseSignOut(firebaseAuth)
@@ -68,6 +71,7 @@ export const signOut = async () => {
 
 // Get the current user
 export const getCurrentUser = (): Promise<User | null> => {
+  initializeFirebaseIfNeeded()
   if (!firebaseAuth) return Promise.resolve(null)
 
   return new Promise((resolve) => {
@@ -80,12 +84,14 @@ export const getCurrentUser = (): Promise<User | null> => {
 
 // Listen to auth state changes
 export const onAuthStateChange = (callback: (user: User | null) => void) => {
+  initializeFirebaseIfNeeded()
   if (!firebaseAuth) return () => {}
 
   return onAuthStateChanged(firebaseAuth, callback)
 }
 
 export const updateUserProfile = async (data: { displayName?: string; photoURL?: string }) => {
+  initializeFirebaseIfNeeded()
   if (!firebaseAuth || !firebaseAuth.currentUser) {
     throw new Error("User not authenticated")
   }
@@ -110,6 +116,7 @@ export const updateUserProfile = async (data: { displayName?: string; photoURL?:
 }
 
 export const updateUserAvatar = async (file: File): Promise<string> => {
+  initializeFirebaseIfNeeded()
   if (!firebaseAuth || !firebaseAuth.currentUser || !firebaseStorage) {
     throw new Error("User not authenticated or storage not initialized")
   }
@@ -138,6 +145,7 @@ export const updateUserAvatar = async (file: File): Promise<string> => {
 }
 
 export const getUserProfile = async () => {
+  initializeFirebaseIfNeeded()
   if (!firebaseAuth || !firebaseAuth.currentUser || !firebaseDb) {
     throw new Error("User not authenticated or database not initialized")
   }

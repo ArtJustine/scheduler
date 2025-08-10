@@ -95,16 +95,6 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
       description: "Connect your Instagram account to schedule posts and view analytics",
       disabled: false,
     },
-    {
-      name: "YouTube",
-      description: "Connect your YouTube channel to schedule videos and view analytics",
-      disabled: false,
-    },
-    {
-      name: "TikTok",
-      description: "Connect your TikTok account to schedule videos and view analytics",
-      disabled: false,
-    },
   ]
 
   return (
@@ -136,7 +126,7 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
                 </div>
               )}
             </CardContent>
-            <CardFooter className="w-full flex justify-center">
+            <CardFooter>
               {isConnected ? (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>

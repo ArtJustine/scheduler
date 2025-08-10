@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, ArrowLeft, Pencil, Trash2 } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Calendar, Clock, ArrowLeft, Pencil, Trash2, Info } from "lucide-react"
 import { format } from "date-fns"
-import { getPost, deletePost } from "@/lib/firebase/posts"
+import { getPostById, deletePost } from "@/lib/data-service"
 import type { PostType } from "@/types/post"
 
 export default function PostDetailPage({ params }: { params: { id: string } }) {
@@ -21,8 +22,8 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
     const loadPost = async () => {
       try {
         setIsLoading(true)
-        const postData = await getPost(params.id)
-        setPost(postData as any)
+        const postData = await getPostById(params.id)
+        setPost(postData)
       } catch (error) {
         console.error("Error loading post:", error)
       } finally {
@@ -88,7 +89,11 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      {/* Demo banner removed for production */}
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertTitle>Demo Mode</AlertTitle>
+        <AlertDescription>This is a UI prototype with mock data. Changes made here won't be saved.</AlertDescription>
+      </Alert>
 
       <Card>
         <CardHeader>
@@ -110,7 +115,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
               {post.status === "published" ? (
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  <span>Published {"N/A"}</span>
+                  <span>Published {post.publishedAt ? format(new Date(post.publishedAt), "PPP") : "N/A"}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1">
@@ -132,12 +137,12 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
 
           <div>
             <h3 className="text-lg font-semibold mb-2">Content</h3>
-            <p className="whitespace-pre-wrap">{(((post as any)!.content ?? (post as any)!.description) as string) || ""}</p>
+            <p className="whitespace-pre-wrap">{post.content}</p>
           </div>
 
           <Separator />
 
-          {false && post.status === "published" && (post as any).analytics && (
+          {post.status === "published" && post.analytics && (
             <div>
               <h3 className="text-lg font-semibold mb-4">Performance</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -146,7 +151,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
                     <CardTitle className="text-sm font-medium">Likes</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
-                    <div className="text-2xl font-bold">{(post as any).analytics.likes}</div>
+                    <div className="text-2xl font-bold">{post.analytics.likes}</div>
                   </CardContent>
                 </Card>
                 <Card>
@@ -154,7 +159,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
                     <CardTitle className="text-sm font-medium">Comments</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
-                    <div className="text-2xl font-bold">{(post as any).analytics.comments}</div>
+                    <div className="text-2xl font-bold">{post.analytics.comments}</div>
                   </CardContent>
                 </Card>
                 <Card>
@@ -162,7 +167,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
                     <CardTitle className="text-sm font-medium">Shares</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
-                    <div className="text-2xl font-bold">{(post as any).analytics.shares}</div>
+                    <div className="text-2xl font-bold">{post.analytics.shares}</div>
                   </CardContent>
                 </Card>
                 <Card>
@@ -170,7 +175,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
                     <CardTitle className="text-sm font-medium">Impressions</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
-                    <div className="text-2xl font-bold">{(post as any).analytics.impressions}</div>
+                    <div className="text-2xl font-bold">{post.analytics.impressions}</div>
                   </CardContent>
                 </Card>
               </div>

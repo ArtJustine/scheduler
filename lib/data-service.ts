@@ -82,11 +82,19 @@ export const disconnectSocialAccount = async (platform: string) => {
 
 // Post functions
 export const getPosts = async () => {
-  return []
+  // TODO: Implement real post fetching logic for production
+  console.log("Getting posts (mock)")
+  await delay(700)
+  return [
+    { id: "1", title: "Mock Post 1", content: "This is a mock post 1.", createdAt: "2023-10-26T10:00:00Z" },
+    { id: "2", title: "Mock Post 2", content: "This is a mock post 2.", createdAt: "2023-10-26T11:00:00Z" },
+  ]
 }
 
-export const getPostById = async (_id: string) => {
-  return null
+export const getPostById = async (id: string) => {
+  console.log("Getting post (mock)", { id })
+  await delay(500)
+  return { id: "1", title: "Mock Post 1", content: "This is a mock post 1.", createdAt: "2023-10-26T10:00:00Z" }
 }
 
 export const createPost = async (data: Partial<PostType>) => {

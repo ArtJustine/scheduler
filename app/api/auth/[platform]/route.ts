@@ -2,10 +2,12 @@ import { type NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 
 export async function GET(
-  request: NextRequest, 
-  { params }: { params: Promise<{ platform: string }> } // FIX 1: Promise
+  request: NextRequest,
+  { params }: { params: Promise<{ platform: string }> } // FIX 1: Must be a Promise
 ) {
-  const { platform } = await params // FIX 2: await params
+  // FIX 2: Must await params before destructuring
+  const { platform } = await params
+  
   const searchParams = request.nextUrl.searchParams
   const code = searchParams.get("code")
   const state = searchParams.get("state")
@@ -26,6 +28,10 @@ export async function GET(
   }
 
   try {
+    // In a real implementation, exchange the code for access token
+    // const tokenResponse = await exchangeCodeForToken(platform, code)
+
+    // For demo purposes, we'll simulate a successful connection
     const mockTokenResponse = {
       access_token: "mock_access_token_" + Math.random().toString(36).substring(7),
       refresh_token: "mock_refresh_token_" + Math.random().toString(36).substring(7),
@@ -33,7 +39,7 @@ export async function GET(
       username: `user_${Math.floor(Math.random() * 10000)}`,
     }
 
-    // FIX 4: Use the cookieStore we awaited above
+    // FIX 4: Use the cookieStore instance we awaited above
     cookieStore.set(`${platform}_access_token`, mockTokenResponse.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -41,14 +47,15 @@ export async function GET(
       path: "/",
     })
 
+    // Redirect back to connections page with success message
     return NextResponse.redirect(
       new URL(
         `/dashboard/connections?success=true&platform=${platform}&username=${mockTokenResponse.username}`,
         request.url,
       ),
     )
-  } catch (error) {
-    console.error("OAuth callback error:", error)
+  } catch (err) {
+    console.error("OAuth callback error:", err)
     return NextResponse.redirect(
       new URL(`/dashboard/connections?error=token_exchange_failed&platform=${platform}`, request.url),
     )

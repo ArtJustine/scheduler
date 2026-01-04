@@ -36,12 +36,26 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
     setIsConnecting(platform)
 
     try {
-      // Redirect to the OAuth flow
+      // Get current user ID from Firebase Auth
+      const { firebaseAuth } = await import("@/lib/firebase-client")
+      const user = firebaseAuth?.currentUser
+
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to connect social media accounts.",
+          variant: "destructive",
+        })
+        setIsConnecting(null)
+        return
+      }
+
+      // Redirect to the OAuth flow with user ID
       if (onConnect) {
         onConnect(platform)
       } else {
-        // Use the actual OAuth endpoint
-        window.location.href = `/api/auth/${platform.toLowerCase()}`
+        // Use the actual OAuth endpoint with userId
+        window.location.href = `/api/auth/${platform.toLowerCase()}?userId=${user.uid}`
       }
     } catch (error) {
       toast({
@@ -93,6 +107,16 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
     {
       name: "Instagram",
       description: "Connect your Instagram account to schedule posts and view analytics",
+      disabled: false,
+    },
+    {
+      name: "YouTube",
+      description: "Connect your YouTube account to schedule videos and view analytics",
+      disabled: false,
+    },
+    {
+      name: "TikTok",
+      description: "Connect your TikTok account to schedule videos and view analytics",
       disabled: false,
     },
   ]

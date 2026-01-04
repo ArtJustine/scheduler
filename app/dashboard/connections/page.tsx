@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Info, CheckCircle, XCircle } from "lucide-react"
 import { SocialConnect } from "@/components/dashboard/social-connect"
-import { getSocialAccounts } from "@/lib/data-service"
 import { useToast } from "@/components/ui/use-toast"
 type SocialAccount = {
   id: string
@@ -29,7 +28,36 @@ export default function ConnectionsPage() {
     const loadAccounts = async () => {
       try {
         setIsLoading(true)
-        const accounts = await getSocialAccounts()
+        const { getSocialAccounts } = await import("@/lib/firebase/social-accounts")
+        const accountsData = await getSocialAccounts()
+        
+        // Transform the accounts data to match the expected format
+        const accounts: SocialAccount[] = []
+        if (accountsData.instagram) {
+          accounts.push({
+            id: accountsData.instagram.id || "instagram",
+            platform: "instagram",
+            username: accountsData.instagram.username || "Instagram User",
+            connected: true,
+          })
+        }
+        if (accountsData.youtube) {
+          accounts.push({
+            id: accountsData.youtube.id || "youtube",
+            platform: "youtube",
+            username: accountsData.youtube.username || "YouTube Channel",
+            connected: true,
+          })
+        }
+        if (accountsData.tiktok) {
+          accounts.push({
+            id: accountsData.tiktok.id || "tiktok",
+            platform: "tiktok",
+            username: accountsData.tiktok.username || "TikTok User",
+            connected: true,
+          })
+        }
+        
         setSocialAccounts(accounts)
       } catch (error) {
         console.error("Error loading social accounts:", error)
@@ -104,7 +132,54 @@ export default function ConnectionsPage() {
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
               ) : (
-                <SocialConnect connectedAccounts={getAccount("instagram") ? [{ platform: getAccount("instagram")!.platform, username: getAccount("instagram")!.username, connected: getAccount("instagram")!.connected }] : []} />
+                <SocialConnect 
+                  connectedAccounts={socialAccounts.filter(acc => acc.platform.toLowerCase() === "instagram")}
+                  onDisconnect={async (platform) => {
+                    try {
+                      const { disconnectSocialAccount } = await import("@/lib/firebase/social-accounts")
+                      await disconnectSocialAccount(platform.toLowerCase() as any)
+                      toast({
+                        title: "Account Disconnected",
+                        description: `Your ${platform} account has been disconnected.`,
+                      })
+                      // Reload accounts
+                      const { getSocialAccounts } = await import("@/lib/firebase/social-accounts")
+                      const accountsData = await getSocialAccounts()
+                      const accounts: SocialAccount[] = []
+                      if (accountsData.instagram) {
+                        accounts.push({
+                          id: accountsData.instagram.id || "instagram",
+                          platform: "instagram",
+                          username: accountsData.instagram.username || "Instagram User",
+                          connected: true,
+                        })
+                      }
+                      if (accountsData.youtube) {
+                        accounts.push({
+                          id: accountsData.youtube.id || "youtube",
+                          platform: "youtube",
+                          username: accountsData.youtube.username || "YouTube Channel",
+                          connected: true,
+                        })
+                      }
+                      if (accountsData.tiktok) {
+                        accounts.push({
+                          id: accountsData.tiktok.id || "tiktok",
+                          platform: "tiktok",
+                          username: accountsData.tiktok.username || "TikTok User",
+                          connected: true,
+                        })
+                      }
+                      setSocialAccounts(accounts)
+                    } catch (error: any) {
+                      toast({
+                        title: "Error",
+                        description: error.message || "Failed to disconnect account",
+                        variant: "destructive",
+                      })
+                    }
+                  }}
+                />
               )}
             </CardContent>
           </Card>

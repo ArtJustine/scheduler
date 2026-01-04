@@ -1,166 +1,312 @@
 import { Button } from "@/components/ui/button"
-import { Smartphone, Calendar, BarChart3 } from "lucide-react"
+import { Calendar, Zap, ThumbsUp, Instagram, Youtube, Video, ArrowRight, Star, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <div className="mr-4 flex">
-            <Link href="/" className="mr-6 flex items-center space-x-2">
-              <Calendar className="h-6 w-6" />
-              <span className="font-bold">Chiyu</span>
-            </Link>
+    <div className="flex min-h-screen flex-col bg-black text-white">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b border-gray-800 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/60">
+        <div className="container flex h-16 items-center justify-between px-6">
+          <div className="flex items-center space-x-2">
+            <Calendar className="h-6 w-6 text-purple-500" />
+            <span className="text-xl font-bold">Scheduler</span>
           </div>
-          <div className="flex flex-1 items-center justify-end space-x-2">
-            <nav className="flex items-center space-x-2">
-              <Link href="/login">
-                <Button variant="ghost" size="sm">
-                  Login
-                </Button>
-              </Link>
-              <Link href="/signup">
-                <Button size="sm">Sign Up</Button>
-              </Link>
-            </nav>
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link href="#features" className="text-sm text-gray-400 hover:text-white transition-colors">
+              Features
+            </Link>
+            <Link href="#pricing" className="text-sm text-gray-400 hover:text-white transition-colors">
+              Pricing
+            </Link>
+            <Link href="#about" className="text-sm text-gray-400 hover:text-white transition-colors">
+              About
+            </Link>
+            <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors">
+              Login
+            </Link>
+          </nav>
+          <div className="flex items-center space-x-4">
+            <Link href="/signup">
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white border-0">
+                Get Started
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
-      <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-2">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                    Schedule Your Social Media Content
-                  </h1>
-                  <p className="max-w-[600px] text-gray-500 md:text-xl dark:text-gray-400">
-                    Manage and schedule your YouTube, TikTok, and Instagram content from one place. Save time and
-                    optimize your social media strategy.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link href="/signup">
-                    <Button size="lg" className="w-full">
-                      Get Started
-                    </Button>
-                  </Link>
-                  <Link href="/login">
-                    <Button size="lg" variant="outline" className="w-full">
-                      Login
-                    </Button>
-                  </Link>
-                </div>
+
+      {/* Hero Section */}
+      <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden">
+        {/* Abstract Background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-br from-purple-600/30 via-blue-600/30 to-pink-600/30 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-blue-600/20 to-purple-600/20 rounded-full blur-3xl" />
+        </div>
+        
+        <div className="container relative z-10 px-6">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            {/* Badge */}
+            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-green-500/20 border border-green-500/30">
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-sm text-green-400 font-medium">Limited spots available</span>
+            </div>
+
+            {/* Main Headline */}
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
+              The truly{" "}
+              <span className="relative inline-block">
+                <span className="text-white">Limitless</span>
+                <span className="text-gray-600"> social media</span>
+              </span>
+            </h1>
+            <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-gray-600">
+              scheduling tool
+            </h2>
+
+            {/* Subheadline */}
+            <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto">
+              Say goodbye to manual posting, and hello to limitless, lightning-fast social media management.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <Link href="/signup">
+                <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6 h-auto">
+                  Get Started Free
+                </Button>
+              </Link>
+              <Link href="#features">
+                <Button size="lg" variant="outline" className="border-gray-700 text-white hover:bg-gray-900 text-lg px-8 py-6 h-auto">
+                  See Features
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured On Section */}
+      <section className="w-full py-12 border-y border-gray-800">
+        <div className="container px-6">
+          <p className="text-center text-sm text-gray-500 mb-8">Trusted by creators worldwide</p>
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 opacity-60">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="text-gray-400 text-lg font-semibold">
+                Logo{i}
               </div>
-              <div className="flex items-center justify-center">
-                <div className="relative h-[450px] w-[300px] overflow-hidden rounded-xl border bg-background shadow-xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 opacity-20" />
-                  <div className="relative z-10 flex h-full flex-col p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-5 w-5" />
-                        <span className="font-medium">Chiyu</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <div className="h-2 w-2 rounded-full bg-green-500" />
-                        <span className="text-xs">Online</span>
-                      </div>
-                    </div>
-                    <div className="mt-8 space-y-4">
-                      <div className="rounded-lg bg-white/10 p-4 backdrop-blur-sm">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className="h-8 w-8 rounded-full bg-pink-500" />
-                            <span>Instagram Post</span>
-                          </div>
-                          <span className="text-xs">Today, 3:00 PM</span>
-                        </div>
-                      </div>
-                      <div className="rounded-lg bg-white/10 p-4 backdrop-blur-sm">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className="h-8 w-8 rounded-full bg-blue-500" />
-                            <span>TikTok Video</span>
-                          </div>
-                          <span className="text-xs">Tomorrow, 10:00 AM</span>
-                        </div>
-                      </div>
-                      <div className="rounded-lg bg-white/10 p-4 backdrop-blur-sm">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className="h-8 w-8 rounded-full bg-red-500" />
-                            <span>YouTube Video</span>
-                          </div>
-                          <span className="text-xs">May 15, 2:30 PM</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonial Section */}
+      <section className="w-full py-20 md:py-32 bg-gradient-to-b from-black to-gray-950">
+        <div className="container px-6">
+          <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+            <div className="space-y-6">
+              <div className="flex space-x-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                ))}
+              </div>
+              <p className="text-2xl md:text-3xl text-white leading-relaxed">
+                "Scheduler has completely transformed how I manage my social media. The automation is seamless, and I've saved countless hours every week."
+              </p>
+              <div className="pt-4">
+                <p className="text-lg font-semibold text-white">Sarah Johnson</p>
+                <p className="text-gray-400">Content Creator, 500K+ Followers</p>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-purple-600/20 to-blue-600/20 border border-gray-800">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="h-32 w-32 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 opacity-50" />
                 </div>
               </div>
             </div>
           </div>
-        </section>
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">Features</h2>
-                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                  Everything you need to manage your social media presence
+        </div>
+      </section>
+
+      {/* Process Section */}
+      <section className="w-full py-20 md:py-32 bg-black">
+        <div className="container px-6">
+          <div className="max-w-4xl mx-auto text-center space-y-16">
+            <div className="space-y-4">
+              <h2 className="text-4xl md:text-6xl font-bold text-white">
+                Your social media, <span className="italic text-gray-600">effortlessly</span>
+              </h2>
+              <p className="text-xl text-gray-400">
+                Begin your scheduling journey in three effortless steps
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 pt-8">
+              {/* Step 1 */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-purple-600/20 border border-purple-600/30 mx-auto">
+                  <Calendar className="h-8 w-8 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-white">Schedule</h3>
+                <p className="text-gray-400">
+                  Connect your accounts & schedule as many posts as you'd like across all platforms.
+                </p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-blue-600/20 border border-blue-600/30 mx-auto">
+                  <Zap className="h-8 w-8 text-blue-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-white">Automate</h3>
+                <p className="text-gray-400">
+                  Your posts are published automatically at the perfect time, even while you sleep.
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-green-600/20 border border-green-600/30 mx-auto">
+                  <ThumbsUp className="h-8 w-8 text-green-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-white">Grow</h3>
+                <p className="text-gray-400">
+                  Track your performance and watch your engagement grow with consistent posting.
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-3 lg:gap-12">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Calendar className="h-6 w-6" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold">Schedule Posts</h3>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Plan and schedule your content across YouTube, TikTok, and Instagram.
-                  </p>
+
+            <div className="pt-8">
+              <Link href="/signup">
+                <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6 h-auto">
+                  Start Scheduling Now
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Gallery */}
+      <section className="w-full py-20 bg-gradient-to-b from-black to-gray-950">
+        <div className="container px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+            {/* Dashboard Preview */}
+            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+              <div className="aspect-video bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <Calendar className="h-12 w-12 text-purple-400 mx-auto" />
+                  <p className="text-sm text-gray-400">Dashboard View</p>
                 </div>
               </div>
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Smartphone className="h-6 w-6" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold">Multi-Platform Support</h3>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Optimize content dimensions for each platform automatically.
-                  </p>
+            </div>
+
+            {/* Instagram Preview */}
+            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+              <div className="aspect-video bg-gradient-to-br from-pink-600/20 to-purple-600/20 rounded-lg flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <Instagram className="h-12 w-12 text-pink-400 mx-auto" />
+                  <p className="text-sm text-gray-400">Instagram Posts</p>
                 </div>
               </div>
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <BarChart3 className="h-6 w-6" />
+            </div>
+
+            {/* YouTube Preview */}
+            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+              <div className="aspect-video bg-gradient-to-br from-red-600/20 to-orange-600/20 rounded-lg flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <Youtube className="h-12 w-12 text-red-400 mx-auto" />
+                  <p className="text-sm text-gray-400">YouTube Videos</p>
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold">Analytics</h3>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Track performance and engagement across all your social platforms.
-                  </p>
+              </div>
+            </div>
+
+            {/* TikTok Preview */}
+            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+              <div className="aspect-video bg-gradient-to-br from-gray-800 to-black rounded-lg flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <Video className="h-12 w-12 text-white mx-auto" />
+                  <p className="text-sm text-gray-400">TikTok Videos</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Analytics Preview */}
+            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+              <div className="aspect-video bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-lg flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <div className="h-12 w-12 border-2 border-green-400 rounded-lg mx-auto flex items-center justify-center">
+                    <div className="h-6 w-6 border-t-2 border-green-400 rounded-full animate-spin" />
+                  </div>
+                  <p className="text-sm text-gray-400">Analytics</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Calendar Preview */}
+            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+              <div className="aspect-video bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-lg flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <Calendar className="h-12 w-12 text-blue-400 mx-auto" />
+                  <p className="text-sm text-gray-400">Schedule Calendar</p>
                 </div>
               </div>
             </div>
           </div>
-        </section>
-      </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full border-t items-center px-4 md:px-6">
-        <p className="text-xs text-gray-500 dark:text-gray-400">© 2025 Chiyu. All rights reserved.</p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
-            Terms of Service
-          </Link>
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
-            Privacy
-          </Link>
-        </nav>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="w-full py-20 bg-black border-t border-gray-800">
+        <div className="container px-6">
+          <div className="max-w-3xl mx-auto text-center space-y-8">
+            <h2 className="text-4xl md:text-5xl font-bold text-white">
+              Ready to transform your social media?
+            </h2>
+            <p className="text-xl text-gray-400">
+              Join thousands of creators who are saving time and growing their audience.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/signup">
+                <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6 h-auto">
+                  Get Started Free
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button size="lg" variant="outline" className="border-gray-700 text-white hover:bg-gray-900 text-lg px-8 py-6 h-auto">
+                  Sign In
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="w-full py-8 border-t border-gray-800 bg-black">
+        <div className="container px-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between">
+            <div className="flex items-center space-x-2 mb-4 sm:mb-0">
+              <Calendar className="h-5 w-5 text-purple-500" />
+              <span className="font-semibold">Scheduler</span>
+            </div>
+            <nav className="flex gap-6">
+              <Link href="#" className="text-sm text-gray-400 hover:text-white transition-colors">
+                Terms
+              </Link>
+              <Link href="#" className="text-sm text-gray-400 hover:text-white transition-colors">
+                Privacy
+              </Link>
+              <Link href="#" className="text-sm text-gray-400 hover:text-white transition-colors">
+                Contact
+              </Link>
+            </nav>
+          </div>
+          <p className="text-center text-sm text-gray-500 mt-6">
+            © 2025 Scheduler. All rights reserved.
+          </p>
+        </div>
       </footer>
     </div>
   )

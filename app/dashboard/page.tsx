@@ -6,32 +6,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Calendar, Clock, Plus, Info } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { getPosts, getSocialAccounts } from "@/lib/data-service"
+import { getScheduledPosts, getSocialAccounts } from "@/lib/data-service"
 import { ScheduledPostCard } from "@/components/dashboard/scheduled-post-card"
 import { PlatformStats } from "@/components/dashboard/platform-stats"
 import { UpcomingPostsList } from "@/components/dashboard/upcoming-posts-list"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { PostType } from "@/types/post"
+import type { SocialAccounts } from "@/types/social"
 
 export default function DashboardPage() {
   const [posts, setPosts] = useState<PostType[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [socialAccounts, setSocialAccounts] = useState<Record<string, any>>({})
+  const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
   const router = useRouter()
 
   const loadData = async () => {
     try {
       setIsLoading(true)
       // Use Promise.all to fetch data in parallel
-      const [fetchedPosts, fetchedAccounts] = await Promise.all([getPosts(), getSocialAccounts()])
+      const [fetchedPosts, fetchedAccounts] = await Promise.all([getScheduledPosts(), getSocialAccounts()])
 
       setPosts(fetchedPosts || [])
       setSocialAccounts(fetchedAccounts || {})
     } catch (error) {
       console.error("Error loading data:", error)
-      // Set default empty arrays/objects to prevent mapping errors
-      setPosts([])
-      setSocialAccounts({})
     } finally {
       setIsLoading(false)
     }
@@ -44,11 +42,11 @@ export default function DashboardPage() {
   // Safely count posts by platform
   const getPostCount = (platform: string) => {
     if (!posts || !Array.isArray(posts)) return 0
-    return posts.filter((p: PostType) => p?.platform?.toLowerCase() === platform.toLowerCase()).length
+    return posts.filter((p) => p?.platform?.toLowerCase() === platform.toLowerCase()).length
   }
 
   return (
-    <div className="space-y-6 w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
@@ -59,6 +57,12 @@ export default function DashboardPage() {
           Create Post
         </Button>
       </div>
+
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertTitle>Demo Mode</AlertTitle>
+        <AlertDescription>You're viewing demo data. This is a UI prototype with mock data.</AlertDescription>
+      </Alert>
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
@@ -72,19 +76,19 @@ export default function DashboardPage() {
             <PlatformStats
               platform="Instagram"
               postCount={getPostCount("instagram")}
-              followers={socialAccounts?.instagram?.followers || 0}
+              followers={socialAccounts?.instagram?.followers}
               connected={!!socialAccounts?.instagram?.connected}
             />
             <PlatformStats
               platform="TikTok"
               postCount={getPostCount("tiktok")}
-              followers={socialAccounts?.tiktok?.followers || 0}
+              followers={socialAccounts?.tiktok?.followers}
               connected={!!socialAccounts?.tiktok?.connected}
             />
             <PlatformStats
               platform="YouTube"
               postCount={getPostCount("youtube")}
-              followers={socialAccounts?.youtube?.followers || 0}
+              followers={socialAccounts?.youtube?.followers}
               connected={!!socialAccounts?.youtube?.connected}
             />
           </div>
@@ -145,7 +149,7 @@ export default function DashboardPage() {
                   </Card>
                 ))
             ) : posts && posts.length > 0 ? (
-              posts.map((post: PostType) => <ScheduledPostCard key={post.id} post={post} />)
+              posts.map((post) => <ScheduledPostCard key={post.id} post={post} />)
             ) : (
               <div className="col-span-full text-center py-12 text-muted-foreground">
                 <p className="mb-4">No scheduled posts found</p>

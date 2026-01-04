@@ -111,15 +111,10 @@ export const youtubeOAuth = {
 
 // TikTok OAuth utilities
 export const tiktokOAuth = {
-  getAuthUrl: (state: string = "tiktok_auth") => {
-    // Generate PKCE code challenge
-    const codeVerifier = oauthHelpers.generateCodeVerifier()
-    const codeChallenge = oauthHelpers.generateCodeChallenge(codeVerifier)
-    
-    // Store code verifier in session storage for later use
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("tiktok_code_verifier", codeVerifier)
-    }
+  getAuthUrl: (state: string = "tiktok_auth", codeVerifier?: string): string => {
+    // Generate PKCE code challenge if not provided
+    const verifier = codeVerifier || oauthHelpers.generateCodeVerifier()
+    const codeChallenge = oauthHelpers.generateCodeChallenge(verifier)
     
     const url = new URL("https://www.tiktok.com/v2/auth/authorize")
     url.searchParams.set("client_key", config.tiktok.clientKey)
@@ -132,14 +127,7 @@ export const tiktokOAuth = {
     return url.toString()
   },
 
-  exchangeCodeForToken: async (code: string): Promise<OAuthToken> => {
-    // Get code verifier from session storage
-    let codeVerifier = ""
-    if (typeof window !== "undefined") {
-      codeVerifier = sessionStorage.getItem("tiktok_code_verifier") || ""
-      sessionStorage.removeItem("tiktok_code_verifier") // Clean up
-    }
-    
+  exchangeCodeForToken: async (code: string, codeVerifier: string): Promise<OAuthToken> => {
     const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
       method: "POST",
       headers: {

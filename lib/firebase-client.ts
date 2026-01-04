@@ -1,61 +1,63 @@
 "use client"
 
-import { initializeApp, getApps, type FirebaseApp } from "firebase/app"
-import { getAuth, type Auth } from "firebase/auth"
-import { getFirestore, enableIndexedDbPersistence, type Firestore } from "firebase/firestore"
-import { getStorage, type FirebaseStorage } from "firebase/storage"
+import { initializeApp, getApps } from "firebase/app"
+import { getAuth } from "firebase/auth"
+import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore"
+import { getStorage } from "firebase/storage"
 
-// Your web app's Firebase configuration (must be provided via env)
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyC9LlfyJStd8YjczRPU82BzVmTKxQmMQZ8",
+  authDomain: "socialmedia-scheduler-eb22f.firebaseapp.com",
+  projectId: "socialmedia-scheduler-eb22f",
+  storageBucket: "socialmedia-scheduler-eb22f.appspot.com",
+  messagingSenderId: "974176191059",
+  appId: "1:974176191059:web:4b29d837e57c00a97abca6",
 }
 
-// Initialize Firebase only on the client side, lazily when needed
-let firebaseApp: FirebaseApp | null = null
-let firebaseAuth: Auth | null = null
-let firebaseDb: Firestore | null = null
-let firebaseStorage: FirebaseStorage | null = null
+// Initialize Firebase only on the client side
+let firebaseApp
+let firebaseAuth
+let firebaseDb
+let firebaseStorage
 
-export function initializeFirebaseIfNeeded() {
-  if (typeof window === "undefined") {
-    return { firebaseApp, firebaseAuth, firebaseDb, firebaseStorage }
-  }
+if (typeof window !== "undefined") {
   try {
-    if (!firebaseApp) {
-      firebaseApp = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
+    if (!getApps().length) {
+      firebaseApp = initializeApp(firebaseConfig)
+    } else {
+      firebaseApp = getApps()[0]
     }
-    if (!firebaseAuth) {
-      firebaseAuth = getAuth(firebaseApp)
-    }
-    if (!firebaseDb) {
-      firebaseDb = getFirestore(firebaseApp)
-      enableIndexedDbPersistence(firebaseDb).catch((err: any) => {
+
+    firebaseAuth = getAuth(firebaseApp)
+    firebaseDb = getFirestore(firebaseApp)
+    firebaseStorage = getStorage(firebaseApp)
+
+    // Enable offline persistence for Firestore
+    if (firebaseDb) {
+      enableIndexedDbPersistence(firebaseDb).catch((err) => {
         if (err.code === "failed-precondition") {
+          // Multiple tabs open, persistence can only be enabled in one tab at a time
           console.warn("Firestore persistence failed: Multiple tabs open")
         } else if (err.code === "unimplemented") {
+          // The current browser does not support all of the features required for persistence
           console.warn("Firestore persistence is not available in this browser")
         } else {
           console.error("Firestore persistence error:", err)
         }
       })
     }
-    if (!firebaseStorage) {
-      firebaseStorage = getStorage(firebaseApp)
+
+    // Use emulators in development
+    if (process.env.NODE_ENV === "development") {
+      // Uncomment these lines to use Firebase emulators
+      // connectAuthEmulator(firebaseAuth, "http://localhost:9099")
+      // connectFirestoreEmulator(firebaseDb, "localhost", 8080)
+      // connectStorageEmulator(firebaseStorage, "localhost", 9199)
     }
   } catch (error) {
     console.error("Error initializing Firebase:", error)
   }
-  return { firebaseApp, firebaseAuth, firebaseDb, firebaseStorage }
-}
-
-// Eagerly initialize in browser so auth is ready before first call
-if (typeof window !== "undefined") {
-  initializeFirebaseIfNeeded()
 }
 
 export { firebaseApp, firebaseAuth, firebaseDb, firebaseStorage }

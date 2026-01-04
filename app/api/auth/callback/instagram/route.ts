@@ -1,6 +1,10 @@
 // Instagram OAuth Callback Route
 import { NextRequest, NextResponse } from "next/server"
 import { config } from "@/lib/config"
+import { cookies } from "next/headers"
+import { instagramOAuth } from "@/lib/oauth-utils"
+import { serverDb } from "@/lib/firebase-server"
+import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore"
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,57 +17,87 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error("Instagram OAuth error:", error)
       return NextResponse.redirect(
-        `${config.app.baseUrl}/dashboard/connections?error=instagram_auth_failed&message=${error}`
+        `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=instagram_auth_failed&message=${error}`
       )
     }
 
-    // Validate required parameters
-    if (!code || state !== "instagram_auth") {
+    // Validate state
+    const savedState = cookies().get("oauth_state")?.value
+    const userId = cookies().get("oauth_user_id")?.value
+
+    if (!code || !state || state !== savedState) {
       return NextResponse.redirect(
-        `${config.app.baseUrl}/dashboard/connections?error=invalid_instagram_auth`
+        `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=invalid_instagram_auth`
+      )
+    }
+
+    if (!userId) {
+      return NextResponse.redirect(
+        `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=user_not_found`
       )
     }
 
     // Exchange authorization code for access token
-    const tokenResponse = await fetch("https://api.instagram.com/oauth/access_token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        client_id: config.instagram.appId,
-        client_secret: config.instagram.appSecret,
-        grant_type: "authorization_code",
-        redirect_uri: config.instagram.redirectUri,
-        code: code,
-      }),
-    })
+    const tokenData = await instagramOAuth.exchangeCodeForToken(code)
 
-    if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.text()
-      console.error("Instagram token exchange failed:", errorData)
-      return NextResponse.redirect(
-        `${config.app.baseUrl}/dashboard/connections?error=instagram_token_failed`
+    // Get user info from Instagram
+    let username = "instagram_user"
+    let profilePicture = null
+    try {
+      const userInfoResponse = await fetch(
+        `https://graph.instagram.com/me?fields=username,account_type&access_token=${tokenData.access_token}`
       )
+      if (userInfoResponse.ok) {
+        const userInfo = await userInfoResponse.json()
+        username = userInfo.username || username
+      }
+    } catch (err) {
+      console.warn("Could not fetch Instagram user info:", err)
     }
 
-    const tokenData = await tokenResponse.json()
+    // Save to Firestore
+    if (serverDb) {
+      const userDocRef = doc(serverDb, "users", userId)
+      const userDoc = await getDoc(userDocRef)
 
-    // Store the access token securely (implement your storage logic here)
-    // For now, we'll redirect with success
-    console.log("Instagram auth successful:", {
-      access_token: tokenData.access_token,
-      user_id: tokenData.user_id,
-    })
+      const accountData = {
+        id: tokenData.user_id || userId,
+        username,
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token || null,
+        expiresAt: tokenData.expires_in
+          ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
+          : null,
+        connectedAt: new Date().toISOString(),
+        profilePicture,
+      }
 
-    // Redirect back to dashboard with success
-    return NextResponse.redirect(
-      `${config.app.baseUrl}/dashboard/connections?success=instagram_connected`
+      if (userDoc.exists()) {
+        await updateDoc(userDocRef, {
+          instagram: accountData,
+          updatedAt: new Date().toISOString(),
+        })
+      } else {
+        await setDoc(userDocRef, {
+          instagram: accountData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        })
+      }
+    }
+
+    // Clear OAuth cookies
+    const response = NextResponse.redirect(
+      `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?success=instagram_connected`
     )
-  } catch (error) {
+    response.cookies.delete("oauth_state")
+    response.cookies.delete("oauth_user_id")
+
+    return response
+  } catch (error: any) {
     console.error("Instagram callback error:", error)
     return NextResponse.redirect(
-      `${config.app.baseUrl}/dashboard/connections?error=instagram_callback_failed`
+      `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=instagram_callback_failed&message=${error.message}`
     )
   }
 }

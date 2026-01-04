@@ -6,6 +6,9 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Upload, ImageIcon, Film } from "lucide-react"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import { firebaseStorage, firebaseAuth, initializeFirebaseIfNeeded } from "@/lib/firebase-client"
+import { useToast } from "@/components/ui/use-toast"
 
 interface MediaUploaderProps {
   onUpload: (url: string) => void
@@ -14,6 +17,7 @@ interface MediaUploaderProps {
 export function MediaUploader({ onUpload }: MediaUploaderProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const { toast } = useToast()
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -39,27 +43,70 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
     }
   }
 
-  const handleFiles = (files: FileList) => {
+  const handleFiles = async (files: FileList) => {
     const file = files[0]
     if (!file) return
 
     // Check if file is an image or video
     if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-      alert("Please upload an image or video file")
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image or video file",
+        variant: "destructive",
+      })
       return
     }
 
-    // Mock upload process
+    // Check file size (100MB limit)
+    const maxSize = 100 * 1024 * 1024 // 100MB
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Please upload a file smaller than 100MB",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsUploading(true)
 
-    // Create a local URL for the file
-    const url = URL.createObjectURL(file)
+    try {
+      initializeFirebaseIfNeeded()
 
-    // Simulate upload delay
-    setTimeout(() => {
-      onUpload(url)
+      const user = firebaseAuth?.currentUser
+      if (!user) {
+        throw new Error("User not authenticated")
+      }
+
+      if (!firebaseStorage) {
+        throw new Error("Storage not initialized")
+      }
+
+      // Upload to Firebase Storage
+      const timestamp = Date.now()
+      const fileName = `${timestamp}_${file.name}`
+      const storageRef = ref(firebaseStorage, `media/${user.uid}/${fileName}`)
+
+      await uploadBytes(storageRef, file)
+
+      // Get download URL
+      const downloadURL = await getDownloadURL(storageRef)
+
+      onUpload(downloadURL)
+      toast({
+        title: "Upload successful",
+        description: "Media uploaded successfully",
+      })
+    } catch (error: any) {
+      console.error("Error uploading file:", error)
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload media. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
       setIsUploading(false)
-    }, 1500)
+    }
   }
 
   return (

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { config, isPlatformConfigured } from "@/lib/config"
 import { tiktokOAuth, oauthHelpers } from "@/lib/oauth-utils"
+import { cookies } from "next/headers"
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,14 +14,45 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Get user ID from query params or cookie
+    const userId = request.nextUrl.searchParams.get("userId") || cookies().get("userId")?.value
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      )
+    }
+
     // Generate a unique state parameter for security
     const state = oauthHelpers.generateState()
+    const codeVerifier = oauthHelpers.generateCodeVerifier()
 
     // Build TikTok OAuth URL
-    const tiktokAuthUrl = tiktokOAuth.getAuthUrl(state)
+    const tiktokAuthUrl = tiktokOAuth.getAuthUrl(state, codeVerifier)
 
-    // Redirect to TikTok OAuth
-    return NextResponse.redirect(tiktokAuthUrl)
+    // Store state, userId, and code verifier in cookies
+    const response = NextResponse.redirect(tiktokAuthUrl)
+    response.cookies.set("oauth_state", state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 600,
+      sameSite: "lax",
+    })
+    response.cookies.set("oauth_user_id", userId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 600,
+      sameSite: "lax",
+    })
+    response.cookies.set("tiktok_code_verifier", codeVerifier, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 600,
+      sameSite: "lax",
+    })
+
+    return response
   } catch (error) {
     console.error("TikTok auth error:", error)
     return NextResponse.json(

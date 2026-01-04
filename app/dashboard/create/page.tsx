@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils"
 import { MediaUploader } from "@/components/dashboard/media-uploader"
 import { PlatformDimensionsInfo } from "@/components/dashboard/platform-dimensions-info"
 import { createPost } from "@/lib/firebase/posts"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function CreatePostPage() {
   const router = useRouter()
@@ -72,15 +73,6 @@ export default function CreatePostPage() {
         <p className="text-muted-foreground">Create and schedule a new social media post</p>
       </div>
 
-      {false && (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>Demo Mode</AlertTitle>
-          <AlertDescription>
-            This is a UI prototype with mock data. Posts created here won't be actually published.
-          </AlertDescription>
-        </Alert>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <Card>
@@ -174,11 +166,19 @@ export default function CreatePostPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Preview</label>
                 <div className="border rounded-md overflow-hidden">
-                  <ImageIcon
-                    src={mediaUrl || "/placeholder.svg"}
-                    alt="Media preview"
-                    className="w-full h-auto max-h-[300px] object-contain"
-                  />
+                  {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                    <img
+                      src={mediaUrl}
+                      alt="Media preview"
+                      className="w-full h-auto max-h-[300px] object-contain"
+                    />
+                  ) : (
+                    <video
+                      src={mediaUrl}
+                      controls
+                      className="w-full h-auto max-h-[300px] object-contain"
+                    />
+                  )}
                 </div>
               </div>
             )}

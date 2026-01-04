@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Upload, ImageIcon, Film } from "lucide-react"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import { firebaseStorage, firebaseAuth, initializeFirebaseIfNeeded } from "@/lib/firebase-client"
 import { useToast } from "@/components/ui/use-toast"
 
 interface MediaUploaderProps {
@@ -71,7 +70,6 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
     setIsUploading(true)
 
     try {
-      initializeFirebaseIfNeeded()
 
       const user = firebaseAuth?.currentUser
       if (!user) {

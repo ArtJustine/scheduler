@@ -1,5 +1,5 @@
 import { firebaseDb } from "./firebase-client"
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore"
+import { collection, getDocs, getDoc, updateDoc, doc } from "firebase/firestore"
 
 // Function to check for scheduled posts that need to be published
 export async function checkScheduledPosts() {
@@ -81,7 +81,7 @@ async function publishPost(userId: string, postId: string, post: any) {
         [`scheduledPosts.${postId}.error`]: publishResult.error,
       })
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error publishing post ${postId}:`, error)
 
     // Update the post status to "failed"
@@ -98,7 +98,7 @@ async function publishToInstagram(userId: string, post: any) {
   try {
     // Get the user's Instagram account information
     const userDocRef = doc(firebaseDb, "users", userId)
-    const userDoc = await getDocs(userDocRef)
+    const userDoc = await getDoc(userDocRef)
 
     if (!userDoc.exists()) {
       throw new Error("User document not found")
@@ -143,7 +143,7 @@ async function publishToInstagram(userId: string, post: any) {
       success: true,
       platformId: publishData.id,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error publishing to Instagram:", error)
 
     return {
@@ -158,7 +158,7 @@ async function publishToYouTube(userId: string, post: any) {
   try {
     // Get the user's YouTube account information
     const userDocRef = doc(firebaseDb, "users", userId)
-    const userDoc = await getDocs(userDocRef)
+    const userDoc = await getDoc(userDocRef)
 
     if (!userDoc.exists()) {
       throw new Error("User document not found")
@@ -202,7 +202,7 @@ async function publishToYouTube(userId: string, post: any) {
       success: true,
       platformId: videoData.id,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error publishing to YouTube:", error)
 
     return {
@@ -211,61 +211,3 @@ async function publishToYouTube(userId: string, post: any) {
     }
   }
 }
-
-// Comment out the TikTok publishing function
-/*
-// Function to publish a post to TikTok
-async function publishToTikTok(userId: string, post: any) {
-  try {
-    // Get the user's TikTok account information
-    const userDocRef = doc(firebaseDb, "users", userId)
-    const userDoc = await getDocs(userDocRef)
-
-    if (!userDoc.exists()) {
-      throw new Error("User document not found")
-    }
-
-    const userData = userDoc.data()
-
-    if (!userData.tiktok || !userData.tiktok.accessToken) {
-      throw new Error("TikTok account not connected")
-    }
-
-    const accessToken = userData.tiktok.accessToken
-    const openId = userData.tiktok.id
-
-    // Upload the video to TikTok
-    const uploadResponse = await fetch(
-      `https://open-api.tiktok.com/share/video/upload/?open_id=${openId}&access_token=${accessToken}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        body: JSON.stringify({
-          video: post.mediaUrl,
-          description: post.caption || "",
-        }),
-      },
-    )
-
-    const uploadData = await uploadResponse.json()
-
-    if (!uploadData.data || !uploadData.data.share_id) {
-      throw new Error("Failed to upload video to TikTok")
-    }
-
-    return {
-      success: true,
-      platformId: uploadData.data.share_id,
-    }
-  } catch (error) {
-    console.error("Error publishing to TikTok:", error)
-
-    return {
-      success: false,
-      error: error.message,
-    }
-  }
-}
-*/

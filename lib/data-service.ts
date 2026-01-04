@@ -199,3 +199,10 @@ export const getAnalytics = async () => {
     totalUsers: 10,
   }
 }
+
+// Scheduled posts functions
+export const getScheduledPosts = async () => {
+  console.log("Getting scheduled posts (mock)")
+  await delay(600)
+  return []
+}

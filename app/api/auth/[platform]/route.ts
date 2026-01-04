@@ -1,8 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
 
-export async function GET(request: NextRequest, { params }: { params: { platform: string } }) {
-  const { platform } = params
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ platform: string }> }
+) {
+  const { platform } = await params
 
   // Generate a random state for CSRF protection
   const state = Math.random().toString(36).substring(2, 15)

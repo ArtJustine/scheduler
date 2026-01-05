@@ -7,7 +7,7 @@ export const config = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyC9LlfyJStd8YjczRPU82BzVmTKxQmMQZ8",
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "socialmedia-scheduler-eb22f.firebaseapp.com",
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "socialmedia-scheduler-eb22f",
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "socialmedia-scheduler-eb22f.appspot.com",
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "socialmedia-scheduler-eb22f.firebasestorage.app",
     messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "974176191059",
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:974176191059:web:4b29d837e57c00a97abca6",
   },

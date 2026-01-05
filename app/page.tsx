@@ -30,11 +30,11 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden">
+      {/* Hero Section - Premium Dark Background for both modes to support white headings */}
+      <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden bg-slate-950">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]" />
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/30 rounded-full blur-[120px] opacity-50" />
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] opacity-30" />
         </div>
 
         <div className="container relative z-10 px-6">
@@ -44,14 +44,14 @@ export default function Home() {
               <span className="text-sm text-green-400 font-medium">Limited spots available</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-foreground">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-white">
               The truly{" "}
               <span className="relative inline-block">
                 <span className="text-primary">Limitless</span>
-                <span className="text-muted-foreground/60 block text-3xl md:text-5xl lg:text-6xl mt-2 font-normal">social media</span>
+                <span className="text-white/90 block text-3xl md:text-5xl lg:text-6xl mt-2 font-normal">social media</span>
               </span>
             </h1>
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-muted-foreground/40">
+            <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-white/40">
               scheduling tool
             </h2>
 

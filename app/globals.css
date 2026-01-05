@@ -11,7 +11,8 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 252 80% 58%; /* Vibrant Violet */
+    --primary: 252 80% 58%;
+    /* Vibrant Violet */
     --primary-foreground: 210 40% 98%;
     --secondary: 252 20% 94%;
     --secondary-foreground: 252 60% 30%;
@@ -29,19 +30,22 @@
 
   .dark {
     /* Premium Dark Mode (Deep, Glassy, Neon Accents) */
-    --background: 240 10% 4%; /* Near Black - Deep Blueish/Gray */
+    --background: 240 10% 4%;
+    /* Near Black - Deep Blueish/Gray */
     --foreground: 210 40% 98%;
     --card: 240 10% 6%;
     --card-foreground: 210 40% 98%;
     --popover: 240 10% 6%;
     --popover-foreground: 210 40% 98%;
-    --primary: 252 100% 68%; /* Electric Violet */
+    --primary: 252 100% 68%;
+    /* Electric Violet */
     --primary-foreground: 210 40% 98%;
     --secondary: 240 6% 15%;
     --secondary-foreground: 210 40% 98%;
     --muted: 240 6% 15%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 252 100% 68%; /* Matching Primary for glass effects */
+    --accent: 252 100% 68%;
+    /* Matching Primary for glass effects */
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
@@ -55,8 +59,33 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Premium UI Enhancements */
+@layer base {
+  ::selection {
+    @apply bg-primary/30 text-foreground;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full border-2 border-solid border-background hover:bg-muted-foreground/40 transition-colors;
   }
 }
 
@@ -65,6 +94,7 @@
   .glass {
     @apply bg-black/40 backdrop-blur-md border border-white/10;
   }
+
   .glass-card {
     @apply bg-card/50 backdrop-blur-xl border border-border/50 shadow-xl;
   }

@@ -21,12 +21,18 @@ export default function WaitlistPage() {
         setError("")
 
         try {
+            // Add timeout to prevent infinite loading
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
             const response = await fetch("/api/waitlist", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email }),
+                signal: controller.signal,
             })
 
+            clearTimeout(timeoutId)
             const data = await response.json()
 
             if (data.success) {
@@ -34,8 +40,12 @@ export default function WaitlistPage() {
             } else {
                 setError(data.message || "Failed to join waitlist. Please try again.")
             }
-        } catch (err) {
-            setError("Something went wrong. Please try again later.")
+        } catch (err: any) {
+            if (err.name === 'AbortError') {
+                setError("Request timed out. Please try again.")
+            } else {
+                setError("Something went wrong. Please try again later.")
+            }
         } finally {
             setLoading(false)
         }

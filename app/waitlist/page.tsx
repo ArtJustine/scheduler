@@ -10,12 +10,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function WaitlistPage() {
     const [email, setEmail] = useState("")
     const [submitted, setSubmitted] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState("")
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (email) {
-            // Ideally this would connect to a DB or service
-            setSubmitted(true)
+        if (!email) return
+
+        setLoading(true)
+        setError("")
+
+        try {
+            const response = await fetch("/api/waitlist", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+            })
+
+            const data = await response.json()
+
+            if (data.success) {
+                setSubmitted(true)
+            } else {
+                setError(data.message || "Failed to join waitlist. Please try again.")
+            }
+        } catch (err) {
+            setError("Something went wrong. Please try again later.")
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -76,11 +98,19 @@ export default function WaitlistPage() {
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
+                                        disabled={loading}
                                         className="bg-background/50"
                                     />
+                                    {error && (
+                                        <p className="text-sm text-red-400">{error}</p>
+                                    )}
                                 </div>
-                                <Button type="submit" className="w-full text-lg py-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25">
-                                    Reserve My Spot
+                                <Button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full text-lg py-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
+                                >
+                                    {loading ? "Joining..." : "Reserve My Spot"}
                                 </Button>
                             </form>
                         )}

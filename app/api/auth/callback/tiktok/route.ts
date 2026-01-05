@@ -22,9 +22,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate state
-    const savedState = cookies().get("oauth_state")?.value
-    const userId = cookies().get("oauth_user_id")?.value
-    const codeVerifier = cookies().get("tiktok_code_verifier")?.value
+    const cookieStore = await cookies()
+    const savedState = cookieStore.get("oauth_state")?.value
+    const userId = cookieStore.get("oauth_user_id")?.value
+    const codeVerifier = cookieStore.get("tiktok_code_verifier")?.value
 
     if (!code || !state || state !== savedState) {
       return NextResponse.redirect(

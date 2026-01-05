@@ -19,6 +19,7 @@ interface CreateHashtagGroupParams {
 }
 
 export async function createHashtagGroup({ name, hashtags }: CreateHashtagGroupParams) {
+  if (!auth || !db) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {
@@ -44,6 +45,7 @@ export async function createHashtagGroup({ name, hashtags }: CreateHashtagGroupP
 }
 
 export async function getHashtagGroups() {
+  if (!auth || !db) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {
@@ -67,6 +69,7 @@ export async function getHashtagGroups() {
 }
 
 export async function updateHashtagGroup(groupId: string, data: Partial<HashtagGroup>) {
+  if (!auth || !db) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {
@@ -82,6 +85,7 @@ export async function updateHashtagGroup(groupId: string, data: Partial<HashtagG
 }
 
 export async function deleteHashtagGroup(groupId: string) {
+  if (!auth || !db) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {

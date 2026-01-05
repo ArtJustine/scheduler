@@ -1,4 +1,8 @@
 import type { PostType } from "@/types/post"
+import type { MediaItem } from "@/types/media"
+import type { HashtagGroup } from "@/types/hashtag"
+import type { CaptionTemplate } from "@/types/caption"
+import type { SocialAccounts } from "@/types/social"
 import { signIn, signUp } from "@/lib/firebase/auth"
 
 // Simulate API delay
@@ -61,11 +65,32 @@ export const logout = async () => {
 }
 
 // Social account functions
-export const getSocialAccounts = async () => {
+export const getSocialAccounts = async (): Promise<SocialAccounts> => {
   // TODO: Implement real social account fetching logic for production
   console.log("Getting social accounts (mock)")
   await delay(600)
-  return []
+  return {
+    instagram: {
+      username: "mock_insta",
+      accessToken: "mock_token",
+      connected: true,
+      connectedAt: new Date().toISOString(),
+      followers: 1200
+    },
+    tiktok: {
+      username: "mock_tiktok",
+      accessToken: "mock_token",
+      connected: false,
+      connectedAt: new Date().toISOString()
+    },
+    youtube: {
+      username: "mock_yt",
+      accessToken: "mock_token",
+      connected: true,
+      connectedAt: new Date().toISOString(),
+      followers: 500
+    }
+  }
 }
 
 export const connectSocialAccount = async (platform: string) => {
@@ -94,7 +119,26 @@ export const getPosts = async () => {
 export const getPostById = async (id: string) => {
   console.log("Getting post (mock)", { id })
   await delay(500)
-  return { id: "1", title: "Mock Post 1", content: "This is a mock post 1.", createdAt: "2023-10-26T10:00:00Z" }
+  return {
+    id: "1",
+    userId: "mock-user",
+    title: "Mock Post 1",
+    description: "A description of the post",
+    platform: "instagram",
+    contentType: "image",
+    content: "This is a mock post 1.",
+    mediaUrl: "/placeholder.svg?height=400&width=600",
+    status: "published",
+    createdAt: "2023-10-26T10:00:00Z",
+    publishedAt: "2023-10-27T10:00:00Z",
+    scheduledFor: "2023-10-27T10:00:00Z",
+    analytics: {
+      likes: 120,
+      comments: 45,
+      shares: 12,
+      impressions: 1500,
+    },
+  } as PostType
 }
 
 export const createPost = async (data: Partial<PostType>) => {
@@ -122,12 +166,32 @@ export const schedulePost = async (id: string, date: string) => {
 }
 
 // Media functions
-export const getMediaLibrary = async () => {
+export const getMediaLibrary = async (): Promise<MediaItem[]> => {
   console.log("Getting media (mock)")
   await delay(800)
   return [
-    { id: "1", url: "/placeholder.svg?height=400&width=400", type: "image", uploadedAt: "2023-10-26T09:00:00Z" },
-    { id: "2", url: "/placeholder.svg?height=400&width=400", type: "video", uploadedAt: "2023-10-26T10:00:00Z" },
+    {
+      id: "1",
+      userId: "mock-user",
+      title: "Placeholder Image",
+      type: "image",
+      url: "/placeholder.svg?height=400&width=400",
+      fileName: "placeholder.svg",
+      fileSize: 1024,
+      storagePath: "mock/path",
+      createdAt: "2023-10-26T09:00:00Z"
+    },
+    {
+      id: "2",
+      userId: "mock-user",
+      title: "Placeholder Video",
+      type: "video",
+      url: "/placeholder.svg?height=400&width=400",
+      fileName: "placeholder-video.mp4",
+      fileSize: 2048,
+      storagePath: "mock/path-video",
+      createdAt: "2023-10-26T10:00:00Z"
+    },
   ]
 }
 
@@ -144,12 +208,28 @@ export const deleteMedia = async (id: string) => {
 }
 
 // Hashtag functions
-export const getHashtagGroups = async () => {
+export const getHashtagGroups = async (): Promise<HashtagGroup[]> => {
   console.log("Getting hashtags (mock)")
   await delay(400)
   return [
-    { id: "1", name: "Mock Hashtag 1", posts: 10 },
-    { id: "2", name: "Mock Hashtag 2", posts: 5 },
+    {
+      id: "1",
+      userId: "mock-user",
+      name: "Mock Hashtag Group 1",
+      hashtags: ["#mock", "#test"],
+      category: "Test",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: "2",
+      userId: "mock-user",
+      name: "Mock Hashtag Group 2",
+      hashtags: ["#demo", "#scheduler"],
+      category: "Demo",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
   ]
 }
 
@@ -166,12 +246,28 @@ export const deleteHashtag = async (id: string) => {
 }
 
 // Caption functions
-export const getCaptionTemplates = async () => {
+export const getCaptionTemplates = async (): Promise<CaptionTemplate[]> => {
   console.log("Getting captions (mock)")
   await delay(500)
   return [
-    { id: "1", text: "Mock Caption 1" },
-    { id: "2", text: "Mock Caption 2" },
+    {
+      id: "1",
+      userId: "mock-user",
+      title: "Template 1",
+      content: "Mock Caption 1",
+      tags: ["mock", "test"],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: "2",
+      userId: "mock-user",
+      title: "Template 2",
+      content: "Mock Caption 2",
+      tags: ["demo"],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
   ]
 }
 

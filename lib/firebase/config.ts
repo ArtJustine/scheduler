@@ -15,8 +15,20 @@ const firebaseConfig = {
   appId: config.firebase.appId,
 }
 
+import type { Auth } from "firebase/auth"
+import type { Firestore } from "firebase/firestore"
+import type { FirebaseStorage } from "firebase/storage"
+import type { FirebaseApp } from "firebase/app"
+
+interface FirebaseServices {
+  app: FirebaseApp | null
+  auth: Auth | null
+  db: Firestore | null
+  storage: FirebaseStorage | null
+}
+
 // Initialize Firebase for client-side only
-const firebase = { app: null, auth: null, db: null, storage: null }
+const firebase: FirebaseServices = { app: null, auth: null, db: null, storage: null }
 
 if (typeof window !== "undefined") {
   // Initialize Firebase

@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user ID from query params or cookie
-    const userId = request.nextUrl.searchParams.get("userId") || cookies().get("userId")?.value
-    
+    const userId = request.nextUrl.searchParams.get("userId") || (await cookies()).get("userId")?.value
+
     if (!userId) {
       return NextResponse.json(
         { error: "User ID is required" },

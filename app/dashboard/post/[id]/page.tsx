@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -12,17 +12,20 @@ import { format } from "date-fns"
 import { getPostById, deletePost } from "@/lib/data-service"
 import type { PostType } from "@/types/post"
 
-export default function PostDetailPage({ params }: { params: { id: string } }) {
+export default function PostDetailPage() {
   const router = useRouter()
+  const params = useParams()
+  const id = params?.id as string
   const [post, setPost] = useState<PostType | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     const loadPost = async () => {
+      if (!id) return
       try {
         setIsLoading(true)
-        const postData = await getPostById(params.id)
+        const postData = await getPostById(id)
         setPost(postData)
       } catch (error) {
         console.error("Error loading post:", error)
@@ -32,7 +35,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
     }
 
     loadPost()
-  }, [params.id])
+  }, [id])
 
   const handleDelete = async () => {
     if (!post) return

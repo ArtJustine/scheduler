@@ -10,6 +10,7 @@ import {
 } from "firebase/auth"
 import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import { firebaseAuth, firebaseDb, firebaseStorage } from "@/lib/firebase-client"
 
 // Sign up a new user
 export const signUp = async (email: string, password: string, displayName: string) => {
@@ -68,9 +69,10 @@ export const signOut = async () => {
 // Get the current user
 export const getCurrentUser = (): Promise<User | null> => {
   if (!firebaseAuth) return Promise.resolve(null)
+  const auth = firebaseAuth
 
   return new Promise((resolve) => {
-    const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       unsubscribe()
       resolve(user)
     })
@@ -79,9 +81,9 @@ export const getCurrentUser = (): Promise<User | null> => {
 
 // Listen to auth state changes
 export const onAuthStateChange = (callback: (user: User | null) => void) => {
-  if (!firebaseAuth) return () => {}
+  if (!firebaseAuth) return () => { }
 
-  return onAuthStateChanged(firebaseAuth, callback)
+  return onAuthStateChanged(firebaseAuth!, callback)
 }
 
 export const updateUserProfile = async (data: { displayName?: string; photoURL?: string }) => {

@@ -15,11 +15,16 @@ const firebaseConfig = {
   appId: "1:974176191059:web:4b29d837e57c00a97abca6",
 }
 
+import type { FirebaseApp } from "firebase/app"
+import type { Auth } from "firebase/auth"
+import type { Firestore } from "firebase/firestore"
+import type { FirebaseStorage } from "firebase/storage"
+
 // Initialize Firebase only on the client side
-let firebaseApp
-let firebaseAuth
-let firebaseDb
-let firebaseStorage
+let firebaseApp: FirebaseApp | undefined
+let firebaseAuth: Auth | undefined
+let firebaseDb: Firestore | undefined
+let firebaseStorage: FirebaseStorage | undefined
 
 if (typeof window !== "undefined") {
   try {

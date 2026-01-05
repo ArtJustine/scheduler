@@ -12,15 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-
-interface MediaItem {
-  id: string
-  url: string
-  name: string
-  type: string
-  size: number
-  uploadedAt: string
-}
+import type { MediaItem } from "@/types/media"
 
 interface MediaGridProps {
   items: MediaItem[]
@@ -58,7 +50,7 @@ export function MediaGrid({ items, onDelete }: MediaGridProps) {
           >
             <img
               src={item.url || "/placeholder.svg"}
-              alt={item.name}
+              alt={item.fileName}
               className="h-full w-full object-cover transition-all group-hover:scale-105"
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
@@ -74,15 +66,15 @@ export function MediaGrid({ items, onDelete }: MediaGridProps) {
       <Dialog open={!!selectedItem} onOpenChange={(open) => !open && handleClose()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{selectedItem?.name}</DialogTitle>
+            <DialogTitle>{selectedItem?.fileName}</DialogTitle>
             <DialogDescription>
-              {selectedItem?.type} • {formatFileSize(selectedItem?.size || 0)}
+              {selectedItem?.type} • {formatFileSize(selectedItem?.fileSize || 0)}
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center justify-center overflow-hidden rounded-md border">
             <img
               src={selectedItem?.url || "/placeholder.svg"}
-              alt={selectedItem?.name}
+              alt={selectedItem?.fileName}
               className="max-h-[60vh] w-auto object-contain"
             />
           </div>

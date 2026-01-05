@@ -5,4 +5,5 @@ export interface CaptionTemplate {
   content: string
   createdAt: string
   updatedAt: string
+  tags?: string[]
 }

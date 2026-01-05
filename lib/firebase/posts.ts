@@ -24,7 +24,7 @@ export async function getScheduledPosts() {
   }
 
   try {
-    const postsRef = collection(firebaseDb, "posts")
+    const postsRef = collection(firebaseDb!, "posts")
     const q = query(postsRef, where("userId", "==", user.uid))
     const querySnapshot = await getDocs(q)
 
@@ -40,7 +40,7 @@ export async function getScheduledPosts() {
     return posts.sort((a, b) => {
       return new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime()
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error getting scheduled posts:", error)
 
     // If we get an offline error, return empty array as fallback
@@ -68,7 +68,7 @@ export async function getPost(postId: string) {
   }
 
   try {
-    const postRef = doc(firebaseDb, "posts", postId)
+    const postRef = doc(firebaseDb!, "posts", postId)
     const postDoc = await getDoc(postRef)
 
     if (!postDoc.exists()) {
@@ -87,7 +87,7 @@ export async function getPost(postId: string) {
       id: postDoc.id,
       ...postData,
     } as PostType
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error getting post by ID:", error)
 
     // If we get an offline error, return null as fallback
@@ -100,7 +100,7 @@ export async function getPost(postId: string) {
   }
 }
 
-export async function createPost(postData: Omit<PostType, "id" | "createdAt" | "updatedAt">) {
+export async function createPost(postData: Omit<PostType, "id" | "createdAt" | "updatedAt" | "userId">) {
   if (!isFirestoreAvailable()) {
     throw new Error("Firestore is not available")
   }
@@ -112,7 +112,7 @@ export async function createPost(postData: Omit<PostType, "id" | "createdAt" | "
   }
 
   try {
-    const postsRef = collection(firebaseDb, "posts")
+    const postsRef = collection(firebaseDb!, "posts")
     const newPost = {
       ...postData,
       userId: user.uid,
@@ -140,7 +140,7 @@ export async function updatePost(postId: string, postData: Partial<PostType>) {
   }
 
   try {
-    const postRef = doc(firebaseDb, "posts", postId)
+    const postRef = doc(firebaseDb!, "posts", postId)
     const postDoc = await getDoc(postRef)
 
     if (!postDoc.exists()) {
@@ -176,7 +176,7 @@ export async function deletePost(postId: string) {
   }
 
   try {
-    const postRef = doc(firebaseDb, "posts", postId)
+    const postRef = doc(firebaseDb!, "posts", postId)
     const postDoc = await getDoc(postRef)
 
     if (!postDoc.exists()) {

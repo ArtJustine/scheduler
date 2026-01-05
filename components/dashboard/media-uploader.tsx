@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Upload, ImageIcon, Film } from "lucide-react"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { useToast } from "@/components/ui/use-toast"
+import { firebaseAuth, firebaseStorage } from "@/lib/firebase-client"
 
 interface MediaUploaderProps {
   onUpload: (url: string) => void
@@ -110,9 +111,8 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
   return (
     <div>
       <Card
-        className={`border-2 border-dashed p-6 text-center ${
-          isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25"
-        }`}
+        className={`border-2 border-dashed p-6 text-center ${isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25"
+          }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}

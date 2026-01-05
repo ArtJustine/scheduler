@@ -5,4 +5,5 @@ export interface HashtagGroup {
   hashtags: string[]
   createdAt: string
   updatedAt: string
+  category?: string
 }

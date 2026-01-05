@@ -21,21 +21,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
-
-interface HashtagGroup {
-  id: string
-  name: string
-  hashtags: string[]
-  category: string
-}
+import type { HashtagGroup } from "@/types/hashtag"
 
 interface HashtagManagerProps {
-  hashtagGroups: HashtagGroup[]
-  onAdd?: (group: Omit<HashtagGroup, "id">) => void
+  groups: HashtagGroup[]
+  onAdd?: (group: Omit<HashtagGroup, "id" | "userId" | "createdAt" | "updatedAt">) => void
   onDelete?: (id: string) => void
 }
 
-export function HashtagManager({ hashtagGroups, onAdd, onDelete }: HashtagManagerProps) {
+export function HashtagManager({ groups, onAdd, onDelete }: HashtagManagerProps) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [hashtags, setHashtags] = useState("")
@@ -128,7 +122,7 @@ export function HashtagManager({ hashtagGroups, onAdd, onDelete }: HashtagManage
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {hashtagGroups.length === 0 ? (
+          {groups.length === 0 ? (
             <div className="flex h-32 flex-col items-center justify-center rounded-md border border-dashed">
               <p className="text-sm text-muted-foreground">No hashtag groups saved yet</p>
               <Button variant="link" size="sm" onClick={() => setOpen(true)}>
@@ -136,7 +130,7 @@ export function HashtagManager({ hashtagGroups, onAdd, onDelete }: HashtagManage
               </Button>
             </div>
           ) : (
-            hashtagGroups.map((group) => (
+            groups.map((group) => (
               <div key={group.id} className="rounded-md border p-4">
                 <div className="mb-2 flex items-center justify-between">
                   <div>

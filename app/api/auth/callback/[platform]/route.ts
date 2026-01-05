@@ -15,12 +15,12 @@ export async function GET(
   const savedState = cookieStore.get("oauth_state")?.value
 
   if (error) {
-    return NextResponse.redirect(new URL(\`/dashboard/connections?error=\${error}&platform=\${platform}\`, request.url))
+    return NextResponse.redirect(new URL(`/dashboard/connections?error=${error}&platform=${platform}`, request.url))
   }
 
   if (!code || !state || state !== savedState) {
     return NextResponse.redirect(
-      new URL(\`/dashboard/connections?error=invalid_state&platform=\${platform}\`, request.url),
+      new URL(`/dashboard/connections?error=invalid_state&platform=${platform}`, request.url),
     )
   }
 
@@ -29,10 +29,10 @@ export async function GET(
       access_token: "mock_access_token_" + Math.random().toString(36).substring(7),
       refresh_token: "mock_refresh_token_" + Math.random().toString(36).substring(7),
       expires_in: 3600,
-      username: \`user_\${Math.floor(Math.random() * 10000)}\`,
+      username: `user_${Math.floor(Math.random() * 10000)}`,
     }
 
-    cookieStore.set(\`\${platform}_access_token\`, mockTokenResponse.access_token, {
+    cookieStore.set(`${platform}_access_token`, mockTokenResponse.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: mockTokenResponse.expires_in,
@@ -41,14 +41,14 @@ export async function GET(
 
     return NextResponse.redirect(
       new URL(
-        \`/dashboard/connections?success=true&platform=\${platform}&username=\${mockTokenResponse.username}\`,
+        `/dashboard/connections?success=true&platform=${platform}&username=${mockTokenResponse.username}`,
         request.url,
       ),
     )
   } catch (err) {
     console.error("OAuth callback error:", err)
     return NextResponse.redirect(
-      new URL(\`/dashboard/connections?error=token_exchange_failed&platform=\${platform}\`, request.url),
+      new URL(`/dashboard/connections?error=token_exchange_failed&platform=${platform}`, request.url),
     )
   }
 }

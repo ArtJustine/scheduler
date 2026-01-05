@@ -19,6 +19,7 @@ interface CreateCaptionTemplateParams {
 }
 
 export async function createCaptionTemplate({ title, content }: CreateCaptionTemplateParams) {
+  if (!auth || !db) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {
@@ -44,6 +45,7 @@ export async function createCaptionTemplate({ title, content }: CreateCaptionTem
 }
 
 export async function getCaptionTemplates() {
+  if (!auth || !db) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {
@@ -67,6 +69,7 @@ export async function getCaptionTemplates() {
 }
 
 export async function updateCaptionTemplate(templateId: string, data: Partial<CaptionTemplate>) {
+  if (!auth || !db) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {
@@ -82,6 +85,7 @@ export async function updateCaptionTemplate(templateId: string, data: Partial<Ca
 }
 
 export async function deleteCaptionTemplate(templateId: string) {
+  if (!auth || !db) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {

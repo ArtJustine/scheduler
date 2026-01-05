@@ -10,6 +10,7 @@ interface UploadMediaParams {
 }
 
 export async function uploadMediaToLibrary({ file, title, type }: UploadMediaParams) {
+  if (!auth || !db || !storage) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {
@@ -45,6 +46,7 @@ export async function uploadMediaToLibrary({ file, title, type }: UploadMediaPar
 }
 
 export async function getMediaLibrary() {
+  if (!auth || !db) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {
@@ -63,6 +65,7 @@ export async function getMediaLibrary() {
 }
 
 export async function deleteMediaFromLibrary(mediaId: string) {
+  if (!auth || !db || !storage) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {

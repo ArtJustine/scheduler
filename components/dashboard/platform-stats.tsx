@@ -5,7 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 
-export function PlatformStats({ platform, postCount = 0, followers = 0, connected = false }) {
+interface PlatformStatsProps {
+  platform: any; // Using any for platform key indexing, or better explicit string
+  postCount?: number;
+  followers?: number;
+  connected?: boolean;
+}
+
+export function PlatformStats({ platform, postCount = 0, followers = 0, connected = false }: PlatformStatsProps) {
   const router = useRouter()
 
   const platformIcon = {
@@ -19,7 +26,7 @@ export function PlatformStats({ platform, postCount = 0, followers = 0, connecte
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{platform}</CardTitle>
         <div className="h-4 w-4">
-          <img src={platformIcon[platform] || "/placeholder.svg"} alt={platform} className="h-4 w-4" />
+          <img src={platformIcon[platform as keyof typeof platformIcon] || "/placeholder.svg"} alt={platform} className="h-4 w-4" />
         </div>
       </CardHeader>
       <CardContent>

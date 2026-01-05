@@ -21,21 +21,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
-
-interface Caption {
-  id: string
-  title: string
-  content: string
-  tags: string[]
-}
+import type { CaptionTemplate } from "@/types/caption"
 
 interface CaptionLibraryProps {
-  captions: Caption[]
-  onAdd?: (caption: Omit<Caption, "id">) => void
+  templates: CaptionTemplate[]
+  onAdd?: (caption: Omit<CaptionTemplate, "id" | "userId" | "createdAt" | "updatedAt">) => void
   onDelete?: (id: string) => void
 }
 
-export function CaptionLibrary({ captions, onAdd, onDelete }: CaptionLibraryProps) {
+export function CaptionLibrary({ templates, onAdd, onDelete }: CaptionLibraryProps) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
@@ -124,7 +118,7 @@ export function CaptionLibrary({ captions, onAdd, onDelete }: CaptionLibraryProp
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {captions.length === 0 ? (
+          {templates.length === 0 ? (
             <div className="flex h-32 flex-col items-center justify-center rounded-md border border-dashed">
               <p className="text-sm text-muted-foreground">No captions saved yet</p>
               <Button variant="link" size="sm" onClick={() => setOpen(true)}>
@@ -132,7 +126,7 @@ export function CaptionLibrary({ captions, onAdd, onDelete }: CaptionLibraryProp
               </Button>
             </div>
           ) : (
-            captions.map((caption) => (
+            templates.map((caption) => (
               <div key={caption.id} className="rounded-md border p-4">
                 <div className="mb-2 flex items-center justify-between">
                   <h3 className="font-medium">{caption.title}</h3>
@@ -158,7 +152,7 @@ export function CaptionLibrary({ captions, onAdd, onDelete }: CaptionLibraryProp
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">{caption.content}</p>
-                {caption.tags.length > 0 && (
+                {caption.tags && caption.tags.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {caption.tags.map((tag) => (
                       <span key={tag} className="inline-flex items-center rounded-full bg-secondary px-2 py-1 text-xs">

@@ -9,4 +9,12 @@ export interface PostType {
   mediaUrl: string | null
   status: "scheduled" | "published" | "failed"
   createdAt: string
+  content?: string
+  publishedAt?: string
+  analytics?: {
+    likes: number
+    comments: number
+    shares: number
+    impressions: number
+  }
 }

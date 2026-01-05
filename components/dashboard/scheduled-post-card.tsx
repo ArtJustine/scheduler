@@ -6,7 +6,13 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
-export function ScheduledPostCard({ post }) {
+import type { PostType } from "@/types/post"
+
+interface ScheduledPostCardProps {
+  post: PostType
+}
+
+export function ScheduledPostCard({ post }: ScheduledPostCardProps) {
   if (!post) {
     return null
   }
@@ -34,8 +40,8 @@ export function ScheduledPostCard({ post }) {
             <p className="text-sm text-muted-foreground">
               {post.scheduledFor
                 ? `Scheduled for ${formatDistanceToNow(new Date(post.scheduledFor || Date.now()), {
-                    addSuffix: true,
-                  })}`
+                  addSuffix: true,
+                })}`
                 : "Not scheduled"}
             </p>
           </div>

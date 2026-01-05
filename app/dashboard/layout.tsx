@@ -4,7 +4,7 @@ import { DashboardSidebar } from "@/components/dashboard/sidebar-fixed"
 import { AuthProvider } from "@/lib/auth-provider"
 
 export const metadata: Metadata = {
-  title: "Dashboard | Social Media Scheduler",
+  title: "Dashboard | Social Media Chiyu",
   description: "Manage and schedule your social media posts",
 }
 

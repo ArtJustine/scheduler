@@ -2,7 +2,13 @@ import { formatDistanceToNow } from "date-fns"
 import { Calendar } from "lucide-react"
 import Link from "next/link"
 
-export function UpcomingPostsList({ posts = [] }) {
+import type { PostType } from "@/types/post"
+
+interface UpcomingPostsListProps {
+  posts: PostType[]
+}
+
+export function UpcomingPostsList({ posts = [] }: UpcomingPostsListProps) {
   // Ensure posts is always an array
   const safePostsArray = Array.isArray(posts) ? posts : []
 

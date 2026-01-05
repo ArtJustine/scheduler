@@ -5,6 +5,7 @@ import { collection, getDocs, getDoc, updateDoc, doc } from "firebase/firestore"
 export async function checkScheduledPosts() {
   try {
     // Get all users
+    if (!firebaseDb) return console.log("Database not initialized")
     const usersCollection = collection(firebaseDb, "users")
     const usersSnapshot = await getDocs(usersCollection)
 
@@ -18,7 +19,7 @@ export async function checkScheduledPosts() {
       if (!userData.scheduledPosts) continue
 
       // Iterate through each scheduled post
-      for (const [postId, post] of Object.entries(userData.scheduledPosts)) {
+      for (const [postId, post] of Object.entries(userData.scheduledPosts) as [string, any][]) {
         // Check if the post is scheduled for now or in the past
         if (post.status === "scheduled" && new Date(post.scheduledFor) <= now) {
           // Publish the post
@@ -35,6 +36,7 @@ export async function checkScheduledPosts() {
 async function publishPost(userId: string, postId: string, post: any) {
   try {
     // Update the post status to "publishing"
+    if (!firebaseDb) throw new Error("Database not initialized")
     const userDocRef = doc(firebaseDb, "users", userId)
     await updateDoc(userDocRef, {
       [`scheduledPosts.${postId}.status`]: "publishing",
@@ -85,6 +87,7 @@ async function publishPost(userId: string, postId: string, post: any) {
     console.error(`Error publishing post ${postId}:`, error)
 
     // Update the post status to "failed"
+    if (!firebaseDb) throw new Error("Database not initialized")
     const userDocRef = doc(firebaseDb, "users", userId)
     await updateDoc(userDocRef, {
       [`scheduledPosts.${postId}.status`]: "failed",
@@ -97,6 +100,7 @@ async function publishPost(userId: string, postId: string, post: any) {
 async function publishToInstagram(userId: string, post: any) {
   try {
     // Get the user's Instagram account information
+    if (!firebaseDb) throw new Error("Database not initialized")
     const userDocRef = doc(firebaseDb, "users", userId)
     const userDoc = await getDoc(userDocRef)
 
@@ -157,6 +161,7 @@ async function publishToInstagram(userId: string, post: any) {
 async function publishToYouTube(userId: string, post: any) {
   try {
     // Get the user's YouTube account information
+    if (!firebaseDb) throw new Error("Database not initialized")
     const userDocRef = doc(firebaseDb, "users", userId)
     const userDoc = await getDoc(userDocRef)
 

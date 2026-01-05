@@ -13,6 +13,7 @@ export async function getSocialAccounts() {
   }
 
   try {
+    if (!firebaseDb) throw new Error("Database not initialized")
     const userDocRef = doc(firebaseDb, "users", user.uid)
     const userDoc = await getDoc(userDocRef)
 
@@ -42,6 +43,7 @@ export async function connectSocialAccount(platform: SocialAccountType, accountD
   }
 
   try {
+    if (!firebaseDb) throw new Error("Database not initialized")
     const userDocRef = doc(firebaseDb, "users", user.uid)
 
     // Check if the document exists first
@@ -88,6 +90,7 @@ export async function disconnectSocialAccount(platform: SocialAccountType) {
   }
 
   try {
+    if (!firebaseDb) throw new Error("Database not initialized")
     const userDocRef = doc(firebaseDb, "users", user.uid)
 
     // Remove the platform data
@@ -108,6 +111,7 @@ export async function updateSocialAccountStats(platform: SocialAccountType, stat
   }
 
   try {
+    if (!firebaseDb) throw new Error("Database not initialized")
     const userDocRef = doc(firebaseDb, "users", user.uid)
     const userDoc = await getDoc(userDocRef)
 
@@ -144,6 +148,7 @@ export async function refreshSocialToken(platform: SocialAccountType) {
   }
 
   try {
+    if (!firebaseDb) throw new Error("Database not initialized")
     const userDocRef = doc(firebaseDb, "users", user.uid)
     const userDoc = await getDoc(userDocRef)
 

@@ -2,6 +2,7 @@ import { collection, query, where, getCountFromServer } from "firebase/firestore
 import { db, auth } from "./config"
 
 export async function getUserStats() {
+  if (!auth || !db) throw new Error("Firebase not initialized")
   const user = auth.currentUser
 
   if (!user) {

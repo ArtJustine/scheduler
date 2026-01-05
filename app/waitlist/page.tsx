@@ -70,7 +70,8 @@ export default function WaitlistPage() {
                 <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-primary/20 rounded-full blur-[100px] opacity-30" />
             </div>
 
-            <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/50 backdrop-blur-lg">
+            {/* Header - Now White in light mode, Dark in dark mode */}
+            <header className="sticky top-0 z-50 w-full border-b border-border bg-white dark:bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-black/60">
                 <div className="container flex h-16 items-center justify-between px-6">
                     <Link href="/" className="flex items-center space-x-2">
                         <Calendar className="h-6 w-6 text-primary" />
@@ -82,7 +83,7 @@ export default function WaitlistPage() {
                     </nav>
                     <div className="flex items-center space-x-4">
                         <Link href="/waitlist">
-                            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25">Join Waitlist</Button>
+                            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-lg shadow-primary/25">Join Waitlist</Button>
                         </Link>
                     </div>
                 </div>

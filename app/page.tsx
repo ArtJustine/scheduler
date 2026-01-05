@@ -5,8 +5,8 @@ import Link from "next/link"
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground font-sans">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-800 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/60">
+      {/* Header - Now White in light mode, Dark in dark mode */}
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-white dark:bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-black/60">
         <div className="container flex h-16 items-center justify-between px-6">
           <Link href="/" className="flex items-center space-x-2">
             <Calendar className="h-6 w-6 text-primary" />
@@ -16,11 +16,9 @@ export default function Home() {
             <Link href="/features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Features
             </Link>
-
             <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               About
             </Link>
-
           </nav>
           <div className="flex items-center space-x-4">
             <Link href="/waitlist">
@@ -34,7 +32,6 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden">
-        {/* Abstract Background */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px]" />
           <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]" />
@@ -42,13 +39,11 @@ export default function Home() {
 
         <div className="container relative z-10 px-6">
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            {/* Badge */}
             <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-green-500/20 border border-green-500/30">
               <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
               <span className="text-sm text-green-400 font-medium">Limited spots available</span>
             </div>
 
-            {/* Main Headline */}
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-foreground">
               The truly{" "}
               <span className="relative inline-block">
@@ -60,12 +55,10 @@ export default function Home() {
               scheduling tool
             </h2>
 
-            {/* Subheadline */}
             <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto">
               Say goodbye to manual posting, and hello to limitless, lightning-fast social media management.
             </p>
 
-            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <Link href="/waitlist">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 h-auto shadow-xl shadow-primary/20 transition-all hover:scale-105">
@@ -82,7 +75,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured On Section */}
+      {/* HIDDEN: Featured On Section 
       <section className="w-full py-12 border-y border-gray-800">
         <div className="container px-6">
           <p className="text-center text-sm text-gray-500 mb-8">Trusted by creators worldwide</p>
@@ -95,8 +88,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+      */}
 
-      {/* Testimonial Section */}
+      {/* HIDDEN: Testimonial Section
       <section className="w-full py-20 md:py-32 bg-muted/30">
         <div className="container px-6">
           <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
@@ -124,6 +118,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      */}
 
       {/* Process Section */}
       <section className="w-full py-20 md:py-32 bg-background relative overflow-hidden">
@@ -140,7 +135,6 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
-              {/* Feature: SEO */}
               <div className="p-8 rounded-2xl glass-card border border-primary/20 hover:border-primary/50 transition-all group">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
                   <Star className="h-6 w-6 text-primary" />
@@ -151,7 +145,6 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Feature: AI */}
               <div className="p-8 rounded-2xl glass-card border border-primary/20 hover:border-primary/50 transition-all group">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
                   <Zap className="h-6 w-6 text-primary" />

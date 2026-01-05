@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { firebaseDb } from "@/lib/firebase-client"
+import { collection, addDoc, getDocs, query, where, Timestamp } from "firebase/firestore"
 
 export default function WaitlistPage() {
     const [email, setEmail] = useState("")
@@ -21,31 +23,40 @@ export default function WaitlistPage() {
         setError("")
 
         try {
-            // Add timeout to prevent infinite loading
-            const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+            if (!firebaseDb) {
+                throw new Error("Database not initialized")
+            }
 
-            const response = await fetch("/api/waitlist", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-                signal: controller.signal,
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (!emailRegex.test(email)) {
+                setError("Invalid email format")
+                setLoading(false)
+                return
+            }
+
+            // Check if email already exists
+            const waitlistRef = collection(firebaseDb, "waitlist")
+            const q = query(waitlistRef, where("email", "==", email.toLowerCase().trim()))
+            const snapshot = await getDocs(q)
+
+            if (!snapshot.empty) {
+                setError("This email is already on the waitlist")
+                setLoading(false)
+                return
+            }
+
+            // Add to waitlist
+            await addDoc(waitlistRef, {
+                email: email.toLowerCase().trim(),
+                createdAt: Timestamp.now(),
+                status: "pending",
             })
 
-            clearTimeout(timeoutId)
-            const data = await response.json()
-
-            if (data.success) {
-                setSubmitted(true)
-            } else {
-                setError(data.message || "Failed to join waitlist. Please try again.")
-            }
+            setSubmitted(true)
         } catch (err: any) {
-            if (err.name === 'AbortError') {
-                setError("Request timed out. Please try again.")
-            } else {
-                setError("Something went wrong. Please try again later.")
-            }
+            console.error("Error adding to waitlist:", err)
+            setError("Something went wrong. Please try again later.")
         } finally {
             setLoading(false)
         }

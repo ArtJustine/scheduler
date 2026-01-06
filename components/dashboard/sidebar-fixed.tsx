@@ -2,7 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, Calendar, FolderPlus, HelpCircle, Home, ImageIcon, Link2, Settings, User } from "lucide-react"
+import { BarChart3, Calendar, FolderPlus, HelpCircle, Home, ImageIcon, Link2, Settings, User, Facebook, Twitter, Instagram, Youtube, MessageSquare, Share2 } from "lucide-react"
+
+
 
 import { cn } from "@/lib/utils"
 import {
@@ -45,6 +47,54 @@ const sidebarItems = [
     icon: ImageIcon,
     href: "/dashboard/library",
   },
+]
+
+const socialChannels = [
+  {
+    title: "Threads",
+    icon: MessageSquare,
+    href: "/dashboard/platform/threads",
+    color: "text-zinc-900 dark:text-zinc-100",
+  },
+  {
+    title: "TikTok",
+    icon: Share2,
+    href: "/dashboard/platform/tiktok",
+    color: "text-rose-600",
+  },
+  {
+    title: "YouTube",
+    icon: Youtube,
+    href: "/dashboard/platform/youtube",
+    color: "text-red-600",
+  },
+  {
+    title: "Instagram",
+    icon: Instagram,
+    href: "/dashboard/platform/instagram",
+    color: "text-pink-600",
+  },
+  {
+    title: "Facebook",
+    icon: Facebook,
+    href: "/dashboard/platform/facebook",
+    color: "text-blue-600",
+  },
+  {
+    title: "Twitter",
+    icon: Twitter,
+    href: "/dashboard/platform/twitter",
+    color: "text-sky-500",
+  },
+  {
+    title: "Pinterest",
+    icon: Share2,
+    href: "/dashboard/platform/pinterest",
+    color: "text-red-700",
+  },
+]
+
+const settingsItems = [
   {
     title: "Connections",
     icon: Link2,
@@ -93,6 +143,37 @@ export function DashboardSidebar() {
         <SidebarContent>
           <SidebarMenu>
             {sidebarItems.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
+                  <Link href={item.href} className={cn("flex items-center")}>
+                    <item.icon className="mr-2 h-5 w-5" />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+
+          <div className="px-3 py-4">
+            <h2 className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+              Social Channels
+            </h2>
+            <SidebarMenu>
+              {socialChannels.map((channel) => (
+                <SidebarMenuItem key={channel.href}>
+                  <SidebarMenuButton asChild isActive={pathname === channel.href} tooltip={channel.title}>
+                    <Link href={channel.href} className={cn("flex items-center")}>
+                      <channel.icon className={cn("mr-2 h-5 w-5", channel.color)} />
+                      <span>{channel.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </div>
+
+          <SidebarMenu>
+            {settingsItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
                   <Link href={item.href} className={cn("flex items-center")}>

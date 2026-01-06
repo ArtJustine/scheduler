@@ -28,6 +28,10 @@ export async function getSocialAccounts() {
       instagram: userData.instagram || null,
       youtube: userData.youtube || null,
       tiktok: userData.tiktok || null,
+      threads: userData.threads || null,
+      facebook: userData.facebook || null,
+      twitter: userData.twitter || null,
+      pinterest: userData.pinterest || null,
     }
   } catch (error) {
     console.error("Error getting social accounts:", error)

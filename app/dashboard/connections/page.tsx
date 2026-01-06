@@ -30,34 +30,19 @@ export default function ConnectionsPage() {
         setIsLoading(true)
         const { getSocialAccounts } = await import("@/lib/firebase/social-accounts")
         const accountsData = await getSocialAccounts()
-        
-        // Transform the accounts data to match the expected format
+
         const accounts: SocialAccount[] = []
-        if (accountsData.instagram) {
-          accounts.push({
-            id: accountsData.instagram.id || "instagram",
-            platform: "instagram",
-            username: accountsData.instagram.username || "Instagram User",
-            connected: true,
-          })
-        }
-        if (accountsData.youtube) {
-          accounts.push({
-            id: accountsData.youtube.id || "youtube",
-            platform: "youtube",
-            username: accountsData.youtube.username || "YouTube Channel",
-            connected: true,
-          })
-        }
-        if (accountsData.tiktok) {
-          accounts.push({
-            id: accountsData.tiktok.id || "tiktok",
-            platform: "tiktok",
-            username: accountsData.tiktok.username || "TikTok User",
-            connected: true,
-          })
-        }
-        
+        Object.entries(accountsData).forEach(([plat, data]: [string, any]) => {
+          if (data) {
+            accounts.push({
+              id: data.id || plat,
+              platform: plat,
+              username: data.username || `${plat.charAt(0).toUpperCase() + plat.slice(1)} User`,
+              connected: true,
+            })
+          }
+        })
+
         setSocialAccounts(accounts)
       } catch (error) {
         console.error("Error loading social accounts:", error)
@@ -110,82 +95,62 @@ export default function ConnectionsPage() {
             className="mr-2 p-2 rounded hover:bg-muted"
             aria-label="Back"
           >
-            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left h-5 w-5"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left h-5 w-5"><path d="M19 12H5" /><path d="m12 19-7-7 7-7" /></svg>
           </button>
         )}
         <h1 className="text-2xl font-bold tracking-tight">Social Connections</h1>
       </div>
       <p className="text-muted-foreground">Connect your social media accounts to schedule and publish content</p>
-      <Tabs defaultValue="instagram" className="space-y-4">
-        <TabsList className="hidden">
-          <TabsTrigger value="instagram">Instagram</TabsTrigger>
-        </TabsList>
-        <TabsContent value="instagram">
-          <Card>
-            <CardHeader>
-              <CardTitle>Instagram</CardTitle>
-              <CardDescription>Connect your Instagram account to schedule and publish posts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center p-4">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                </div>
-              ) : (
-                <SocialConnect 
-                  connectedAccounts={socialAccounts.filter(acc => acc.platform.toLowerCase() === "instagram")}
-                  onDisconnect={async (platform) => {
-                    try {
-                      const { disconnectSocialAccount } = await import("@/lib/firebase/social-accounts")
-                      await disconnectSocialAccount(platform.toLowerCase() as any)
-                      toast({
-                        title: "Account Disconnected",
-                        description: `Your ${platform} account has been disconnected.`,
-                      })
-                      // Reload accounts
-                      const { getSocialAccounts } = await import("@/lib/firebase/social-accounts")
-                      const accountsData = await getSocialAccounts()
-                      const accounts: SocialAccount[] = []
-                      if (accountsData.instagram) {
-                        accounts.push({
-                          id: accountsData.instagram.id || "instagram",
-                          platform: "instagram",
-                          username: accountsData.instagram.username || "Instagram User",
+      <div className="grid gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Platforms</CardTitle>
+            <CardDescription>Connect your social media accounts to schedule and publish posts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex justify-center p-4">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+              </div>
+            ) : (
+              <SocialConnect
+                connectedAccounts={socialAccounts}
+                onDisconnect={async (platform) => {
+                  try {
+                    const { disconnectSocialAccount } = await import("@/lib/firebase/social-accounts")
+                    await disconnectSocialAccount(platform.toLowerCase() as any)
+                    toast({
+                      title: "Account Disconnected",
+                      description: `Your ${platform} account has been disconnected.`,
+                    })
+                    // Reload accounts
+                    const { getSocialAccounts } = await import("@/lib/firebase/social-accounts")
+                    const accountsData = await getSocialAccounts()
+                    const transformedAccounts: SocialAccount[] = []
+                    Object.entries(accountsData).forEach(([plat, data]: [string, any]) => {
+                      if (data) {
+                        transformedAccounts.push({
+                          id: data.id || plat,
+                          platform: plat,
+                          username: data.username || `${plat.charAt(0) + plat.slice(1)} User`,
                           connected: true,
                         })
                       }
-                      if (accountsData.youtube) {
-                        accounts.push({
-                          id: accountsData.youtube.id || "youtube",
-                          platform: "youtube",
-                          username: accountsData.youtube.username || "YouTube Channel",
-                          connected: true,
-                        })
-                      }
-                      if (accountsData.tiktok) {
-                        accounts.push({
-                          id: accountsData.tiktok.id || "tiktok",
-                          platform: "tiktok",
-                          username: accountsData.tiktok.username || "TikTok User",
-                          connected: true,
-                        })
-                      }
-                      setSocialAccounts(accounts)
-                    } catch (error: any) {
-                      toast({
-                        title: "Error",
-                        description: error.message || "Failed to disconnect account",
-                        variant: "destructive",
-                      })
-                    }
-                  }}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        {/* Removed YouTube and TikTok tabs per request */}
-      </Tabs>
+                    })
+                    setSocialAccounts(transformedAccounts)
+                  } catch (error: any) {
+                    toast({
+                      title: "Error",
+                      description: error.message || "Failed to disconnect account",
+                      variant: "destructive",
+                    })
+                  }
+                }}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

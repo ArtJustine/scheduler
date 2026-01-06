@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Instagram, Youtube, Video, Trash2, Loader2, AlertCircle } from "lucide-react"
+import { Instagram, Youtube, Video, Trash2, Loader2, AlertCircle, Facebook, Twitter, MessageSquare, Share2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import {
   AlertDialog,
@@ -98,6 +98,14 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
         return <Youtube className="h-5 w-5" />
       case "tiktok":
         return <Video className="h-5 w-5" />
+      case "facebook":
+        return <Facebook className="h-5 w-5" />
+      case "twitter":
+        return <Twitter className="h-5 w-5" />
+      case "threads":
+        return <MessageSquare className="h-5 w-5" />
+      case "pinterest":
+        return <Share2 className="h-5 w-5" />
       default:
         return null
     }
@@ -105,8 +113,13 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
 
   const platforms = [
     {
-      name: "Instagram",
-      description: "Connect your Instagram account to schedule posts and view analytics",
+      name: "Threads",
+      description: "Connect your Threads account to schedule posts and view analytics",
+      disabled: false,
+    },
+    {
+      name: "TikTok",
+      description: "Connect your TikTok account to schedule videos and view analytics",
       disabled: false,
     },
     {
@@ -115,8 +128,23 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
       disabled: false,
     },
     {
-      name: "TikTok",
-      description: "Connect your TikTok account to schedule videos and view analytics",
+      name: "Instagram",
+      description: "Connect your Instagram account to schedule posts and view analytics",
+      disabled: false,
+    },
+    {
+      name: "Facebook",
+      description: "Connect your Facebook account to schedule posts and view analytics",
+      disabled: false,
+    },
+    {
+      name: "Twitter",
+      description: "Connect your Twitter account to schedule posts and view analytics",
+      disabled: false,
+    },
+    {
+      name: "Pinterest",
+      description: "Connect your Pinterest account to schedule posts and view analytics",
       disabled: false,
     },
   ]

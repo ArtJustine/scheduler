@@ -1,0 +1,51 @@
+"use client"
+
+import Link from "next/link"
+import { Calendar } from "lucide-react"
+
+export function SiteFooter() {
+    return (
+        <footer className="w-full py-12 border-t border-border/50 bg-background/50 backdrop-blur-lg">
+            <div className="container px-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="flex flex-col items-center md:items-start space-y-4">
+                        <Link href="/" className="flex items-center space-x-2">
+                            <Calendar className="h-6 w-6 text-primary" />
+                            <span className="text-xl font-bold font-heading tracking-tight text-foreground">Chiyu</span>
+                        </Link>
+                        <p className="text-sm text-muted-foreground text-center md:text-left max-w-xs">
+                            The truly limitless social media scheduling tool for modern creators.
+                        </p>
+                    </div>
+
+                    <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+                        <Link href="/features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                            Features
+                        </Link>
+                        <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                            About
+                        </Link>
+                        <Link href="/waitlist" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                            Waitlist
+                        </Link>
+                        <Link href="/terms" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                            Terms
+                        </Link>
+                        <Link href="/privacy" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                            Privacy
+                        </Link>
+                    </nav>
+                </div>
+
+                <div className="mt-12 pt-8 border-t border-border/10 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <p className="text-sm text-muted-foreground">
+                        © {new Date().getFullYear()} Chiyu. All rights reserved.
+                    </p>
+                    <div className="flex items-center space-x-6">
+                        {/* Social icons could go here */}
+                    </div>
+                </div>
+            </div>
+        </footer>
+    )
+}

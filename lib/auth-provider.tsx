@@ -4,7 +4,7 @@ import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { MOCK_USER } from "@/lib/mock-data"
+import { onAuthStateChange } from "@/lib/firebase/auth"
 
 interface AuthContextType {
   user: any
@@ -23,30 +23,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   useEffect(() => {
-    // For demo purposes, always set the mock user
-    setTimeout(() => {
-      setUser(MOCK_USER)
+    // Listen to real Firebase Auth changes
+    const unsubscribe = onAuthStateChange((currentUser) => {
+      setUser(currentUser)
       setLoading(false)
-    }, 500)
+    })
 
-    // In a real implementation, this would use the onAuthStateChange function
-    // const unsubscribe = onAuthStateChange((user) => {
-    //   setUser(user)
-    //   setLoading(false)
-    // })
-    // return unsubscribe
+    return () => unsubscribe()
   }, [])
 
   // Redirect logic for authentication
   useEffect(() => {
     if (!loading) {
       // If user is not logged in and trying to access protected routes
-      if (!user && pathname && !pathname.startsWith("/login") && !pathname.startsWith("/signup")) {
+      const isAuthRoute = pathname && (pathname.startsWith("/login") || pathname.startsWith("/signup"))
+      const isWaitlistRoute = pathname === "/waitlist" || pathname === "/thank-you"
+      const isPublicRoute = pathname === "/" || isAuthRoute || isWaitlistRoute || pathname?.startsWith("/privacy") || pathname?.startsWith("/terms")
+
+      if (!user && !isPublicRoute) {
         router.push("/login")
       }
 
       // If user is logged in and trying to access auth routes
-      if (user && pathname && (pathname.startsWith("/login") || pathname.startsWith("/signup"))) {
+      if (user && isAuthRoute) {
         router.push("/dashboard")
       }
     }

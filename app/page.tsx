@@ -4,34 +4,13 @@ import Link from "next/link"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
+import { SiteHeader } from "@/components/site-header"
+import { SiteFooter } from "@/components/site-footer"
+
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground font-sans">
-      {/* Header - Now White in light mode, Dark in dark mode */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-white dark:bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-black/60">
-        <div className="container flex h-16 items-center justify-between px-6">
-          <Link href="/" className="flex items-center space-x-2">
-            <Calendar className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold font-heading tracking-tight">Chiyu</span>
-          </Link>
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Features
-            </Link>
-            <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              About
-            </Link>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <ModeToggle />
-            <Link href="/waitlist">
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-lg shadow-primary/25">
-                Join Waitlist
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* Hero Section - Premium Dark Background for both modes to support white headings */}
       <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden bg-slate-950">
@@ -48,29 +27,29 @@ export default function Home() {
             </div>
 
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-white">
-              The truly{" "}
+              Scale your presence{" "}
               <span className="relative inline-block">
                 <span className="text-primary">Limitless</span>
-                <span className="text-white/90 block text-3xl md:text-5xl lg:text-6xl mt-2 font-normal">social media</span>
+                <span className="text-white/90 block text-3xl md:text-5xl lg:text-6xl mt-2 font-normal">without scaling</span>
               </span>
             </h1>
             <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-white/40">
-              scheduling tool
+              your workload.
             </h2>
 
             <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto">
-              Say goodbye to manual posting, and hello to limitless, lightning-fast social media management.
+              Chiyu is the premium social engine designed for creators who value their time. Automate your growth across all platforms with surgical precision.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Link href="/waitlist">
+              <Link href="/signup">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 h-auto shadow-xl shadow-primary/20 transition-all hover:scale-105">
-                  Join Waitlist
+                  Get Started for Free
                 </Button>
               </Link>
-              <Link href="#features">
+              <Link href="/features">
                 <Button size="lg" variant="outline" className="border-white/10 text-foreground hover:bg-white/5 text-lg px-8 py-6 h-auto backdrop-blur-sm">
-                  See Features
+                  Explore Features
                 </Button>
               </Link>
             </div>
@@ -78,63 +57,39 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Trusted By Section */}
-      <section className="w-full py-12 border-y border-border/50 bg-background/50">
+      {/* Efficiency First Section */}
+      <section className="w-full py-24 bg-background relative border-y border-border/50">
         <div className="container px-6">
-          <p className="text-center text-sm font-medium text-muted-foreground mb-8 uppercase tracking-widest">Powering growth for modern creators</p>
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
-            <div className="flex items-center space-x-2 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all cursor-default group">
-              <Instagram className="h-6 w-6 text-pink-500" />
-              <span className="font-bold text-xl group-hover:text-foreground">InstaX</span>
-            </div>
-            <div className="flex items-center space-x-2 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all cursor-default group">
-              <Youtube className="h-6 w-6 text-red-500" />
-              <span className="font-bold text-xl group-hover:text-foreground">TubeFlow</span>
-            </div>
-            <div className="flex items-center space-x-2 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all cursor-default group">
-              <Video className="h-6 w-6 text-cyan-500" />
-              <span className="font-bold text-xl group-hover:text-foreground">TokPulse</span>
-            </div>
-            <div className="flex items-center space-x-2 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all cursor-default group">
-              <Globe className="h-6 w-6 text-blue-500" />
-              <span className="font-bold text-xl group-hover:text-foreground">MetaSync</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonial Section */}
-      <section className="w-full py-20 md:py-32 bg-secondary/10">
-        <div className="container px-6">
-          <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
-            <div className="space-y-6">
-              <div className="flex space-x-1">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="h-5 w-5 fill-primary text-primary" />
-                ))}
+          <div className="grid lg:grid-cols-3 gap-12">
+            <div className="space-y-4">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <Layers className="h-6 w-6" />
               </div>
-              <p className="text-2xl md:text-3xl text-foreground leading-relaxed font-heading font-medium italic">
-                "Chiyu has completely transformed how I manage my social media. The human-like AI captions actually sound like me, saving me hours of brainstorming every single day."
+              <h3 className="text-xl font-bold font-heading">Multi-Platform Engine</h3>
+              <p className="text-muted-foreground italic">Sync once, publish everywhere.</p>
+              <p className="text-muted-foreground">
+                One dashboard to rule them all. Sync your content across Instagram, YouTube, and TikTok with zero friction. Our engine handles the technical specifications for each platform automatically—re-encoding videos and optimizing aspect ratios in the background.
               </p>
-              <div className="pt-4 flex items-center space-x-4">
-                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">SJ</div>
-                <div>
-                  <p className="text-lg font-semibold text-foreground leading-none">Sarah Johnson</p>
-                  <p className="text-muted-foreground text-sm">Lifestyle Influencer • 500K+ Followers</p>
-                </div>
-              </div>
             </div>
-            <div className="relative group">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden glass-card border border-primary/10 shadow-2xl transition-transform group-hover:scale-[1.02]">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 space-y-4">
-                  <div className="w-full h-8 bg-muted/50 rounded-md animate-pulse" />
-                  <div className="w-3/4 h-8 bg-muted/50 rounded-md animate-pulse" />
-                  <div className="w-full h-32 bg-muted/50 rounded-md animate-pulse" />
-                  <div className="w-1/2 h-10 bg-primary/20 rounded-md animate-pulse self-end" />
-                </div>
+            <div className="space-y-4">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <ShieldCheck className="h-6 w-6" />
               </div>
-              <div className="absolute -bottom-6 -right-6 h-24 w-24 rounded-2xl bg-primary/10 backdrop-blur-3xl border border-primary/20 -z-10" />
+              <h3 className="text-xl font-bold font-heading">Enterprise Security</h3>
+              <p className="text-muted-foreground italic">Your trust is our priority.</p>
+              <p className="text-muted-foreground">
+                Your data is your currency. Chiyu uses bank-grade encryption and official API integrations to ensure your accounts and content are protected. No password sharing, no insecure workarounds—just pure, secure API connectivity.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <Zap className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold font-heading">AI-Driven Optimization</h3>
+              <p className="text-muted-foreground italic">Data-backed engagement.</p>
+              <p className="text-muted-foreground">
+                Don't just post—outperform. Our human-like AI analyzes engagement patterns in real-time to suggest the perfect hashtags, captions, and posting times tailored specifically to your unique audience. It learns your voice to save you hours of writing.
+              </p>
             </div>
           </div>
         </div>
@@ -223,155 +178,84 @@ export default function Home() {
       </section>
 
       {/* Features Gallery */}
-      <section className="w-full py-20 bg-gradient-to-b from-black to-gray-950">
+      <section id="features" className="w-full py-24 bg-gradient-to-b from-black to-gray-950">
         <div className="container px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+          <div className="text-center mb-16 space-y-4">
+            <h2 className="text-3xl md:text-5xl font-bold font-heading text-white">Full-Stack Control</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">Everything you need to dominate your social media stack, organized into a single, intuitive command center.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {/* Dashboard Preview */}
-            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+            <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
               <div className="aspect-video bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <Calendar className="h-12 w-12 text-purple-400 mx-auto" />
-                  <p className="text-sm text-gray-400">Dashboard View</p>
-                </div>
+                <Calendar className="h-16 w-16 text-purple-400" />
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-xl font-bold text-white">Universal Dashboard</h4>
+                <p className="text-sm text-gray-400">A bird's-eye view of your entire social ecosystem. Track growth, upcoming posts, and account health in real-time.</p>
               </div>
             </div>
 
-            {/* Instagram Preview */}
-            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+            {/* Content Preview */}
+            <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
               <div className="aspect-video bg-gradient-to-br from-pink-600/20 to-purple-600/20 rounded-lg flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <Instagram className="h-12 w-12 text-pink-400 mx-auto" />
-                  <p className="text-sm text-gray-400">Instagram Posts</p>
-                </div>
+                <Layers className="h-16 w-16 text-pink-400" />
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-xl font-bold text-white">Smart Posts</h4>
+                <p className="text-sm text-gray-400">Native-feeling posts for every platform. Chiyu automatically formats and pre-checks your content for platform-specific rules.</p>
               </div>
             </div>
 
-            {/* YouTube Preview */}
-            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+            {/* Video Preview */}
+            <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
               <div className="aspect-video bg-gradient-to-br from-red-600/20 to-orange-600/20 rounded-lg flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <Youtube className="h-12 w-12 text-red-400 mx-auto" />
-                  <p className="text-sm text-gray-400">YouTube Videos</p>
-                </div>
+                <Youtube className="h-16 w-16 text-red-400" />
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-xl font-bold text-white">Short-Form Studio</h4>
+                <p className="text-sm text-gray-400">Optimized for Reels, Shorts, and TikTok. Bulk upload and let Chiyu handle the distribution across your video channels.</p>
               </div>
             </div>
 
-            {/* TikTok Preview */}
-            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+            {/* Automation Preview */}
+            <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
               <div className="aspect-video bg-gradient-to-br from-gray-800 to-black rounded-lg flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <Video className="h-12 w-12 text-white mx-auto" />
-                  <p className="text-sm text-gray-400">TikTok Videos</p>
-                </div>
+                <Clock className="h-16 w-16 text-white" />
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-xl font-bold text-white">Precision Scheduling</h4>
+                <p className="text-sm text-gray-400">Queue posts weeks in advance. Our resilient engine ensures your content goes live even if you're offline.</p>
               </div>
             </div>
 
             {/* Analytics Preview */}
-            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+            <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
               <div className="aspect-video bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-lg flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <div className="h-12 w-12 border-2 border-green-400 rounded-lg mx-auto flex items-center justify-center">
-                    <div className="h-6 w-6 border-t-2 border-green-400 rounded-full animate-spin" />
-                  </div>
-                  <p className="text-sm text-gray-400">Analytics</p>
+                <div className="h-16 w-16 border-2 border-green-400/50 rounded-lg flex items-center justify-center">
+                  <div className="h-8 w-8 border-t-2 border-green-400 rounded-full animate-spin" />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-xl font-bold text-white">Pro Insights</h4>
+                <p className="text-sm text-gray-400">Stop guessing. Get detailed analytics on reach, engagement, and follower growth to double down on what works.</p>
               </div>
             </div>
 
             {/* Calendar Preview */}
-            <div className="rounded-xl overflow-hidden bg-gray-900 border border-gray-800 p-4">
+            <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
               <div className="aspect-video bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-lg flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <Calendar className="h-12 w-12 text-blue-400 mx-auto" />
-                  <p className="text-sm text-gray-400">Schedule Calendar</p>
-                </div>
+                <Calendar className="h-16 w-16 text-blue-400" />
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-xl font-bold text-white">Content Planner</h4>
+                <p className="text-sm text-gray-400">Visualize your content strategy with our drag-and-drop calendar. Balance your feed across all platforms effortlessly.</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="w-full py-20 md:py-32 bg-background relative">
-        <div className="container px-6">
-          <div className="max-w-4xl mx-auto text-center space-y-4 mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold font-heading text-foreground">
-              Simple, transparent <span className="text-primary">pricing</span>
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Start for free and scale as you grow. No hidden fees.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* Early Bird Plan */}
-            <div className="relative p-8 rounded-3xl border border-primary/20 bg-primary/5 shadow-2xl overflow-hidden group">
-              <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider">Early Bird</div>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-2xl font-bold">Standard</h3>
-                  <p className="text-muted-foreground">Perfect for individual creators</p>
-                </div>
-                <div className="flex items-baseline space-x-1">
-                  <span className="text-5xl font-bold">$0</span>
-                  <span className="text-muted-foreground">/month</span>
-                </div>
-                <ul className="space-y-4">
-                  {[
-                    "Up to 5 Social Accounts",
-                    "Unlimited Manual Posts",
-                    "AI Caption Generator (10/mo)",
-                    "Basic Analytics Dashboard",
-                    "7-day Scheduling Queue"
-                  ].map((feature) => (
-                    <li key={feature} className="flex items-center space-x-3 text-sm">
-                      <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/waitlist" className="block">
-                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 rounded-xl text-lg font-semibold">
-                    Get Early Access
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Pro Plan */}
-            <div className="p-8 rounded-3xl border border-border bg-card/50 hover:border-primary/30 transition-all group">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-2xl font-bold">Pro</h3>
-                  <p className="text-muted-foreground">For serious creators & brands</p>
-                </div>
-                <div className="flex items-baseline space-x-1">
-                  <span className="text-5xl font-bold">$29</span>
-                  <span className="text-muted-foreground">/month</span>
-                </div>
-                <ul className="space-y-4">
-                  {[
-                    "Unlimited Social Accounts",
-                    "Priority Post Processing",
-                    "Unlimited AI Captions",
-                    "Advanced Insights & Trends",
-                    "30-day Scheduling Queue",
-                    "Whitelabel Dashboard"
-                  ].map((feature) => (
-                    <li key={feature} className="flex items-center space-x-3 text-sm">
-                      <CheckCircle2 className="h-5 w-5 text-muted-foreground shrink-0" />
-                      <span className="text-muted-foreground">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button disabled variant="outline" className="w-full py-6 rounded-xl text-lg font-semibold border-border">
-                  Coming Soon
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* FAQ Section */}
       <section className="w-full py-20 md:py-32 bg-secondary/5">
@@ -384,27 +268,33 @@ export default function Home() {
 
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1" className="border-border/50">
-                <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">What platforms do you support?</AccordionTrigger>
+                <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">Which social media platforms are supported?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Currently, we support Instagram, YouTube, and TikTok. We are actively working on adding support for X (Twitter), LinkedIn, and Facebook in the coming months.
+                  Chiyu currently supports official direct publishing to Instagram (Posts, Reels), YouTube (Videos, Shorts), and TikTok. We use official API integrations to ensure your account security and data accuracy. Support for LinkedIn and X (Twitter) is currently in closed beta.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2" className="border-border/50">
-                <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">How does the AI generator work?</AccordionTrigger>
+                <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">How does the AI content generator work?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Our human-like AI analyzes your past successful posts and your unique voice to generate captions that resonate with your audience, including relevant hashtags and emojis.
+                  Our content engine uses large language models specifically trained on high-performance social media data. It doesn't just "write text"; it analyzes your niche, recommends top-performing hashtags, and generates captions designed to stop the scroll, all while maintaining your unique brand voice.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3" className="border-border/50">
-                <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">Is it really free for early birds?</AccordionTrigger>
+                <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">Is my account data secure?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Yes! Users who join our waitlist and sign up during the early access phase will get the Standard plan for free, forever. No credit card required.
+                  Security is our baseline. We never store your social media passwords. All platform connections are handled through OAuth2, meaning you authorize Chiyu via the official apps (Instagram, Google, TikTok). You can revoke access at any time directly from the platform settings.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-4" className="border-border/50">
-                <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">Can I schedule videos and Reels?</AccordionTrigger>
+                <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">Can I manage a team with Chiyu?</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Absolutely. Chiyu is optimized for short-form video content, including Instagram Reels, YouTube Shorts, and TikTok videos.
+                  Yes, Chiyu Pro (launching soon) includes team workspaces, approval workflows, and role-based access control. Early bird users will have the opportunity to beta-test team features before the public release.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-5" className="border-border/50">
+                <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">Why a waitlist?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  To ensure a "limitless" experience for everyone, we are scaling our server infrastructure gradually as we integrate more platforms. Joining the waitlist guarantees you a spot in the next onboarding wave and locks in early-access benefits.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -417,15 +307,15 @@ export default function Home() {
         <div className="container px-6">
           <div className="max-w-3xl mx-auto text-center space-y-8">
             <h2 className="text-4xl md:text-5xl font-bold font-heading text-foreground">
-              Ready to transform your social media?
+              Ready to take the engine for a spin?
             </h2>
             <p className="text-xl text-muted-foreground">
-              Join thousands of creators who are saving time and growing their audience.
+              Stop fighting the algorithm and start mastering your distribution. Join the next wave of Chiyu early adopters.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/waitlist">
+              <Link href="/signup">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 h-auto shadow-lg shadow-primary/25">
-                  Join Waitlist
+                  Get Started for Free
                 </Button>
               </Link>
             </div>
@@ -433,31 +323,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="w-full py-8 border-t border-border/50 bg-background/50 backdrop-blur-lg">
-        <div className="container px-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2 mb-4 sm:mb-0">
-              <Calendar className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">Chiyu</span>
-            </Link>
-            <nav className="flex gap-6">
-              <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Terms
-              </Link>
-              <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Privacy
-              </Link>
-              <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Contact
-              </Link>
-            </nav>
-          </div>
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            © 2025 Chiyu. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }

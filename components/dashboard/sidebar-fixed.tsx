@@ -86,7 +86,8 @@ export function DashboardSidebar() {
       <Sidebar>
         <SidebarHeader className="flex items-center justify-center py-4">
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="text-xl font-bold">Chiyu</span>
+            <Calendar className="h-6 w-6 text-primary" />
+            <span className="text-xl font-bold font-heading tracking-tight">Chiyu</span>
           </Link>
         </SidebarHeader>
         <SidebarContent>

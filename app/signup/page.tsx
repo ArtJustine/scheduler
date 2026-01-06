@@ -13,6 +13,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Info } from "lucide-react"
 import { signupUser } from "@/lib/data-service"
 
+import { SiteHeader } from "@/components/site-header"
+import { SiteFooter } from "@/components/site-footer"
+
 export default function SignupPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -64,81 +67,83 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background relative overflow-hidden">
-      {/* Background Gradients */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointing-events-none">
-        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-3xl opacity-30" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-3xl opacity-30" />
-      </div>
+    <div className="flex flex-col min-h-screen bg-background text-foreground font-sans">
+      <SiteHeader />
 
-      {/* Auth Header */}
-      <header className="w-full flex justify-center p-6 relative z-20">
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="text-2xl font-bold font-heading tracking-tight text-foreground">Chiyu</span>
-        </Link>
-      </header>
+      <main className="flex-1 flex items-center justify-center relative overflow-hidden bg-slate-950 px-4 py-20">
+        {/* Background Gradients */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/30 rounded-full blur-[120px] opacity-50" />
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] opacity-30" />
+        </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 pb-12 relative z-10">
-        <Card className="w-full max-w-md glass-card border-white/10">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-3xl font-bold font-heading">Create Account</CardTitle>
-            <CardDescription>Enter your information to create an account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-              </div>
+        <div className="container relative z-10 flex items-center justify-center">
+          <Card className="w-full max-w-md glass-card border-white/10 shadow-2xl">
+            <CardHeader className="space-y-1 text-center">
+              <CardTitle className="text-3xl font-bold font-heading">Create Account</CardTitle>
+              <CardDescription>Enter your information to create an account</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white/5 border-white/10" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="bg-white/5 border-white/10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-white/5 border-white/10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="bg-white/5 border-white/10"
+                  />
+                </div>
 
-              {error && <div className="text-sm text-red-500">{error}</div>}
+                {error && <div className="text-sm text-red-500">{error}</div>}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Sign Up"}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <div className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link href="/login" className="text-primary hover:underline">
-                Login
-              </Link>
-            </div>
-          </CardFooter>
-        </Card>
-      </div>
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Sign Up"}
+                </Button>
+              </form>
+            </CardContent>
+            <CardFooter className="flex justify-center border-t border-white/5 pt-6">
+              <div className="text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <Link href="/login" className="text-primary hover:underline font-medium">
+                  Login
+                </Link>
+              </div>
+            </CardFooter>
+          </Card>
+        </div>
+      </main>
+
+      <SiteFooter />
     </div>
   )
 }

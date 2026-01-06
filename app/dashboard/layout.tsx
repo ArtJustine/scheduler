@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   description: "Manage and schedule your social media posts",
 }
 
+import { SiteHeader } from "@/components/site-header"
+import { SiteFooter } from "@/components/site-footer"
+
 export default function DashboardLayout({
   children,
 }: {
@@ -15,15 +18,19 @@ export default function DashboardLayout({
 }) {
   return (
     <AuthProvider>
-      <div className="min-h-screen flex bg-background">
-        <div className="flex-shrink-0">
-          <DashboardSidebar />
-        </div>
-        <main className="flex-1 flex flex-col items-center w-full">
-          <div className="w-full max-w-5xl px-2 sm:px-4 md:px-8 py-8">
-            {children}
+      <div className="min-h-screen flex flex-col bg-background text-foreground font-sans">
+        <SiteHeader />
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex-shrink-0 hidden md:block">
+            <DashboardSidebar />
           </div>
-        </main>
+          <main className="flex-1 flex flex-col items-center w-full overflow-y-auto bg-slate-50 dark:bg-slate-950/20">
+            <div className="w-full max-w-5xl px-4 sm:px-6 md:px-8 py-8">
+              {children}
+            </div>
+          </main>
+        </div>
+        <SiteFooter />
       </div>
     </AuthProvider>
   )

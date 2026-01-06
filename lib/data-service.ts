@@ -3,17 +3,26 @@ import type { MediaItem } from "@/types/media"
 import type { HashtagGroup } from "@/types/hashtag"
 import type { CaptionTemplate } from "@/types/caption"
 import type { SocialAccounts } from "@/types/social"
-import { signIn, signUp } from "@/lib/firebase/auth"
+import { signIn, signUp, getCurrentUser as firebaseGetCurrentUser, signOut } from "@/lib/firebase/auth"
 
 // Simulate API delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // User functions
 export const getCurrentUser = async () => {
-  // TODO: Implement real user fetching logic for production
-  console.log("Getting current user (mock)")
-  await delay(500)
-  return { id: "mock-user-id", name: "Mock User", email: "mock@example.com" }
+  try {
+    const user = await firebaseGetCurrentUser()
+    if (!user) return null
+    return {
+      id: user.uid,
+      name: user.displayName || "User",
+      email: user.email,
+      photoURL: user.photoURL
+    }
+  } catch (error) {
+    console.error("Error getting current user:", error)
+    return null
+  }
 }
 
 export const loginUser = async (email: string, password: string) => {
@@ -59,9 +68,13 @@ export const signupUser = async (name: string, email: string, password: string) 
 }
 
 export const logout = async () => {
-  console.log("Logging out (mock)")
-  await delay(300)
-  return true
+  try {
+    await signOut()
+    return true
+  } catch (error) {
+    console.error("Error logging out:", error)
+    throw error
+  }
 }
 
 // Social account functions

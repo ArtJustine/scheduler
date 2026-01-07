@@ -29,8 +29,10 @@ export async function GET(request: NextRequest) {
     const codeVerifier = oauthHelpers.generateCodeVerifier()
 
     // Determine the host for dynamic redirect URI
-    const origin = request.nextUrl.origin
-    const redirectUri = `${origin}/api/auth/callback/tiktok`
+    let redirectUri = config.tiktok.redirectUri
+    if (process.env.NODE_ENV !== "production" || redirectUri.includes("localhost")) {
+      redirectUri = `${request.nextUrl.origin}/api/auth/callback/tiktok`
+    }
 
     // Build TikTok OAuth URL
     const tiktokAuthUrl = tiktokOAuth.getAuthUrl(state, redirectUri, codeVerifier)

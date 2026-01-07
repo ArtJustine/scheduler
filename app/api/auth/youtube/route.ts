@@ -27,10 +27,15 @@ export async function GET(request: NextRequest) {
     // Generate a unique state parameter for security
     const state = oauthHelpers.generateState()
 
-    // Build YouTube OAuth URL
-    const youtubeAuthUrl = youtubeOAuth.getAuthUrl(state)
+    // Determine the host for dynamic redirect URI
+    // This allows the dev environment to work on different ports
+    const origin = request.nextUrl.origin
+    const redirectUri = `${origin}/api/auth/callback/youtube`
 
-    // Store state and userId in cookies
+    // Build YouTube OAuth URL
+    const youtubeAuthUrl = youtubeOAuth.getAuthUrl(state, redirectUri)
+
+    // Store state, userId, and redirectUri in cookies
     const response = NextResponse.redirect(youtubeAuthUrl)
     response.cookies.set("oauth_state", state, {
       httpOnly: true,
@@ -39,6 +44,12 @@ export async function GET(request: NextRequest) {
       sameSite: "lax",
     })
     response.cookies.set("oauth_user_id", userId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 600,
+      sameSite: "lax",
+    })
+    response.cookies.set("oauth_redirect_uri", redirectUri, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 600,

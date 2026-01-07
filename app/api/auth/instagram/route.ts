@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { config, isPlatformConfigured } from "@/lib/config"
 import { cookies } from "next/headers"
-import { oauthHelpers } from "@/lib/oauth-utils"
+import { oauthHelpers, instagramOAuth } from "@/lib/oauth-utils"
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,16 +27,15 @@ export async function GET(request: NextRequest) {
     // Generate state for CSRF protection
     const state = oauthHelpers.generateState()
 
-    // Build Instagram OAuth URL
-    const instagramAuthUrl = new URL("https://api.instagram.com/oauth/authorize")
-    instagramAuthUrl.searchParams.set("client_id", config.instagram.appId)
-    instagramAuthUrl.searchParams.set("redirect_uri", config.instagram.redirectUri)
-    instagramAuthUrl.searchParams.set("scope", "user_profile,user_media")
-    instagramAuthUrl.searchParams.set("response_type", "code")
-    instagramAuthUrl.searchParams.set("state", state)
+    // Determine the host for dynamic redirect URI
+    const origin = request.nextUrl.origin
+    const redirectUri = `${origin}/api/auth/callback/instagram`
 
-    // Store state and userId in cookies
-    const response = NextResponse.redirect(instagramAuthUrl.toString())
+    // Build Instagram OAuth URL
+    const instagramAuthUrl = instagramOAuth.getAuthUrl(state, redirectUri)
+
+    // Store state, userId, and redirectUri in cookies
+    const response = NextResponse.redirect(instagramAuthUrl)
     response.cookies.set("oauth_state", state, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -44,6 +43,12 @@ export async function GET(request: NextRequest) {
       sameSite: "lax",
     })
     response.cookies.set("oauth_user_id", userId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 600,
+      sameSite: "lax",
+    })
+    response.cookies.set("oauth_redirect_uri", redirectUri, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 600,

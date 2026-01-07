@@ -19,7 +19,14 @@ In the "Authorized redirect URIs" section, add:
 http://localhost:3000/api/auth/callback/youtube
 ```
 
-### Step 3: Save Changes
+### Step 3: Add Test Users (Crucial for "Access Blocked" Error)
+If your app is in "Testing" mode:
+1. Go to "OAuth consent screen"
+2. Scroll down to "Test users"
+3. Click "ADD USERS" and add `artjustine.gonzales@gmail.com` (or the email you are testing with)
+4. Click "Save" or "Add"
+
+### Step 4: Save Changes
 Click "Save" to update your OAuth client configuration.
 
 ## TikTok Configuration Fix
@@ -65,11 +72,13 @@ Save your app configuration.
 ### YouTube Issues:
 - **redirect_uri_mismatch**: Make sure the redirect URI in Google Cloud Console exactly matches `http://localhost:3000/api/auth/callback/youtube`
 - **Invalid client**: Check that your client ID and secret are correct in `lib/config.ts`
+- **Access Blocked (403: access_denied)**: Your app is in "Testing" mode. You MUST add your email to the "Test users" list in the Google Cloud Console (OAuth consent screen section).
 
 ### TikTok Issues:
 - **code_challenge error**: This should now be fixed with the PKCE implementation
 - **Invalid redirect URI**: Make sure the redirect URI in TikTok Developer Console exactly matches `http://localhost:3000/api/auth/callback/tiktok`
-- **Permission denied**: Ensure your app has the required permissions
+- **client_key error**: The `clientKey` in `lib/config.ts` does not match your TikTok App. Double-check your App Dashboard for the correct "Client Key".
+- **Permission denied**: Ensure your app has the required permissions and that your account is added as a "Tester" if the app is in Staging.
 
 ## Production Deployment
 

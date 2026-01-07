@@ -28,10 +28,14 @@ export async function GET(request: NextRequest) {
     const state = oauthHelpers.generateState()
     const codeVerifier = oauthHelpers.generateCodeVerifier()
 
-    // Build TikTok OAuth URL
-    const tiktokAuthUrl = tiktokOAuth.getAuthUrl(state, codeVerifier)
+    // Determine the host for dynamic redirect URI
+    const origin = request.nextUrl.origin
+    const redirectUri = `${origin}/api/auth/callback/tiktok`
 
-    // Store state, userId, and code verifier in cookies
+    // Build TikTok OAuth URL
+    const tiktokAuthUrl = tiktokOAuth.getAuthUrl(state, redirectUri, codeVerifier)
+
+    // Store state, userId, code verifier, and redirectUri in cookies
     const response = NextResponse.redirect(tiktokAuthUrl)
     response.cookies.set("oauth_state", state, {
       httpOnly: true,
@@ -46,6 +50,12 @@ export async function GET(request: NextRequest) {
       sameSite: "lax",
     })
     response.cookies.set("tiktok_code_verifier", codeVerifier, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 600,
+      sameSite: "lax",
+    })
+    response.cookies.set("oauth_redirect_uri", redirectUri, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 600,

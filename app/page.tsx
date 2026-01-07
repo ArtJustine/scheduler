@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { Calendar, Zap, ThumbsUp, Instagram, Youtube, Video, ArrowRight, Star, CheckCircle2, QrCode, Globe, Clock, Layers, ShieldCheck, Mail } from "lucide-react"
+import { Calendar, Zap, ThumbsUp, Instagram, Youtube, Video, ArrowRight, Star, CheckCircle2, QrCode, Globe, Clock, Layers, ShieldCheck, Mail, Edit3, BarChart3, Facebook, Twitter, Linkedin } from "lucide-react"
 import Link from "next/link"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -27,18 +27,12 @@ export default function Home() {
             </div>
 
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-white">
-              Scale your presence{" "}
-              <span className="relative inline-block">
-                <span className="text-primary">Limitless</span>
-                <span className="text-white/90 block text-3xl md:text-5xl lg:text-6xl mt-2 font-normal">without scaling</span>
-              </span>
+              Manage All Your <br />
+              <span className="text-primary">Social Media</span> in One Place
             </h1>
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-white/40">
-              your workload.
-            </h2>
 
-            <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto">
-              Chiyu is the premium social engine designed for creators who value their time. Automate your growth across all platforms with surgical precision.
+            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              The ultimate social media scheduler and manager tool for teams and creators. Powerful social media posting tools to plan, schedule, and auto-publish content across 12+ platforms including Instagram, TikTok, X, LinkedIn, Facebook, YouTube, Threads, Bluesky, and more.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -52,6 +46,45 @@ export default function Home() {
                   Explore Features
                 </Button>
               </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Supported Platforms */}
+      <section className="w-full py-12 bg-background border-b border-border/50">
+        <div className="container px-6">
+          <div className="flex flex-col items-center space-y-8">
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-center">Supported Platforms</p>
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+              <div className="flex flex-col items-center space-y-2 group">
+                <Instagram className="h-8 w-8 text-pink-500 group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-medium hidden md:block">Instagram</span>
+              </div>
+              <div className="flex flex-col items-center space-y-2 group">
+                <Youtube className="h-8 w-8 text-red-600 group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-medium hidden md:block">YouTube</span>
+              </div>
+              <div className="flex flex-col items-center space-y-2 group">
+                <Facebook className="h-8 w-8 text-blue-600 group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-medium hidden md:block">Facebook</span>
+              </div>
+              <div className="flex flex-col items-center space-y-2 group">
+                <Twitter className="h-8 w-8 text-sky-500 group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-medium hidden md:block">X (Twitter)</span>
+              </div>
+              <div className="flex flex-col items-center space-y-2 group">
+                <Linkedin className="h-8 w-8 text-blue-700 group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-medium hidden md:block">LinkedIn</span>
+              </div>
+              <div className="flex flex-col items-center space-y-2 group">
+                <Video className="h-8 w-8 text-black dark:text-white group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-medium hidden md:block">TikTok</span>
+              </div>
+              <div className="flex flex-col items-center space-y-2 group">
+                <Globe className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-medium hidden md:block">Threads</span>
+              </div>
             </div>
           </div>
         </div>
@@ -131,37 +164,48 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 pt-8">
-              {/* Step 1 */}
-              <div className="space-y-4 p-6 rounded-2xl bg-secondary/20 border border-secondary/30">
-                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/20 text-primary mx-auto">
+            <div className="grid md:grid-cols-4 gap-6 pt-8">
+              {/* Step 1: Create */}
+              <div className="space-y-4 p-6 rounded-2xl bg-secondary/20 border border-secondary/30 hover:border-primary/30 transition-colors">
+                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-blue-500/20 text-blue-500 mx-auto">
+                  <Edit3 className="h-8 w-8" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground">Create</h3>
+                <p className="text-muted-foreground text-sm">
+                  Design your content with precision.
+                </p>
+              </div>
+
+              {/* Step 2: Schedule */}
+              <div className="space-y-4 p-6 rounded-2xl bg-secondary/20 border border-secondary/30 hover:border-primary/30 transition-colors">
+                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-purple-500/20 text-purple-500 mx-auto">
                   <Calendar className="h-8 w-8" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground">Schedule</h3>
-                <p className="text-muted-foreground">
-                  Connect your accounts & schedule as many posts as you'd like.
+                <h3 className="text-xl font-bold text-foreground">Schedule</h3>
+                <p className="text-muted-foreground text-sm">
+                  Pick the best time for maximum reach.
                 </p>
               </div>
 
-              {/* Step 2 */}
-              <div className="space-y-4 p-6 rounded-2xl bg-secondary/20 border border-secondary/30">
-                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/20 text-primary mx-auto">
-                  <Zap className="h-8 w-8" />
+              {/* Step 3: Publish */}
+              <div className="space-y-4 p-6 rounded-2xl bg-secondary/20 border border-secondary/30 hover:border-primary/30 transition-colors">
+                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-green-500/20 text-green-500 mx-auto">
+                  <CheckCircle2 className="h-8 w-8" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground">Automate</h3>
-                <p className="text-muted-foreground">
-                  Your posts are published automatically at the perfect time.
+                <h3 className="text-xl font-bold text-foreground">Publish</h3>
+                <p className="text-muted-foreground text-sm">
+                  Auto-post everywhere instantly.
                 </p>
               </div>
 
-              {/* Step 3 */}
-              <div className="space-y-4 p-6 rounded-2xl bg-secondary/20 border border-secondary/30">
-                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/20 text-primary mx-auto">
-                  <ThumbsUp className="h-8 w-8" />
+              {/* Step 4: Analyze */}
+              <div className="space-y-4 p-6 rounded-2xl bg-secondary/20 border border-secondary/30 hover:border-primary/30 transition-colors">
+                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-orange-500/20 text-orange-500 mx-auto">
+                  <BarChart3 className="h-8 w-8" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground">Grow</h3>
-                <p className="text-muted-foreground">
-                  Track your performance and watch your engagement grow.
+                <h3 className="text-xl font-bold text-foreground">Analyze</h3>
+                <p className="text-muted-foreground text-sm">
+                  Track performance across platforms.
                 </p>
               </div>
             </div>

@@ -22,17 +22,17 @@ export interface OAuthError {
 
 // Instagram OAuth utilities
 export const instagramOAuth = {
-  getAuthUrl: (state: string = "instagram_auth") => {
+  getAuthUrl: (state: string = "instagram_auth", redirectUri?: string) => {
     const url = new URL("https://api.instagram.com/oauth/authorize")
     url.searchParams.set("client_id", config.instagram.appId)
-    url.searchParams.set("redirect_uri", config.instagram.redirectUri)
+    url.searchParams.set("redirect_uri", redirectUri || config.instagram.redirectUri)
     url.searchParams.set("scope", "user_profile,user_media")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
     return url.toString()
   },
 
-  exchangeCodeForToken: async (code: string): Promise<OAuthToken> => {
+  exchangeCodeForToken: async (code: string, redirectUri?: string): Promise<OAuthToken> => {
     const response = await fetch("https://api.instagram.com/oauth/access_token", {
       method: "POST",
       headers: {
@@ -42,7 +42,7 @@ export const instagramOAuth = {
         client_id: config.instagram.appId,
         client_secret: config.instagram.appSecret,
         grant_type: "authorization_code",
-        redirect_uri: config.instagram.redirectUri,
+        redirect_uri: redirectUri || config.instagram.redirectUri,
         code: code,
       }),
     })
@@ -64,10 +64,10 @@ export const instagramOAuth = {
 
 // YouTube OAuth utilities
 export const youtubeOAuth = {
-  getAuthUrl: (state: string = "youtube_auth") => {
+  getAuthUrl: (state: string = "youtube_auth", redirectUri?: string) => {
     const url = new URL("https://accounts.google.com/o/oauth2/v2/auth")
     url.searchParams.set("client_id", config.youtube.clientId)
-    url.searchParams.set("redirect_uri", config.youtube.redirectUri)
+    url.searchParams.set("redirect_uri", redirectUri || config.youtube.redirectUri)
     url.searchParams.set("scope", config.youtube.scopes.join(" "))
     url.searchParams.set("response_type", "code")
     url.searchParams.set("access_type", "offline")
@@ -76,7 +76,7 @@ export const youtubeOAuth = {
     return url.toString()
   },
 
-  exchangeCodeForToken: async (code: string): Promise<OAuthToken> => {
+  exchangeCodeForToken: async (code: string, redirectUri?: string): Promise<OAuthToken> => {
     const response = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: {
@@ -86,7 +86,7 @@ export const youtubeOAuth = {
         client_id: config.youtube.clientId,
         client_secret: config.youtube.clientSecret,
         grant_type: "authorization_code",
-        redirect_uri: config.youtube.redirectUri,
+        redirect_uri: redirectUri || config.youtube.redirectUri,
         code: code,
       }),
     })
@@ -111,14 +111,14 @@ export const youtubeOAuth = {
 
 // TikTok OAuth utilities
 export const tiktokOAuth = {
-  getAuthUrl: (state: string = "tiktok_auth", codeVerifier?: string): string => {
+  getAuthUrl: (state: string = "tiktok_auth", redirectUri?: string, codeVerifier?: string): string => {
     // Generate PKCE code challenge if not provided
     const verifier = codeVerifier || oauthHelpers.generateCodeVerifier()
     const codeChallenge = oauthHelpers.generateCodeChallenge(verifier)
-    
+
     const url = new URL("https://www.tiktok.com/v2/auth/authorize")
     url.searchParams.set("client_key", config.tiktok.clientKey)
-    url.searchParams.set("redirect_uri", config.tiktok.redirectUri)
+    url.searchParams.set("redirect_uri", redirectUri || config.tiktok.redirectUri)
     url.searchParams.set("scope", "user.info.basic,video.upload,video.publish")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
@@ -127,7 +127,7 @@ export const tiktokOAuth = {
     return url.toString()
   },
 
-  exchangeCodeForToken: async (code: string, codeVerifier: string): Promise<OAuthToken> => {
+  exchangeCodeForToken: async (code: string, codeVerifier: string, redirectUri?: string): Promise<OAuthToken> => {
     const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
       method: "POST",
       headers: {
@@ -138,7 +138,7 @@ export const tiktokOAuth = {
         client_key: config.tiktok.clientKey,
         client_secret: config.tiktok.clientSecret,
         grant_type: "authorization_code",
-        redirect_uri: config.tiktok.redirectUri,
+        redirect_uri: redirectUri || config.tiktok.redirectUri,
         code: code,
         code_verifier: codeVerifier,
       }),

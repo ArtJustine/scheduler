@@ -16,30 +16,25 @@ export async function GET(request: NextRequest) {
     // Handle OAuth errors
     if (error) {
       console.error("YouTube OAuth error:", error)
-      return NextResponse.redirect(
-        `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=youtube_auth_failed&message=${error}`
-      )
+      return NextResponse.redirect(new URL(`/dashboard/connections?error=youtube_auth_failed&message=${error}`, request.url))
     }
 
     // Validate state
     const cookieStore = await cookies()
     const savedState = cookieStore.get("oauth_state")?.value
     const userId = cookieStore.get("oauth_user_id")?.value
+    const storedRedirectUri = cookieStore.get("oauth_redirect_uri")?.value
 
     if (!code || !state || state !== savedState) {
-      return NextResponse.redirect(
-        `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=invalid_youtube_auth`
-      )
+      return NextResponse.redirect(new URL("/dashboard/connections?error=invalid_youtube_auth", request.url))
     }
 
     if (!userId) {
-      return NextResponse.redirect(
-        `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=user_not_found`
-      )
+      return NextResponse.redirect(new URL("/dashboard/connections?error=user_not_found", request.url))
     }
 
     // Exchange authorization code for access token
-    const tokenData = await youtubeOAuth.exchangeCodeForToken(code)
+    const tokenData = await youtubeOAuth.exchangeCodeForToken(code, storedRedirectUri)
 
     // Get user info from YouTube
     let channelTitle = "YouTube Channel"
@@ -91,17 +86,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Clear OAuth cookies
-    const response = NextResponse.redirect(
-      `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?success=youtube_connected`
-    )
+    const response = NextResponse.redirect(new URL("/dashboard/connections?success=youtube_connected", request.url))
     response.cookies.delete("oauth_state")
     response.cookies.delete("oauth_user_id")
+    response.cookies.delete("oauth_redirect_uri")
 
     return response
   } catch (error: any) {
     console.error("YouTube callback error:", error)
-    return NextResponse.redirect(
-      `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=youtube_callback_failed&message=${error.message}`
-    )
+    return NextResponse.redirect(new URL(`/dashboard/connections?error=youtube_callback_failed&message=${encodeURIComponent(error.message)}`, request.url))
   }
 }

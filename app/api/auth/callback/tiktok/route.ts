@@ -16,9 +16,7 @@ export async function GET(request: NextRequest) {
     // Handle OAuth errors
     if (error) {
       console.error("TikTok OAuth error:", error)
-      return NextResponse.redirect(
-        `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=tiktok_auth_failed&message=${error}`
-      )
+      return NextResponse.redirect(new URL(`/dashboard/connections?error=tiktok_auth_failed&message=${error}`, request.url))
     }
 
     // Validate state
@@ -26,27 +24,22 @@ export async function GET(request: NextRequest) {
     const savedState = cookieStore.get("oauth_state")?.value
     const userId = cookieStore.get("oauth_user_id")?.value
     const codeVerifier = cookieStore.get("tiktok_code_verifier")?.value
+    const storedRedirectUri = cookieStore.get("oauth_redirect_uri")?.value
 
     if (!code || !state || state !== savedState) {
-      return NextResponse.redirect(
-        `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=invalid_tiktok_auth`
-      )
+      return NextResponse.redirect(new URL("/dashboard/connections?error=invalid_tiktok_auth", request.url))
     }
 
     if (!userId) {
-      return NextResponse.redirect(
-        `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=user_not_found`
-      )
+      return NextResponse.redirect(new URL("/dashboard/connections?error=user_not_found", request.url))
     }
 
     if (!codeVerifier) {
-      return NextResponse.redirect(
-        `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=missing_code_verifier`
-      )
+      return NextResponse.redirect(new URL("/dashboard/connections?error=missing_code_verifier", request.url))
     }
 
     // Exchange authorization code for access token
-    const tokenData = await tiktokOAuth.exchangeCodeForToken(code, codeVerifier)
+    const tokenData = await tiktokOAuth.exchangeCodeForToken(code, codeVerifier, storedRedirectUri)
 
     // Get user info from TikTok
     let username = "tiktok_user"
@@ -98,18 +91,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Clear OAuth cookies
-    const response = NextResponse.redirect(
-      `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?success=tiktok_connected`
-    )
+    const response = NextResponse.redirect(new URL("/dashboard/connections?success=tiktok_connected", request.url))
     response.cookies.delete("oauth_state")
     response.cookies.delete("oauth_user_id")
     response.cookies.delete("tiktok_code_verifier")
+    response.cookies.delete("oauth_redirect_uri")
 
     return response
   } catch (error: any) {
     console.error("TikTok callback error:", error)
-    return NextResponse.redirect(
-      `${config.app.baseUrl || "http://localhost:3000"}/dashboard/connections?error=tiktok_callback_failed&message=${error.message}`
-    )
+    return NextResponse.redirect(new URL(`/dashboard/connections?error=tiktok_callback_failed&message=${encodeURIComponent(error.message)}`, request.url))
   }
 }

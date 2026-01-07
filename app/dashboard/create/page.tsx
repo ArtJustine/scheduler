@@ -117,7 +117,6 @@ export default function CreatePostPage() {
                   <SelectValue placeholder="Select platform" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="instagram">Instagram</SelectItem>
                   <SelectItem value="youtube">YouTube</SelectItem>
                   <SelectItem value="tiktok">TikTok</SelectItem>
                 </SelectContent>

@@ -49,13 +49,6 @@ export default function LibraryPage() {
         <p className="text-muted-foreground">Manage your media, hashtags, and caption templates</p>
       </div>
 
-      {false && (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>Demo Mode</AlertTitle>
-          <AlertDescription>This is a UI prototype with mock data. Changes made here won't be saved.</AlertDescription>
-        </Alert>
-      )}
 
       <Tabs defaultValue="media" className="space-y-4">
         <TabsList>

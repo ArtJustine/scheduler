@@ -113,11 +113,6 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
 
   const platforms = [
     {
-      name: "Threads",
-      description: "Connect your Threads account to schedule posts and view analytics",
-      disabled: false,
-    },
-    {
       name: "TikTok",
       description: "Connect your TikTok account to schedule videos and view analytics",
       disabled: false,
@@ -125,26 +120,6 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
     {
       name: "YouTube",
       description: "Connect your YouTube account to schedule videos and view analytics",
-      disabled: false,
-    },
-    {
-      name: "Instagram",
-      description: "Connect your Instagram account to schedule posts and view analytics",
-      disabled: false,
-    },
-    {
-      name: "Facebook",
-      description: "Connect your Facebook account to schedule posts and view analytics",
-      disabled: false,
-    },
-    {
-      name: "Twitter",
-      description: "Connect your Twitter account to schedule posts and view analytics",
-      disabled: false,
-    },
-    {
-      name: "Pinterest",
-      description: "Connect your Pinterest account to schedule posts and view analytics",
       disabled: false,
     },
   ]

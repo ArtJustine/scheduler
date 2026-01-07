@@ -4,9 +4,34 @@ import type { HashtagGroup } from "@/types/hashtag"
 import type { CaptionTemplate } from "@/types/caption"
 import type { SocialAccounts } from "@/types/social"
 import { signIn, signUp, getCurrentUser as firebaseGetCurrentUser, signOut } from "@/lib/firebase/auth"
-
-// Simulate API delay
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+import {
+  getScheduledPosts as firebaseGetScheduledPosts,
+  getPost as firebaseGetPost,
+  createPost as firebaseCreatePost,
+  updatePost as firebaseUpdatePost,
+  deletePost as firebaseDeletePost
+} from "@/lib/firebase/posts"
+import {
+  getSocialAccounts as firebaseGetSocialAccounts,
+  connectSocialAccount as firebaseConnectSocialAccount,
+  disconnectSocialAccount as firebaseDisconnectSocialAccount
+} from "@/lib/firebase/social-accounts"
+import {
+  getMediaLibrary as firebaseGetMediaLibrary,
+  uploadMediaToLibrary as firebaseUploadMedia,
+  deleteMediaFromLibrary as firebaseDeleteMedia
+} from "@/lib/firebase/media"
+import {
+  getHashtagGroups as firebaseGetHashtagGroups,
+  createHashtagGroup as firebaseCreateHashtag,
+  deleteHashtagGroup as firebaseDeleteHashtag
+} from "@/lib/firebase/hashtags"
+import {
+  getCaptionTemplates as firebaseGetCaptionTemplates,
+  createCaptionTemplate as firebaseCreateCaption,
+  deleteCaptionTemplate as firebaseDeleteCaption
+} from "@/lib/firebase/captions"
+import { getUserStats as firebaseGetAnalytics } from "@/lib/firebase/stats"
 
 // User functions
 export const getCurrentUser = async () => {
@@ -40,7 +65,7 @@ export const loginUser = async (email: string, password: string) => {
     } else if (error.message?.includes("Authentication service is unavailable")) {
       throw new Error("We’re having trouble reaching the authentication service. Please refresh and try again.")
     } else {
-      throw new Error("Couldn’t log you in. Please check your email and password and try again.")
+      throw new Error(error.message || "Couldn’t log you in. Please check your email and password and try again.")
     }
   }
 }
@@ -62,7 +87,7 @@ export const signupUser = async (name: string, email: string, password: string) 
     } else if (error.message?.includes("Authentication service is unavailable")) {
       throw new Error("We’re having trouble reaching the authentication service. Please refresh and try again.")
     } else {
-      throw new Error("Couldn’t create your account. Please check your details and try again.")
+      throw new Error(error.message || "Couldn’t create your account. Please check your details and try again.")
     }
   }
 }
@@ -79,239 +104,88 @@ export const logout = async () => {
 
 // Social account functions
 export const getSocialAccounts = async (): Promise<SocialAccounts> => {
-  // TODO: Implement real social account fetching logic for production
-  console.log("Getting social accounts (mock)")
-  await delay(600)
-  return {
-    instagram: {
-      username: "mock_insta",
-      accessToken: "mock_token",
-      connected: true,
-      connectedAt: new Date().toISOString(),
-      followers: 1200
-    },
-    tiktok: {
-      username: "mock_tiktok",
-      accessToken: "mock_token",
-      connected: false,
-      connectedAt: new Date().toISOString()
-    },
-    youtube: {
-      username: "mock_yt",
-      accessToken: "mock_token",
-      connected: true,
-      connectedAt: new Date().toISOString(),
-      followers: 500
-    }
-  }
+  return await firebaseGetSocialAccounts()
 }
 
-export const connectSocialAccount = async (platform: string) => {
-  console.log("Connecting social account (mock)", { platform })
-  await delay(1000)
-  return true
+export const connectSocialAccount = async (platform: string, accountData: any) => {
+  return await firebaseConnectSocialAccount(platform as any, accountData)
 }
 
 export const disconnectSocialAccount = async (platform: string) => {
-  console.log("Disconnecting social account (mock)", { platform })
-  await delay(700)
-  return true
+  return await firebaseDisconnectSocialAccount(platform as any)
 }
 
 // Post functions
 export const getPosts = async () => {
-  // TODO: Implement real post fetching logic for production
-  console.log("Getting posts (mock)")
-  await delay(700)
-  return [
-    { id: "1", title: "Mock Post 1", content: "This is a mock post 1.", createdAt: "2023-10-26T10:00:00Z" },
-    { id: "2", title: "Mock Post 2", content: "This is a mock post 2.", createdAt: "2023-10-26T11:00:00Z" },
-  ]
+  return await firebaseGetScheduledPosts()
 }
 
 export const getPostById = async (id: string) => {
-  console.log("Getting post (mock)", { id })
-  await delay(500)
-  return {
-    id: "1",
-    userId: "mock-user",
-    title: "Mock Post 1",
-    description: "A description of the post",
-    platform: "instagram",
-    contentType: "image",
-    content: "This is a mock post 1.",
-    mediaUrl: "/placeholder.svg?height=400&width=600",
-    status: "published",
-    createdAt: "2023-10-26T10:00:00Z",
-    publishedAt: "2023-10-27T10:00:00Z",
-    scheduledFor: "2023-10-27T10:00:00Z",
-    analytics: {
-      likes: 120,
-      comments: 45,
-      shares: 12,
-      impressions: 1500,
-    },
-  } as PostType
+  return await firebaseGetPost(id)
 }
 
 export const createPost = async (data: Partial<PostType>) => {
-  console.log("Creating post (mock)", { data })
-  await delay(1000)
-  return { id: "new-post-id", ...data }
+  // @ts-ignore - Ignoring Omit for simplicity in this bridge layer
+  return await firebaseCreatePost(data)
 }
 
 export const updatePost = async (id: string, data: any) => {
-  console.log("Updating post (mock)", { id, data })
-  await delay(800)
-  return true
+  return await firebaseUpdatePost(id, data)
 }
 
 export const deletePost = async (id: string) => {
-  console.log("Deleting post (mock)", { id })
-  await delay(600)
-  return true
+  return await firebaseDeletePost(id)
 }
 
 export const schedulePost = async (id: string, date: string) => {
-  console.log("Scheduling post (mock)", { id, date })
-  await delay(700)
-  return true
+  return await firebaseUpdatePost(id, { scheduledFor: date, status: "scheduled" })
 }
 
 // Media functions
 export const getMediaLibrary = async (): Promise<MediaItem[]> => {
-  console.log("Getting media (mock)")
-  await delay(800)
-  return [
-    {
-      id: "1",
-      userId: "mock-user",
-      title: "Placeholder Image",
-      type: "image",
-      url: "/placeholder.svg?height=400&width=400",
-      fileName: "placeholder.svg",
-      fileSize: 1024,
-      storagePath: "mock/path",
-      createdAt: "2023-10-26T09:00:00Z"
-    },
-    {
-      id: "2",
-      userId: "mock-user",
-      title: "Placeholder Video",
-      type: "video",
-      url: "/placeholder.svg?height=400&width=400",
-      fileName: "placeholder-video.mp4",
-      fileSize: 2048,
-      storagePath: "mock/path-video",
-      createdAt: "2023-10-26T10:00:00Z"
-    },
-  ]
+  return await firebaseGetMediaLibrary()
 }
 
-export const uploadMedia = async (file: File) => {
-  console.log("Uploading media (mock)", { fileName: file.name })
-  await delay(1500)
-  return { id: "new-media-id", url: "/placeholder.svg?height=400&width=400" }
+export const uploadMedia = async (file: File, title: string, type: "image" | "video") => {
+  return await firebaseUploadMedia({ file, title, type })
 }
 
 export const deleteMedia = async (id: string) => {
-  console.log("Deleting media (mock)", { id })
-  await delay(500)
-  return true
+  return await firebaseDeleteMedia(id)
 }
 
 // Hashtag functions
 export const getHashtagGroups = async (): Promise<HashtagGroup[]> => {
-  console.log("Getting hashtags (mock)")
-  await delay(400)
-  return [
-    {
-      id: "1",
-      userId: "mock-user",
-      name: "Mock Hashtag Group 1",
-      hashtags: ["#mock", "#test"],
-      category: "Test",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: "2",
-      userId: "mock-user",
-      name: "Mock Hashtag Group 2",
-      hashtags: ["#demo", "#scheduler"],
-      category: "Demo",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-  ]
+  return await firebaseGetHashtagGroups()
 }
 
-export const createHashtag = async (name: string) => {
-  console.log("Creating hashtag (mock)", { name })
-  await delay(600)
-  return { id: "new-hashtag-id", name }
+export const createHashtag = async (name: string, hashtags: string[]) => {
+  return await firebaseCreateHashtag({ name, hashtags })
 }
 
 export const deleteHashtag = async (id: string) => {
-  console.log("Deleting hashtag (mock)", { id })
-  await delay(300)
-  return true
+  return await firebaseDeleteHashtag(id)
 }
 
 // Caption functions
 export const getCaptionTemplates = async (): Promise<CaptionTemplate[]> => {
-  console.log("Getting captions (mock)")
-  await delay(500)
-  return [
-    {
-      id: "1",
-      userId: "mock-user",
-      title: "Template 1",
-      content: "Mock Caption 1",
-      tags: ["mock", "test"],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: "2",
-      userId: "mock-user",
-      title: "Template 2",
-      content: "Mock Caption 2",
-      tags: ["demo"],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-  ]
+  return await firebaseGetCaptionTemplates()
 }
 
-export const createCaption = async (text: string) => {
-  console.log("Creating caption (mock)", { text })
-  await delay(700)
-  return { id: "new-caption-id", text }
+export const createCaption = async (title: string, content: string) => {
+  return await firebaseCreateCaption({ title, content })
 }
 
 export const deleteCaption = async (id: string) => {
-  console.log("Deleting caption (mock)", { id })
-  await delay(400)
-  return true
+  return await firebaseDeleteCaption(id)
 }
 
 // Analytics functions
 export const getAnalytics = async () => {
-  console.log("Getting analytics (mock)")
-  await delay(900)
-  return {
-    totalPosts: 100,
-    totalMedia: 50,
-    totalHashtags: 20,
-    totalCaptions: 10,
-    totalUsers: 10,
-  }
+  return await firebaseGetAnalytics()
 }
 
 // Scheduled posts functions
 export const getScheduledPosts = async () => {
-  console.log("Getting scheduled posts (mock)")
-  await delay(600)
-  return []
+  return await firebaseGetScheduledPosts()
 }

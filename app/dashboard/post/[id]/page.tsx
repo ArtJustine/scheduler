@@ -92,11 +92,6 @@ export default function PostDetailPage() {
         </div>
       </div>
 
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>Demo Mode</AlertTitle>
-        <AlertDescription>This is a UI prototype with mock data. Changes made here won't be saved.</AlertDescription>
-      </Alert>
 
       <Card>
         <CardHeader>

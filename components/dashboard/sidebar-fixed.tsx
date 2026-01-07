@@ -51,12 +51,6 @@ const sidebarItems = [
 
 const socialChannels = [
   {
-    title: "Threads",
-    icon: MessageSquare,
-    href: "/dashboard/platform/threads",
-    color: "text-zinc-900 dark:text-zinc-100",
-  },
-  {
     title: "TikTok",
     icon: Share2,
     href: "/dashboard/platform/tiktok",
@@ -67,30 +61,6 @@ const socialChannels = [
     icon: Youtube,
     href: "/dashboard/platform/youtube",
     color: "text-red-600",
-  },
-  {
-    title: "Instagram",
-    icon: Instagram,
-    href: "/dashboard/platform/instagram",
-    color: "text-pink-600",
-  },
-  {
-    title: "Facebook",
-    icon: Facebook,
-    href: "/dashboard/platform/facebook",
-    color: "text-blue-600",
-  },
-  {
-    title: "Twitter",
-    icon: Twitter,
-    href: "/dashboard/platform/twitter",
-    color: "text-sky-500",
-  },
-  {
-    title: "Pinterest",
-    icon: Share2,
-    href: "/dashboard/platform/pinterest",
-    color: "text-red-700",
   },
 ]
 

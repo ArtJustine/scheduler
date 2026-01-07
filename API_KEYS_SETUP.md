@@ -49,6 +49,16 @@ TWITTER_REDIRECT_URI=http://localhost:3000/api/auth/callback/twitter
 LINKEDIN_CLIENT_ID=your_linkedin_client_id
 LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
 LINKEDIN_REDIRECT_URI=http://localhost:3000/api/auth/callback/linkedin
+
+# Pinterest API Configuration
+PINTEREST_APP_ID=your_pinterest_app_id
+PINTEREST_APP_SECRET=your_pinterest_app_secret
+PINTEREST_REDIRECT_URI=http://localhost:3000/api/auth/callback/pinterest
+
+# Threads API Configuration (via Meta)
+THREADS_APP_ID=your_threads_app_id
+THREADS_APP_SECRET=your_threads_app_secret
+THREADS_REDIRECT_URI=http://localhost:3000/api/auth/callback/threads
 ```
 
 ### 2. Configuration File (lib/config.ts)
@@ -146,6 +156,35 @@ You'll need to update these files to implement actual OAuth flows:
 **Required Permissions:**
 - `r_liteprofile` - Read basic profile
 - `w_member_social` - Post content
+
+### 7. Pinterest API
+**URL:** https://developers.pinterest.com/
+**Steps:**
+1. Go to Pinterest Developers portal
+2. Create a new application
+3. Get App ID and App Secret
+4. Set up the redirect URI
+5. Request access to specific scopes
+
+**Required Scopes:**
+- `boards:read`
+- `pins:read`
+- `pins:write`
+- `user_accounts:read`
+
+### 8. Threads API
+**URL:** https://developers.facebook.com/
+**Steps:**
+1. Go to Meta for Developers
+2. Create a new app or use an existing one
+3. Add the "Threads" product to your app
+4. Get the App ID and App Secret
+5. Configure the redirect URIs
+
+**Required Scopes:**
+- `threads_basic`
+- `threads_content_publish`
+- `threads_manage_insights`
 
 ## Additional Dependencies to Install
 

@@ -46,7 +46,6 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
 
                 if (account && account.connected) {
                     setIsConnected(true)
-                    // Mock data for analytics (in real app, this would come from a service)
                     setStats({
                         followers: account.followers || 1250,
                         engagement: account.engagement || 4.2,

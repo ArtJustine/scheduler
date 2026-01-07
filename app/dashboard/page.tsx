@@ -58,11 +58,6 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>Demo Mode</AlertTitle>
-        <AlertDescription>You're viewing demo data. This is a UI prototype with mock data.</AlertDescription>
-      </Alert>
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
@@ -73,12 +68,6 @@ export default function DashboardPage() {
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <PlatformStats
-              platform="Instagram"
-              postCount={getPostCount("instagram")}
-              followers={socialAccounts?.instagram?.followers}
-              connected={!!socialAccounts?.instagram?.connected}
-            />
             <PlatformStats
               platform="TikTok"
               postCount={getPostCount("tiktok")}

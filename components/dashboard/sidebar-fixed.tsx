@@ -104,14 +104,14 @@ export function DashboardSidebar() {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader className="flex items-center justify-center py-4">
-          <Link href="/dashboard" className="flex items-center space-x-2">
-            <Calendar className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold font-heading tracking-tight">Chiyu</span>
+        <SidebarHeader className="flex items-center justify-start px-6 pt-10 pb-8">
+          <Link href="/dashboard" className="flex items-center space-x-3">
+            <Calendar className="h-7 w-7 text-primary" />
+            <span className="text-2xl font-bold font-heading tracking-tight">Chiyu</span>
           </Link>
         </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
+        <SidebarContent className="px-2 pt-4">
+          <SidebarMenu className="gap-2">
             {sidebarItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>

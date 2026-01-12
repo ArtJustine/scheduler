@@ -1,9 +1,11 @@
 "use client"
 
-import { ArrowUpRight, Users } from "lucide-react"
+import { useState } from "react"
+import { ArrowUpRight, Users, Loader2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/components/ui/use-toast"
 
 interface PlatformStatsProps {
   platform: any; // Using any for platform key indexing, or better explicit string
@@ -14,6 +16,38 @@ interface PlatformStatsProps {
 
 export function PlatformStats({ platform, postCount = 0, followers = 0, connected = false }: PlatformStatsProps) {
   const router = useRouter()
+  const { toast } = useToast()
+  const [isConnecting, setIsConnecting] = useState(false)
+
+  const handleConnect = async () => {
+    setIsConnecting(true)
+
+    try {
+      // Get current user ID from Firebase Auth
+      const { firebaseAuth } = await import("@/lib/firebase-client")
+      const user = firebaseAuth?.currentUser
+
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to connect social media accounts.",
+          variant: "destructive",
+        })
+        setIsConnecting(false)
+        return
+      }
+
+      // Redirect to the OAuth flow with user ID
+      window.location.href = `/api/auth/${platform.toLowerCase()}?userId=${user.uid}`
+    } catch (error) {
+      toast({
+        title: "Connection Failed",
+        description: `Could not connect to ${platform}. Please try again.`,
+        variant: "destructive",
+      })
+      setIsConnecting(false)
+    }
+  }
 
   const platformIcon = {
     Instagram: "/placeholder.svg?height=24&width=24",
@@ -56,10 +90,20 @@ export function PlatformStats({ platform, postCount = 0, followers = 0, connecte
                 variant="outline"
                 size="sm"
                 className="w-full"
-                onClick={() => router.push("/dashboard/connections")}
+                onClick={handleConnect}
+                disabled={isConnecting}
               >
-                Connect Account
-                <ArrowUpRight className="ml-1 h-3 w-3" />
+                {isConnecting ? (
+                  <>
+                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    Connect Account
+                    <ArrowUpRight className="ml-1 h-3 w-3" />
+                  </>
+                )}
               </Button>
             )}
           </div>

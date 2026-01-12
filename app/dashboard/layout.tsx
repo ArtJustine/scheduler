@@ -19,7 +19,6 @@ export default function DashboardLayout({
   return (
     <AuthProvider>
       <div className="min-h-screen flex flex-col bg-background text-foreground font-sans">
-        <SiteHeader />
         <div className="flex flex-1 overflow-hidden">
           <div className="flex-shrink-0 hidden md:block">
             <DashboardSidebar />
@@ -30,7 +29,6 @@ export default function DashboardLayout({
             </div>
           </main>
         </div>
-        <SiteFooter />
       </div>
     </AuthProvider>
   )

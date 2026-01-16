@@ -4,7 +4,6 @@
 
 @layer base {
   :root {
-    /* Premium Light Mode (Clean, High Contrast) */
     --background: 210 40% 98%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -12,7 +11,6 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
     --primary: 252 80% 58%;
-    /* Vibrant Violet */
     --primary-foreground: 210 40% 98%;
     --secondary: 252 20% 94%;
     --secondary-foreground: 252 60% 30%;
@@ -29,23 +27,19 @@
   }
 
   .dark {
-    /* Premium Dark Mode (Deep, Glassy, Neon Accents) */
     --background: 240 10% 4%;
-    /* Near Black - Deep Blueish/Gray */
     --foreground: 210 40% 98%;
     --card: 240 10% 6%;
     --card-foreground: 210 40% 98%;
     --popover: 240 10% 6%;
     --popover-foreground: 210 40% 98%;
     --primary: 252 100% 68%;
-    /* Electric Violet */
     --primary-foreground: 210 40% 98%;
     --secondary: 240 6% 15%;
     --secondary-foreground: 210 40% 98%;
     --muted: 240 6% 15%;
     --muted-foreground: 215 20.2% 65.1%;
     --accent: 252 100% 68%;
-    /* Matching Primary for glass effects */
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
@@ -57,7 +51,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   body {
@@ -65,37 +59,90 @@
   }
 }
 
-/* Premium UI Enhancements */
-@layer base {
-  ::selection {
-    @apply bg-primary/30 text-foreground;
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
-
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar {
-    width: 10px;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-background;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/20 rounded-full border-2 border-solid border-background hover:bg-muted-foreground/40 transition-colors;
+/* Glassmorphism Utilities */
+@layer utilities {
+  .liquid-glass {
+    backdrop-filter: blur(25px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 }
 
-/* Glassmorphism Utilities */
-@layer utilities {
-  .glass {
-    @apply bg-black/40 backdrop-blur-md border border-white/10;
+/* Global Button Liquid Glass Override */
+@layer base {
+  button:not(.ghost):not(.link) {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05)) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+    color: hsl(var(--foreground)) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
-  .glass-card {
-    @apply bg-card/50 backdrop-blur-xl border border-border/50 shadow-xl;
+  /* Specific logic for buttons on dark backgrounds (Hero Section) */
+  .bg-slate-950 button:not(.ghost):not(.link),
+  .bg-slate-900 button:not(.ghost):not(.link),
+  .bg-black button:not(.ghost):not(.link),
+  .dark button:not(.ghost):not(.link) {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.02)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+  }
+
+  button:not(.ghost):not(.link):hover {
+    transform: translateY(-2px) scale(1.02) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.15)) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Primary Button Contrast Fix */
+  .bg-primary {
+    background: linear-gradient(135deg, hsla(var(--primary), 0.8), hsla(var(--primary), 0.6)) !important;
+    color: white !important;
+  }
+
+  .dark .bg-primary {
+    background: linear-gradient(135deg, hsla(var(--primary), 0.4), hsla(var(--primary), 0.2)) !important;
+  }
+
+  /* Header Glassmorphism */
+  header.sticky {
+    background-color: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(25px) saturate(200%) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .dark header.sticky {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Section Glassmorphism */
+  section:not(.bg-slate-950) {
+    backdrop-filter: blur(16px);
+    border-y: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .dark section:not(.bg-slate-950) {
+    border-y: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Accordion/FAQ Breathing Room */
+  [data-orientation="vertical"]>div {
+    @apply rounded-xl mb-3 border border-white/10 overflow-hidden transition-all duration-300;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+  }
+
+  .dark [data-orientation="vertical"]>div {
+    background: rgba(255, 255, 255, 0.01);
+  }
+
+  button[data-state] {
+    @apply px-6 py-5 !important;
+  }
+
+  div[data-state="open"]>div {
+    @apply px-6 pt-4 pb-6 text-base !important;
   }
 }

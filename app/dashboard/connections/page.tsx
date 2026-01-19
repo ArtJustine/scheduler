@@ -12,6 +12,7 @@ type SocialAccount = {
   platform: string
   username: string
   connected: boolean
+  profileImage?: string
 }
 import { useRouter, useSearchParams } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -39,6 +40,7 @@ export default function ConnectionsPage() {
               platform: plat,
               username: data.username || `${plat.charAt(0).toUpperCase() + plat.slice(1)} User`,
               connected: true,
+              profileImage: data.profileImage,
             })
           }
         })
@@ -59,6 +61,10 @@ export default function ConnectionsPage() {
     const success = searchParams.get("success")
     const error = searchParams.get("error")
     const message = searchParams.get("message")
+
+    if (success || error) {
+      window.dispatchEvent(new CustomEvent('social-accounts-updated'))
+    }
 
     if (success) {
       const platform = success.replace("_connected", "")
@@ -134,10 +140,12 @@ export default function ConnectionsPage() {
                           platform: plat,
                           username: data.username || `${plat.charAt(0) + plat.slice(1)} User`,
                           connected: true,
+                          profileImage: data.profileImage,
                         })
                       }
                     })
                     setSocialAccounts(transformedAccounts)
+                    window.dispatchEvent(new CustomEvent('social-accounts-updated'))
                   } catch (error: any) {
                     toast({
                       title: "Error",

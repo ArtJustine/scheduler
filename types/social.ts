@@ -13,6 +13,7 @@ export interface SocialAccount {
   impressions?: number
   posts?: number
   profileUrl?: string
+  profileImage?: string
   updatedAt?: string
 }
 

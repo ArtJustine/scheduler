@@ -22,6 +22,7 @@ interface SocialConnectProps {
     platform: string
     username: string
     connected: boolean
+    profileImage?: string
   }[]
   onConnect?: (platform: string) => void
   onDisconnect?: (platform: string) => void
@@ -135,19 +136,31 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
         return (
           <Card key={platform.name}>
             <CardHeader>
-              <div className="flex items-center gap-2">
-                {getPlatformIcon(platform.name)}
-                <CardTitle>{platform.name}</CardTitle>
+              <div className="flex items-center gap-3">
+                {isConnected && connectedAccount?.profileImage ? (
+                  <img
+                    src={connectedAccount.profileImage}
+                    alt={connectedAccount.username}
+                    className="h-8 w-8 rounded-full border border-primary/20"
+                  />
+                ) : (
+                  getPlatformIcon(platform.name)
+                )}
+                <div className="flex flex-col">
+                  <CardTitle className="text-lg">{platform.name}</CardTitle>
+                  {isConnected && (
+                    <span className="text-xs text-primary font-medium">Connected as {connectedAccount?.username}</span>
+                  )}
+                </div>
                 {platform.disabled && (
-                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Disabled</span>
+                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full ml-auto">Disabled</span>
                 )}
               </div>
-              <CardDescription>{platform.description}</CardDescription>
+              <CardDescription className="mt-2">{platform.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Hide "Connected as" label per request */}
               {platform.disabled && (
-                <div className="flex items-center gap-2 text-sm text-amber-600 mt-2">
+                <div className="flex items-center gap-2 text-sm text-amber-600">
                   <AlertCircle className="h-4 w-4" />
                   <span>Integration temporarily disabled</span>
                 </div>

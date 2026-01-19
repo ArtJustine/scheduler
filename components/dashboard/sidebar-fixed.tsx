@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { BarChart3, Calendar, FolderPlus, HelpCircle, Home, ImageIcon, Link2, Settings, User, Facebook, Twitter, Instagram, Youtube, MessageSquare, Share2 } from "lucide-react"
@@ -90,14 +91,52 @@ const settingsItems = [
 export function DashboardSidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const [connectedAccounts, setConnectedAccounts] = useState<any>({})
+
+  useEffect(() => {
+    const loadAccounts = async () => {
+      try {
+        const { getSocialAccounts } = await import("@/lib/firebase/social-accounts")
+        const accounts = await getSocialAccounts()
+        setConnectedAccounts(accounts)
+      } catch (error) {
+        console.error("Error loading social accounts for sidebar:", error)
+      }
+    }
+
+    loadAccounts()
+
+    // Add an event listener for storage or a custom event to refresh when accounts change
+    const handleRefresh = () => loadAccounts()
+    window.addEventListener('social-accounts-updated', handleRefresh)
+    return () => window.removeEventListener('social-accounts-updated', handleRefresh)
+  }, [])
 
   const handleLogout = async () => {
     try {
       await signOut()
       router.push("/login")
     } catch (error) {
-      // Optionally show a toast or error message
       console.error("Logout failed", error)
+    }
+  }
+
+  const getChannelDisplay = (channel: any) => {
+    const platform = channel.title.toLowerCase()
+    const connected = connectedAccounts[platform]
+
+    if (connected) {
+      return {
+        title: connected.username || channel.title,
+        icon: connected.profileImage ? null : channel.icon,
+        image: connected.profileImage,
+      }
+    }
+
+    return {
+      title: channel.title,
+      icon: channel.icon,
+      image: null,
     }
   }
 
@@ -129,16 +168,23 @@ export function DashboardSidebar() {
               Social Channels
             </h2>
             <SidebarMenu>
-              {socialChannels.map((channel) => (
-                <SidebarMenuItem key={channel.href}>
-                  <SidebarMenuButton asChild isActive={pathname === channel.href} tooltip={channel.title}>
-                    <Link href={channel.href} className={cn("flex items-center")}>
-                      <channel.icon className={cn("mr-2 h-5 w-5", channel.color)} />
-                      <span>{channel.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {socialChannels.map((channel) => {
+                const display = getChannelDisplay(channel)
+                return (
+                  <SidebarMenuItem key={channel.href}>
+                    <SidebarMenuButton asChild isActive={pathname === channel.href} tooltip={display.title}>
+                      <Link href={channel.href} className={cn("flex items-center")}>
+                        {display.image ? (
+                          <img src={display.image} alt="" className="mr-2 h-5 w-5 rounded-full" />
+                        ) : (
+                          <channel.icon className={cn("mr-2 h-5 w-5", channel.color)} />
+                        )}
+                        <span className="truncate">{display.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </div>
 

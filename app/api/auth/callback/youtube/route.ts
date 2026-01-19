@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
     // Get user info from YouTube
     let channelTitle = "YouTube Channel"
     let channelId = null
+    let channelThumbnail = null
     try {
       const channelResponse = await fetch(
         `https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&access_token=${tokenData.access_token}`
@@ -48,6 +49,8 @@ export async function GET(request: NextRequest) {
         if (channelData.items && channelData.items.length > 0) {
           channelTitle = channelData.items[0].snippet.title
           channelId = channelData.items[0].id
+          channelThumbnail = channelData.items[0].snippet.thumbnails?.default?.url ||
+            channelData.items[0].snippet.thumbnails?.medium?.url
         }
       }
     } catch (err) {
@@ -62,6 +65,7 @@ export async function GET(request: NextRequest) {
       const accountData = {
         id: channelId || userId,
         username: channelTitle,
+        profileImage: channelThumbnail,
         accessToken: tokenData.access_token,
         refreshToken: tokenData.refresh_token || null,
         expiresAt: tokenData.expires_in

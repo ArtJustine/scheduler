@@ -1,20 +1,32 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowUpRight, Users, Loader2 } from "lucide-react"
+import { ArrowUpRight, Users, Loader2, Youtube, Share2, Instagram, Clock, ImageIcon } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
+import { cn } from "@/lib/utils"
 
 interface PlatformStatsProps {
-  platform: any; // Using any for platform key indexing, or better explicit string
+  platform: string;
   postCount?: number;
   followers?: number;
+  posts?: number; // Total posts from platform
   connected?: boolean;
+  username?: string;
+  profileImage?: string;
 }
 
-export function PlatformStats({ platform, postCount = 0, followers = 0, connected = false }: PlatformStatsProps) {
+export function PlatformStats({
+  platform,
+  postCount = 0,
+  followers = 0,
+  posts = 0,
+  connected = false,
+  username,
+  profileImage
+}: PlatformStatsProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isConnecting, setIsConnecting] = useState(false)
@@ -23,7 +35,6 @@ export function PlatformStats({ platform, postCount = 0, followers = 0, connecte
     setIsConnecting(true)
 
     try {
-      // Get current user ID from Firebase Auth
       const { firebaseAuth } = await import("@/lib/firebase-client")
       const user = firebaseAuth?.currentUser
 
@@ -37,7 +48,6 @@ export function PlatformStats({ platform, postCount = 0, followers = 0, connecte
         return
       }
 
-      // Redirect to the OAuth flow with user ID
       window.location.href = `/api/auth/${platform.toLowerCase()}?userId=${user.uid}`
     } catch (error) {
       toast({
@@ -49,66 +59,107 @@ export function PlatformStats({ platform, postCount = 0, followers = 0, connecte
     }
   }
 
-  const platformIcon = {
-    Instagram: "/placeholder.svg?height=24&width=24",
-    TikTok: "/placeholder.svg?height=24&width=24",
-    YouTube: "/placeholder.svg?height=24&width=24",
+  const getPlatformColors = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case "youtube": return "text-red-600 bg-red-50 dark:bg-red-950/20";
+      case "tiktok": return "text-rose-600 bg-rose-50 dark:bg-rose-950/20";
+      case "instagram": return "text-pink-600 bg-pink-50 dark:bg-pink-950/20";
+      default: return "text-primary bg-primary/10";
+    }
   }
 
   return (
-    <Card>
+    <Card className={cn(connected && "border-primary/20 shadow-sm")}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{platform}</CardTitle>
-        <div className="h-4 w-4">
-          <img src={platformIcon[platform as keyof typeof platformIcon] || "/placeholder.svg"} alt={platform} className="h-4 w-4" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{followers.toLocaleString()}</div>
-        <CardDescription className="flex items-center">
-          <Users className="mr-1 h-3 w-3" />
-          Followers
-        </CardDescription>
-        <div className="mt-4">
-          <div className="flex items-center justify-between text-sm">
-            <div>Scheduled Posts</div>
-            <div>{postCount}</div>
-          </div>
-          <div className="mt-4">
-            {connected ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={() => router.push(`/dashboard/analytics?platform=${platform.toLowerCase()}`)}
-              >
-                View Analytics
-                <ArrowUpRight className="ml-1 h-3 w-3" />
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={handleConnect}
-                disabled={isConnecting}
-              >
-                {isConnecting ? (
-                  <>
-                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    Connect Account
-                    <ArrowUpRight className="ml-1 h-3 w-3" />
-                  </>
-                )}
-              </Button>
+        <div className="flex items-center gap-2">
+          {connected && profileImage ? (
+            <img src={profileImage} alt={username} className="h-6 w-6 rounded-full" />
+          ) : (
+            <div className={cn("p-1.5 rounded-md", getPlatformColors(platform))}>
+              {platform.toLowerCase() === 'youtube' && <Youtube className="h-4 w-4" />}
+              {platform.toLowerCase() === 'tiktok' && <Share2 className="h-4 w-4" />}
+              {platform.toLowerCase() === 'instagram' && <Instagram className="h-4 w-4" />}
+            </div>
+          )}
+          <div>
+            <CardTitle className="text-sm font-medium">{platform}</CardTitle>
+            {connected && username && (
+              <p className="text-[10px] text-muted-foreground truncate max-w-[100px]">{username}</p>
             )}
           </div>
+        </div>
+        {connected ? (
+          <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+            Connected
+          </div>
+        ) : (
+          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+            Not Connected
+          </div>
+        )}
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          <div>
+            <div className="text-2xl font-bold">{followers.toLocaleString()}</div>
+            <CardDescription className="flex items-center text-[10px]">
+              <Users className="mr-1 h-3 w-3" />
+              {platform.toLowerCase() === "youtube" ? "Subscribers" : "Followers"}
+            </CardDescription>
+          </div>
+          <div>
+            <div className="text-2xl font-bold">{posts.toLocaleString()}</div>
+            <CardDescription className="flex items-center text-[10px]">
+              <ImageIcon className="mr-1 h-3 w-3" />
+              {platform.toLowerCase() === "youtube" ? "Videos" : "Posts"}
+            </CardDescription>
+          </div>
+        </div>
+
+        <div className="mt-6 pt-4 border-t">
+          <div className="flex items-center justify-between text-xs mb-4">
+            <div className="text-muted-foreground flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" />
+              Scheduled
+            </div>
+            <div className="font-semibold">{postCount}</div>
+          </div>
+
+          {connected ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-8 text-xs font-medium"
+              onClick={() => router.push(`/dashboard/analytics?platform=${platform.toLowerCase()}`)}
+            >
+              Analytics Dashboard
+              <ArrowUpRight className="ml-1.5 h-3 w-3" />
+            </Button>
+          ) : (
+            <Button
+              variant="default"
+              size="sm"
+              className="w-full h-8 text-xs font-medium"
+              onClick={handleConnect}
+              disabled={isConnecting}
+            >
+              {isConnecting ? (
+                <>
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  Connect {platform}
+                  <ArrowUpRight className="ml-1.5 h-3 w-3" />
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
   )
 }
+

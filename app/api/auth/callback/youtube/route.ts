@@ -40,17 +40,25 @@ export async function GET(request: NextRequest) {
     let channelTitle = "YouTube Channel"
     let channelId = null
     let channelThumbnail = null
+    let subscribers = 0
+    let videos = 0
+
     try {
       const channelResponse = await fetch(
-        `https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&access_token=${tokenData.access_token}`
+        `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true&access_token=${tokenData.access_token}`
       )
       if (channelResponse.ok) {
         const channelData = await channelResponse.json()
         if (channelData.items && channelData.items.length > 0) {
-          channelTitle = channelData.items[0].snippet.title
-          channelId = channelData.items[0].id
-          channelThumbnail = channelData.items[0].snippet.thumbnails?.default?.url ||
-            channelData.items[0].snippet.thumbnails?.medium?.url
+          const channel = channelData.items[0]
+          channelTitle = channel.snippet.title
+          channelId = channel.id
+          channelThumbnail = channel.snippet.thumbnails?.high?.url ||
+            channel.snippet.thumbnails?.medium?.url ||
+            channel.snippet.thumbnails?.default?.url
+
+          subscribers = parseInt(channel.statistics?.subscriberCount || "0")
+          videos = parseInt(channel.statistics?.videoCount || "0")
         }
       }
     } catch (err) {
@@ -72,7 +80,10 @@ export async function GET(request: NextRequest) {
           ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
           : null,
         connectedAt: new Date().toISOString(),
+        followers: subscribers,
+        posts: videos,
         channelId,
+        connected: true, // Explicitly set connected to true
       }
 
       if (userDoc.exists()) {

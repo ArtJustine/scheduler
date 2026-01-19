@@ -37,6 +37,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadData()
+
+    // Listen for updates
+    const handleRefresh = () => loadData()
+    window.addEventListener('social-accounts-updated', handleRefresh)
+    return () => window.removeEventListener('social-accounts-updated', handleRefresh)
   }, [])
 
   // Safely count posts by platform
@@ -72,13 +77,19 @@ export default function DashboardPage() {
               platform="TikTok"
               postCount={getPostCount("tiktok")}
               followers={socialAccounts?.tiktok?.followers}
+              posts={socialAccounts?.tiktok?.posts}
               connected={!!socialAccounts?.tiktok?.connected}
+              username={socialAccounts?.tiktok?.username}
+              profileImage={socialAccounts?.tiktok?.profileImage}
             />
             <PlatformStats
               platform="YouTube"
               postCount={getPostCount("youtube")}
               followers={socialAccounts?.youtube?.followers}
+              posts={socialAccounts?.youtube?.posts}
               connected={!!socialAccounts?.youtube?.connected}
+              username={socialAccounts?.youtube?.username}
+              profileImage={socialAccounts?.youtube?.profileImage}
             />
           </div>
 

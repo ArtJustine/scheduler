@@ -28,11 +28,16 @@ export async function GET(request: NextRequest) {
     const state = oauthHelpers.generateState()
 
     // Determine the host for dynamic redirect URI
-    // Prefer the configured URI in production if it's been set (not the default localhost)
     let redirectUri = config.youtube.redirectUri
-    if (process.env.NODE_ENV !== "production" || redirectUri.includes("localhost")) {
+
+    // In development environments that aren't production, we might want to use the request origin
+    // but since we just specifically configured the production URI, let's prioritize it 
+    // unless we are explicitly on localhost and want to test local flow.
+    if (process.env.NODE_ENV !== "production" && request.nextUrl.origin.includes("localhost")) {
       redirectUri = `${request.nextUrl.origin}/api/auth/callback/youtube`
     }
+
+    console.log("YouTube OAuth Redirect URI being used:", redirectUri)
 
     // Build YouTube OAuth URL
     const youtubeAuthUrl = youtubeOAuth.getAuthUrl(state, redirectUri)

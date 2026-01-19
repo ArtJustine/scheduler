@@ -31,7 +31,7 @@ export const config = {
   youtube: {
     clientId: process.env.YOUTUBE_CLIENT_ID || "913909744920-eq12dpthfkp3ur4qahh4teuf1b69vcu0.apps.googleusercontent.com",
     clientSecret: process.env.YOUTUBE_CLIENT_SECRET || "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",
-    redirectUri: process.env.YOUTUBE_REDIRECT_URI || "http://localhost:3000/api/auth/callback/youtube",
+    redirectUri: process.env.YOUTUBE_REDIRECT_URI || "https://scheduler-silk-tau.vercel.app/api/auth/callback/youtube",
     apiKey: process.env.YOUTUBE_API_KEY || "AIzaSyAuluhWpEFVsoNYS8PCyaf4XIgvHif6cC0",
     scopes: [
       "https://www.googleapis.com/auth/youtube.upload",
@@ -86,7 +86,7 @@ export const config = {
 
   // General app configuration
   app: {
-    baseUrl: process.env.NEXT_PUBLIC_BASE_URL || "",
+    baseUrl: process.env.NEXT_PUBLIC_BASE_URL || "https://scheduler-silk-tau.vercel.app",
     environment: process.env.NODE_ENV || "development",
   },
 }

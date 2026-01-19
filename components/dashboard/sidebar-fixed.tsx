@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/sidebar"
 import { signOut } from "@/lib/firebase/auth"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-provider"
 
 const sidebarItems = [
   {
@@ -89,12 +90,18 @@ const settingsItems = [
 ]
 
 export function DashboardSidebar() {
+  const { user: authUser, loading: authLoading } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
   const [connectedAccounts, setConnectedAccounts] = useState<any>({})
 
   useEffect(() => {
     const loadAccounts = async () => {
+      if (!authUser) {
+        setConnectedAccounts({})
+        return
+      }
+
       try {
         const { getSocialAccounts } = await import("@/lib/firebase/social-accounts")
         const accounts = await getSocialAccounts()
@@ -104,13 +111,15 @@ export function DashboardSidebar() {
       }
     }
 
-    loadAccounts()
+    if (!authLoading) {
+      loadAccounts()
+    }
 
     // Add an event listener for storage or a custom event to refresh when accounts change
     const handleRefresh = () => loadAccounts()
     window.addEventListener('social-accounts-updated', handleRefresh)
     return () => window.removeEventListener('social-accounts-updated', handleRefresh)
-  }, [])
+  }, [authUser, authLoading])
 
   const handleLogout = async () => {
     try {

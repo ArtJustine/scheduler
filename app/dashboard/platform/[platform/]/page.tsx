@@ -21,11 +21,14 @@ import {
 } from "lucide-react"
 import { LineChart, BarChart } from "@/components/dashboard/analytics-chart"
 
+import { useAuth } from "@/lib/auth-provider"
+
 interface PlatformPageProps {
     params: Promise<{ platform: string }>
 }
 
 export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
+    const { user: authUser, loading: authLoading } = useAuth()
     const router = useRouter()
     const { toast } = useToast()
     const resolvedParams = use(params)
@@ -35,16 +38,22 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
     const [stats, setStats] = useState<any>(null)
 
     useEffect(() => {
-        if (!platform) return
+        if (!platform || authLoading) return
 
         const checkConnection = async () => {
+            if (!authUser) {
+                setIsConnected(false)
+                setIsLoading(false)
+                return
+            }
+
             try {
                 setIsLoading(true)
                 const { getSocialAccounts } = await import("@/lib/firebase/social-accounts")
                 const accounts = await getSocialAccounts()
                 const account = (accounts as any)[platform.toLowerCase()]
 
-                if (account && account.connected) {
+                if (account) {
                     setIsConnected(true)
                     setStats({
                         followers: account.followers || 1250,
@@ -54,16 +63,19 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
                         growth: [1200, 1210, 1225, 1240, 1245, 1250],
                         engagementData: [3.8, 4.0, 4.2, 3.9, 4.1, 4.2]
                     })
+                } else {
+                    setIsConnected(false)
                 }
             } catch (error) {
                 console.error("Error checking platform connection:", error)
+                setIsConnected(false)
             } finally {
                 setIsLoading(false)
             }
         }
 
         checkConnection()
-    }, [platform])
+    }, [platform, authUser, authLoading])
 
     const handleConnect = () => {
         router.push("/dashboard/connections")

@@ -16,8 +16,10 @@ type SocialAccount = {
 }
 import { useRouter, useSearchParams } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useAuth } from "@/lib/auth-provider"
 
 export default function ConnectionsPage() {
+  const { user: authUser, loading: authLoading } = useAuth()
   const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const isMobile = useIsMobile()
@@ -27,6 +29,8 @@ export default function ConnectionsPage() {
 
   useEffect(() => {
     const loadAccounts = async () => {
+      if (!authUser) return
+
       try {
         setIsLoading(true)
         const { getSocialAccounts } = await import("@/lib/firebase/social-accounts")
@@ -53,8 +57,15 @@ export default function ConnectionsPage() {
       }
     }
 
-    loadAccounts()
-  }, [])
+    if (!authLoading) {
+      loadAccounts()
+    }
+
+    // Listen for updates
+    const handleRefresh = () => loadAccounts()
+    window.addEventListener('social-accounts-updated', handleRefresh)
+    return () => window.removeEventListener('social-accounts-updated', handleRefresh)
+  }, [authUser, authLoading])
 
   // Handle OAuth callback messages
   useEffect(() => {

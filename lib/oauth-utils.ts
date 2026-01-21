@@ -118,7 +118,8 @@ export const tiktokOAuth = {
     const url = new URL("https://www.tiktok.com/v2/auth/authorize/")
     url.searchParams.set("client_key", config.tiktok.clientKey)
     url.searchParams.set("redirect_uri", redirectUri || config.tiktok.redirectUri)
-    url.searchParams.set("scope", "user.info.basic,video.upload,video.publish")
+    // Only request user.info.basic for Sandbox - other scopes need approval
+    url.searchParams.set("scope", "user.info.basic")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
     return url.toString()

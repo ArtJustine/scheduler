@@ -134,6 +134,10 @@ export function DashboardSidebar() {
     const platform = channel.title.toLowerCase()
     const connected = connectedAccounts[platform]
 
+    // Debug logging
+    console.log(`Sidebar - Channel: ${channel.title}, Platform key: ${platform}, Connected:`, connected)
+    console.log(`Sidebar - All connected accounts:`, connectedAccounts)
+
     if (connected) {
       return {
         title: connected.username || channel.title,

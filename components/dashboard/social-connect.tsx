@@ -133,6 +133,10 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
         )
         const isConnected = !!connectedAccount?.connected
 
+        // Debug logging
+        console.log(`Platform: ${platform.name}, Connected Account:`, connectedAccount, `Is Connected: ${isConnected}`)
+        console.log(`All connected accounts:`, connectedAccounts)
+
         return (
           <Card key={platform.name}>
             <CardHeader>

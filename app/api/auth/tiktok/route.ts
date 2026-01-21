@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
 
     // Build TikTok OAuth URL
     const tiktokAuthUrl = tiktokOAuth.getAuthUrl(state, redirectUri, codeVerifier)
+    console.log("TikTok Auth URL:", tiktokAuthUrl)
 
     // Store state, userId, code verifier, and redirectUri in cookies
     const response = NextResponse.redirect(tiktokAuthUrl)

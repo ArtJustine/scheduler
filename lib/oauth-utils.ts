@@ -2,6 +2,7 @@
 // Utility functions for OAuth authentication across social media platforms
 
 import { config } from "./config"
+import * as crypto from "node:crypto"
 
 export interface OAuthToken {
   access_token: string
@@ -116,8 +117,9 @@ export const tiktokOAuth = {
     const verifier = codeVerifier || oauthHelpers.generateCodeVerifier()
     const codeChallenge = oauthHelpers.generateCodeChallenge(verifier)
 
-    const url = new URL("https://www.tiktok.com/v2/auth/authorize")
+    const url = new URL("https://www.tiktok.com/v2/auth/authorize/")
     url.searchParams.set("client_key", config.tiktok.clientKey)
+    url.searchParams.set("client_id", config.tiktok.clientKey) // Some versions use client_id instead of client_key
     url.searchParams.set("redirect_uri", redirectUri || config.tiktok.redirectUri)
     url.searchParams.set("scope", "user.info.basic,video.upload,video.publish")
     url.searchParams.set("response_type", "code")
@@ -309,20 +311,15 @@ export const oauthHelpers = {
 
   generateCodeVerifier: (): string => {
     const array = new Uint8Array(32)
-    crypto.getRandomValues(array)
-    return btoa(String.fromCharCode(...array))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '')
+    // Use Node.js crypto.webcrypto for getRandomValues
+    crypto.webcrypto.getRandomValues(array)
+    return Buffer.from(array).toString("base64url")
   },
 
   generateCodeChallenge: (codeVerifier: string): string => {
-    // Simple base64url encoding for PKCE (for testing purposes)
-    // In production, you should use proper SHA256 hashing
-    return btoa(codeVerifier)
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '')
+    // This is required for TikTok's S256 code_challenge_method
+    const hash = crypto.createHash("sha256").update(codeVerifier).digest()
+    return hash.toString("base64url")
   },
 
   isTokenExpired: (token: OAuthToken): boolean => {

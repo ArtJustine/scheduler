@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies()
     const savedState = cookieStore.get("oauth_state")?.value
     const userId = cookieStore.get("oauth_user_id")?.value
-    const codeVerifier = cookieStore.get("tiktok_code_verifier")?.value
+    const codeVerifier = cookieStore.get("tiktok_code_verifier")?.value // Optional for web
     const storedRedirectUri = cookieStore.get("oauth_redirect_uri")?.value
 
     if (!code || !state || state !== savedState) {
@@ -34,11 +34,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard/connections?error=user_not_found", request.url))
     }
 
-    if (!codeVerifier) {
-      return NextResponse.redirect(new URL("/dashboard/connections?error=missing_code_verifier", request.url))
-    }
-
-    // Exchange authorization code for access token
+    // Exchange authorization code for access token (code verifier is optional for web)
     const tokenData = await tiktokOAuth.exchangeCodeForToken(code, codeVerifier, storedRedirectUri)
 
     // Get user info from TikTok

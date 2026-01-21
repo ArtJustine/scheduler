@@ -113,37 +113,38 @@ export const youtubeOAuth = {
 // TikTok OAuth utilities
 export const tiktokOAuth = {
   getAuthUrl: (state: string = "tiktok_auth", redirectUri?: string, codeVerifier?: string): string => {
-    // Generate PKCE code challenge if not provided
-    const verifier = codeVerifier || oauthHelpers.generateCodeVerifier()
-    const codeChallenge = oauthHelpers.generateCodeChallenge(verifier)
-
+    // TikTok Login Kit for Web does NOT use PKCE
+    // Only Desktop apps require PKCE
     const url = new URL("https://www.tiktok.com/v2/auth/authorize/")
     url.searchParams.set("client_key", config.tiktok.clientKey)
-    url.searchParams.set("client_id", config.tiktok.clientKey) // Some versions use client_id instead of client_key
     url.searchParams.set("redirect_uri", redirectUri || config.tiktok.redirectUri)
     url.searchParams.set("scope", "user.info.basic,video.upload,video.publish")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
-    url.searchParams.set("code_challenge", codeChallenge)
-    url.searchParams.set("code_challenge_method", "S256")
     return url.toString()
   },
 
-  exchangeCodeForToken: async (code: string, codeVerifier: string, redirectUri?: string): Promise<OAuthToken> => {
+  exchangeCodeForToken: async (code: string, codeVerifier?: string, redirectUri?: string): Promise<OAuthToken> => {
+    const params: Record<string, string> = {
+      client_key: config.tiktok.clientKey,
+      client_secret: config.tiktok.clientSecret,
+      grant_type: "authorization_code",
+      redirect_uri: redirectUri || config.tiktok.redirectUri,
+      code: code,
+    }
+
+    // Only add code_verifier if provided (for Desktop apps that use PKCE)
+    if (codeVerifier) {
+      params.code_verifier = codeVerifier
+    }
+
     const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         "Cache-Control": "no-cache",
       },
-      body: new URLSearchParams({
-        client_key: config.tiktok.clientKey,
-        client_secret: config.tiktok.clientSecret,
-        grant_type: "authorization_code",
-        redirect_uri: redirectUri || config.tiktok.redirectUri,
-        code: code,
-        code_verifier: codeVerifier,
-      }),
+      body: new URLSearchParams(params),
     })
 
     if (!response.ok) {

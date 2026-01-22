@@ -70,15 +70,15 @@ export default function SignupPage() {
     <div className="flex flex-col min-h-screen bg-background text-foreground font-sans">
       <SiteHeader />
 
-      <main className="flex-1 flex items-center justify-center relative overflow-hidden bg-slate-950 px-4 py-20">
+      <main className="flex-1 flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-muted px-4 py-20">
         {/* Background Gradients */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/30 rounded-full blur-[120px] opacity-50" />
-          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] opacity-30" />
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/20 dark:bg-primary/30 rounded-full blur-[120px] opacity-40 dark:opacity-50" />
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[120px] opacity-20 dark:opacity-30" />
         </div>
 
         <div className="container relative z-10 flex items-center justify-center">
-          <Card className="w-full max-w-md glass-card border-white/10 shadow-2xl">
+          <Card className="w-full max-w-md shadow-2xl border">
             <CardHeader className="space-y-1 text-center">
               <CardTitle className="text-3xl font-bold font-heading">Create Account</CardTitle>
               <CardDescription>Enter your information to create an account</CardDescription>
@@ -87,7 +87,7 @@ export default function SignupPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
-                  <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white/5 border-white/10" />
+                  <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -98,7 +98,6 @@ export default function SignupPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-white/5 border-white/10"
                   />
                 </div>
                 <div className="space-y-2">
@@ -109,7 +108,6 @@ export default function SignupPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-white/5 border-white/10"
                   />
                 </div>
                 <div className="space-y-2">
@@ -120,7 +118,6 @@ export default function SignupPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="bg-white/5 border-white/10"
                   />
                 </div>
 
@@ -131,7 +128,7 @@ export default function SignupPage() {
                 </Button>
               </form>
             </CardContent>
-            <CardFooter className="flex justify-center border-t border-white/5 pt-6">
+            <CardFooter className="flex justify-center border-t pt-6">
               <div className="text-sm text-muted-foreground">
                 Already have an account?{" "}
                 <Link href="/login" className="text-primary hover:underline font-medium">

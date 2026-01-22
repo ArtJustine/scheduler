@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
           ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
           : null,
         connectedAt: new Date().toISOString(),
+        connected: true, // Explicitly set connected to true
         openId,
       }
 

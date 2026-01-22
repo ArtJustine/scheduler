@@ -3,8 +3,9 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Instagram, Youtube, Video, Trash2, Loader2, AlertCircle, Facebook, Twitter, MessageSquare, Share2 } from "lucide-react"
+import { Instagram, Youtube, Video, Trash2, Loader2, AlertCircle, Facebook, Twitter, MessageSquare, Share2, CheckCircle2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { Badge } from "@/components/ui/badge"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -138,26 +139,40 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
         console.log(`All connected accounts:`, connectedAccounts)
 
         return (
-          <Card key={platform.name}>
+          <Card key={platform.name} className={isConnected ? "border-green-500 border-2" : ""}>
             <CardHeader>
-              <div className="flex items-center gap-3">
+              <div className="flex items-start gap-3">
                 {isConnected && connectedAccount?.profileImage ? (
                   <img
                     src={connectedAccount.profileImage}
                     alt={connectedAccount.username}
-                    className="h-8 w-8 rounded-full border border-primary/20"
+                    className="h-10 w-10 rounded-full border-2 border-green-500"
                   />
                 ) : (
-                  getPlatformIcon(platform.name)
+                  <div className={isConnected ? "text-green-600" : ""}>
+                    {getPlatformIcon(platform.name)}
+                  </div>
                 )}
-                <div className="flex flex-col">
-                  <CardTitle className="text-lg">{platform.name}</CardTitle>
+                <div className="flex flex-col flex-1">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg">{platform.name}</CardTitle>
+                    {isConnected && (
+                      <Badge className="bg-green-500 hover:bg-green-600 text-white gap-1">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Connected
+                      </Badge>
+                    )}
+                  </div>
                   {isConnected && (
-                    <span className="text-xs text-primary font-medium">Connected as {connectedAccount?.username}</span>
+                    <span className="text-sm text-muted-foreground mt-1">
+                      @{connectedAccount?.username}
+                    </span>
                   )}
                 </div>
                 {platform.disabled && (
-                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full ml-auto">Disabled</span>
+                  <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-300">
+                    Disabled
+                  </Badge>
                 )}
               </div>
               <CardDescription className="mt-2">{platform.description}</CardDescription>

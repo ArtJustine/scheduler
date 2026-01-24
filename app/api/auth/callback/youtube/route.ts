@@ -70,43 +70,37 @@ export async function GET(request: NextRequest) {
       console.warn("Could not fetch YouTube channel info:", err)
     }
 
-    // Save to Firestore
-    if (serverDb) {
-      const userDocRef = doc(serverDb, "users", userId)
-      const userDoc = await getDoc(userDocRef)
-
-      const accountData = {
-        id: channelId || userId,
-        username: channelTitle,
-        profileImage: channelThumbnail,
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token || null,
-        expiresAt: tokenData.expires_in
-          ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
-          : null,
-        connectedAt: new Date().toISOString(),
-        followers: subscribers,
-        posts: videos,
-        channelId,
-        connected: true, // Explicitly set connected to true
-      }
-
-      if (userDoc.exists()) {
-        await updateDoc(userDocRef, {
-          youtube: accountData,
-          updatedAt: new Date().toISOString(),
-        })
-      } else {
-        await setDoc(userDocRef, {
-          youtube: accountData,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })
-      }
+    // Prepare account data for handover
+    const accountData = {
+      platform: "youtube",
+      id: channelId || userId,
+      username: channelTitle,
+      profileImage: channelThumbnail,
+      accessToken: tokenData.access_token,
+      refreshToken: tokenData.refresh_token || null,
+      expiresAt: tokenData.expires_in
+        ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
+        : null,
+      connectedAt: new Date().toISOString(),
+      followers: subscribers,
+      posts: videos,
+      channelId,
+      connected: true,
     }
 
-    // Clear OAuth cookies
-    const response = NextResponse.redirect(new URL("/dashboard/connections?success=youtube_connected", request.url))
+    // Redirect to dashboard with handover flag
+    const response = NextResponse.redirect(new URL("/dashboard/connections?success=youtube_connected&handover=true", request.url))
+
+    // Set handover cookie (short-lived, accessible by client)
+    response.cookies.set("social_handover_data", JSON.stringify(accountData), {
+      httpOnly: false, // Must be accessible by client-side JS
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 300, // 5 minutes
+      path: "/",
+      sameSite: "lax",
+    })
+
+    // Clear OAuth state cookies
     response.cookies.delete("oauth_state")
     response.cookies.delete("oauth_user_id")
     response.cookies.delete("oauth_redirect_uri")

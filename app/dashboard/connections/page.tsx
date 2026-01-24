@@ -72,9 +72,41 @@ export default function ConnectionsPage() {
     const success = searchParams.get("success")
     const error = searchParams.get("error")
     const message = searchParams.get("message")
+    const handover = searchParams.get("handover")
 
     if (success || error) {
       window.dispatchEvent(new CustomEvent('social-accounts-updated'))
+    }
+
+    // Handle data handover if redirected from callback
+    if (handover === "true" && authUser) {
+      const processHandover = async () => {
+        try {
+          // Read the handover cookie
+          const cookieMatch = document.cookie.match(/social_handover_data=([^;]+)/)
+          if (cookieMatch) {
+            const data = JSON.parse(decodeURIComponent(cookieMatch[1]))
+            const { connectSocialAccount } = await import("@/lib/firebase/social-accounts")
+
+            // Save to Firestore using client-side auth
+            await connectSocialAccount(data.platform, data)
+
+            // Clear the cookie
+            document.cookie = "social_handover_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+
+            // Refresh the UI
+            window.dispatchEvent(new CustomEvent('social-accounts-updated'))
+
+            toast({
+              title: "Update Successful",
+              description: `Synchronized your ${data.platform} account details.`,
+            })
+          }
+        } catch (err) {
+          console.error("Handover processing error:", err)
+        }
+      }
+      processHandover()
     }
 
     if (success) {

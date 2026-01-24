@@ -45,7 +45,12 @@ export async function GET(request: NextRequest) {
 
     try {
       const channelResponse = await fetch(
-        `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true&access_token=${tokenData.access_token}`
+        "https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+          },
+        }
       )
       if (channelResponse.ok) {
         const channelData = await channelResponse.json()

@@ -40,16 +40,26 @@ export async function GET(request: NextRequest) {
     // Get user info from TikTok
     let username = "tiktok_user"
     let openId = null
+    let profileImage = null
     try {
       const userInfoResponse = await fetch(
-        `https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name&access_token=${tokenData.access_token}`
+        "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+          },
+        }
       )
       if (userInfoResponse.ok) {
         const userInfo = await userInfoResponse.json()
         if (userInfo.data && userInfo.data.user) {
           username = userInfo.data.user.display_name || username
           openId = userInfo.data.user.open_id || null
+          profileImage = userInfo.data.user.avatar_url || null
         }
+      } else {
+        const errorData = await userInfoResponse.json()
+        console.warn("TikTok user info error:", errorData)
       }
     } catch (err) {
       console.warn("Could not fetch TikTok user info:", err)
@@ -63,6 +73,7 @@ export async function GET(request: NextRequest) {
       const accountData = {
         id: openId || userId,
         username,
+        profileImage,
         accessToken: tokenData.access_token,
         refreshToken: tokenData.refresh_token || null,
         expiresAt: tokenData.expires_in

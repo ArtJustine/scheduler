@@ -22,9 +22,9 @@ export const config = {
 
   // TikTok API Configuration
   tiktok: {
-    clientKey: process.env.TIKTOK_CLIENT_KEY || "aw5u8oj1rajowvxh",
-    clientSecret: process.env.TIKTOK_CLIENT_SECRET || "3f4zg6kHUTnlhjOgLEzv3rjR1uOSe6vR",
-    redirectUri: process.env.TIKTOK_REDIRECT_URI || "http://localhost:3000/api/auth/callback/tiktok",
+    clientKey: process.env.TIKTOK_CLIENT_KEY || "sbaw0g0284gv7qrf7t",
+    clientSecret: process.env.TIKTOK_CLIENT_SECRET || "lxgui2v0OrGTIRx9UQX4LRwWmmMFMxQH",
+    redirectUri: process.env.TIKTOK_REDIRECT_URI || "https://scheduler-silk-tau.vercel.app/api/auth/callback/tiktok",
   },
 
   // YouTube API Configuration

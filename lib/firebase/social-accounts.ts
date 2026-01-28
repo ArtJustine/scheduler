@@ -32,6 +32,7 @@ export async function getSocialAccounts() {
       facebook: userData.facebook || null,
       twitter: userData.twitter || null,
       pinterest: userData.pinterest || null,
+      linkedin: userData.linkedin || null,
     }
   } catch (error) {
     console.error("Error getting social accounts:", error)

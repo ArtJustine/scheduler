@@ -65,7 +65,7 @@ export const config = {
     clientId: process.env.LINKEDIN_CLIENT_ID || "",
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET || "",
     redirectUri: process.env.LINKEDIN_REDIRECT_URI || "http://localhost:3000/api/auth/callback/linkedin",
-    scopes: ["r_liteprofile", "w_member_social"],
+    scopes: ["openid", "profile", "email", "w_member_social"],
   },
 
   // Pinterest API Configuration

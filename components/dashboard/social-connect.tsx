@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Instagram, Youtube, Video, Trash2, Loader2, AlertCircle, Facebook, Twitter, MessageSquare, Share2, CheckCircle2 } from "lucide-react"
+import { Instagram, Youtube, Video, Trash2, Loader2, AlertCircle, Facebook, Twitter, MessageSquare, Share2, CheckCircle2, Linkedin } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -108,12 +108,24 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
         return <MessageSquare className="h-5 w-5" />
       case "pinterest":
         return <Share2 className="h-5 w-5" />
+      case "linkedin":
+        return <Linkedin className="h-5 w-5" />
       default:
         return null
     }
   }
 
   const platforms = [
+    {
+      name: "Facebook",
+      description: "Connect your Facebook Page to schedule and publish posts",
+      disabled: false,
+    },
+    {
+      name: "Instagram",
+      description: "Connect your Instagram Business account to schedule posts and stories",
+      disabled: false,
+    },
     {
       name: "TikTok",
       description: "Connect your TikTok account to schedule videos and view analytics",
@@ -122,6 +134,21 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
     {
       name: "YouTube",
       description: "Connect your YouTube account to schedule videos and view analytics",
+      disabled: false,
+    },
+    {
+      name: "Threads",
+      description: "Connect your Threads account to schedule and publish posts",
+      disabled: false,
+    },
+    {
+      name: "Pinterest",
+      description: "Connect your Pinterest account to schedule and publish pins",
+      disabled: false,
+    },
+    {
+      name: "LinkedIn",
+      description: "Connect your LinkedIn profile to schedule and publish posts",
       disabled: false,
     },
   ]

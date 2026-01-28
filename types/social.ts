@@ -1,4 +1,4 @@
-export type SocialAccountType = "instagram" | "youtube" | "tiktok" | "threads" | "facebook" | "twitter" | "pinterest"
+export type SocialAccountType = "instagram" | "youtube" | "tiktok" | "threads" | "facebook" | "twitter" | "pinterest" | "linkedin"
 
 export interface SocialAccount {
   username: string
@@ -25,4 +25,5 @@ export interface SocialAccounts {
   facebook?: SocialAccount | null
   twitter?: SocialAccount | null
   pinterest?: SocialAccount | null
+  linkedin?: SocialAccount | null
 }

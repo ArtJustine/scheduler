@@ -168,38 +168,31 @@ export const tiktokOAuth = {
 
 // Facebook OAuth utilities (for Instagram Business)
 export const facebookOAuth = {
-  getAuthUrl: (state: string = "facebook_auth") => {
+  getAuthUrl: (state: string = "facebook_auth", redirectUri?: string) => {
     const url = new URL(`https://www.facebook.com/v${config.facebook.apiVersion}/dialog/oauth`)
     url.searchParams.set("client_id", config.facebook.appId)
-    url.searchParams.set("redirect_uri", config.facebook.redirectUri)
+    url.searchParams.set("redirect_uri", redirectUri || config.facebook.redirectUri)
     url.searchParams.set("scope", config.facebook.scopes.join(","))
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
     return url.toString()
   },
 
-  exchangeCodeForToken: async (code: string): Promise<OAuthToken> => {
-    const response = await fetch(`https://graph.facebook.com/v${config.facebook.apiVersion}/oauth/access_token`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-
+  exchangeCodeForToken: async (code: string, redirectUri?: string): Promise<OAuthToken> => {
     const url = new URL(`https://graph.facebook.com/v${config.facebook.apiVersion}/oauth/access_token`)
     url.searchParams.set("client_id", config.facebook.appId)
     url.searchParams.set("client_secret", config.facebook.appSecret)
-    url.searchParams.set("redirect_uri", config.facebook.redirectUri)
+    url.searchParams.set("redirect_uri", redirectUri || config.facebook.redirectUri)
     url.searchParams.set("code", code)
 
-    const tokenResponse = await fetch(url.toString())
+    const response = await fetch(url.toString())
 
-    if (!tokenResponse.ok) {
-      const error = await tokenResponse.json()
-      throw new Error(`Facebook token exchange failed: ${error.error_description || error.error}`)
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(`Facebook token exchange failed: ${error.error?.message || error.error_description || error.error}`)
     }
 
-    const data = await tokenResponse.json()
+    const data = await response.json()
     return {
       access_token: data.access_token,
       expires_in: data.expires_in,
@@ -259,17 +252,17 @@ export const twitterOAuth = {
 
 // LinkedIn OAuth utilities
 export const linkedinOAuth = {
-  getAuthUrl: (state: string = "linkedin_auth") => {
+  getAuthUrl: (state: string = "linkedin_auth", redirectUri?: string) => {
     const url = new URL("https://www.linkedin.com/oauth/v2/authorization")
     url.searchParams.set("client_id", config.linkedin.clientId)
-    url.searchParams.set("redirect_uri", config.linkedin.redirectUri)
+    url.searchParams.set("redirect_uri", redirectUri || config.linkedin.redirectUri)
     url.searchParams.set("scope", config.linkedin.scopes.join(" "))
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
     return url.toString()
   },
 
-  exchangeCodeForToken: async (code: string): Promise<OAuthToken> => {
+  exchangeCodeForToken: async (code: string, redirectUri?: string): Promise<OAuthToken> => {
     const response = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
       method: "POST",
       headers: {
@@ -279,7 +272,7 @@ export const linkedinOAuth = {
         client_id: config.linkedin.clientId,
         client_secret: config.linkedin.clientSecret,
         grant_type: "authorization_code",
-        redirect_uri: config.linkedin.redirectUri,
+        redirect_uri: redirectUri || config.linkedin.redirectUri,
         code: code,
       }),
     })
@@ -296,6 +289,93 @@ export const linkedinOAuth = {
       token_type: data.token_type,
       scope: data.scope,
       platform: "linkedin",
+      created_at: Date.now(),
+    }
+  },
+}
+
+// Pinterest OAuth utilities
+export const pinterestOAuth = {
+  getAuthUrl: (state: string = "pinterest_auth", redirectUri?: string) => {
+    const url = new URL("https://www.pinterest.com/oauth/")
+    url.searchParams.set("client_id", config.pinterest.appId)
+    url.searchParams.set("redirect_uri", redirectUri || config.pinterest.redirectUri)
+    url.searchParams.set("response_type", "code")
+    url.searchParams.set("scope", config.pinterest.scopes.join(","))
+    url.searchParams.set("state", state)
+    return url.toString()
+  },
+
+  exchangeCodeForToken: async (code: string, redirectUri?: string): Promise<OAuthToken> => {
+    const response = await fetch("https://api.pinterest.com/v5/oauth/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${Buffer.from(`${config.pinterest.appId}:${config.pinterest.appSecret}`).toString("base64")}`,
+      },
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
+        redirect_uri: redirectUri || config.pinterest.redirectUri,
+        code: code,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(`Pinterest token exchange failed: ${error.error_description || error.error}`)
+    }
+
+    const data = await response.json()
+    return {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_in: data.expires_in,
+      token_type: data.token_type,
+      scope: data.scope,
+      platform: "pinterest",
+      created_at: Date.now(),
+    }
+  },
+}
+
+// Threads OAuth utilities
+export const threadsOAuth = {
+  getAuthUrl: (state: string = "threads_auth", redirectUri?: string) => {
+    const url = new URL("https://www.threads.net/oauth/authorize")
+    url.searchParams.set("client_id", config.threads.appId)
+    url.searchParams.set("redirect_uri", redirectUri || config.threads.redirectUri)
+    url.searchParams.set("response_type", "code")
+    url.searchParams.set("scope", config.threads.scopes.join(","))
+    url.searchParams.set("state", state)
+    return url.toString()
+  },
+
+  exchangeCodeForToken: async (code: string, redirectUri?: string): Promise<OAuthToken> => {
+    const response = await fetch("https://graph.threads.net/oauth/access_token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        client_id: config.threads.appId,
+        client_secret: config.threads.appSecret,
+        grant_type: "authorization_code",
+        redirect_uri: redirectUri || config.threads.redirectUri,
+        code: code,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(`Threads token exchange failed: ${error.error_description || error.error}`)
+    }
+
+    const data = await response.json()
+    return {
+      access_token: data.access_token,
+      expires_in: data.expires_in,
+      user_id: data.user_id,
+      platform: "threads",
       created_at: Date.now(),
     }
   },

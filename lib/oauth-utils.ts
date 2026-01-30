@@ -112,32 +112,25 @@ export const youtubeOAuth = {
 
 // TikTok OAuth utilities
 export const tiktokOAuth = {
-  getAuthUrl: (state: string = "tiktok_auth", redirectUri?: string, codeVerifier?: string): string => {
-    // TikTok Login Kit for Web does NOT use PKCE
-    // Only Desktop apps require PKCE
+  getAuthUrl: (state: string = "tiktok_auth", redirectUri?: string): string => {
     const url = new URL("https://www.tiktok.com/v2/auth/authorize/")
     url.searchParams.set("client_key", config.tiktok.clientKey)
     url.searchParams.set("redirect_uri", redirectUri || config.tiktok.redirectUri)
-    // Only request user.info.basic for Sandbox - other scopes need approval
-    url.searchParams.set("scope", "user.info.basic")
+    // Request basic info and video upload permissions
+    url.searchParams.set("scope", "user.info.basic,video.upload,video.publish")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
     return url.toString()
   },
 
-  exchangeCodeForToken: async (code: string, codeVerifier?: string, redirectUri?: string): Promise<OAuthToken> => {
-    const params: Record<string, string> = {
+  exchangeCodeForToken: async (code: string, redirectUri?: string): Promise<OAuthToken> => {
+    const params = new URLSearchParams({
       client_key: config.tiktok.clientKey,
       client_secret: config.tiktok.clientSecret,
       grant_type: "authorization_code",
       redirect_uri: redirectUri || config.tiktok.redirectUri,
       code: code,
-    }
-
-    // Only add code_verifier if provided (for Desktop apps that use PKCE)
-    if (codeVerifier) {
-      params.code_verifier = codeVerifier
-    }
+    })
 
     const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
       method: "POST",
@@ -145,12 +138,13 @@ export const tiktokOAuth = {
         "Content-Type": "application/x-www-form-urlencoded",
         "Cache-Control": "no-cache",
       },
-      body: new URLSearchParams(params),
+      body: params,
     })
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(`TikTok token exchange failed: ${error.error_description || error.error}`)
+      console.error("TikTok token exchange error response:", error)
+      throw new Error(`TikTok token exchange failed: ${error.error_description || error.error || error.message || "Unknown error"}`)
     }
 
     const data = await response.json()

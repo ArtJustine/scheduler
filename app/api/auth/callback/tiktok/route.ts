@@ -23,24 +23,27 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies()
     const savedState = cookieStore.get("oauth_state")?.value
     const userId = cookieStore.get("oauth_user_id")?.value
-    const codeVerifier = cookieStore.get("tiktok_code_verifier")?.value // Optional for web
     const storedRedirectUri = cookieStore.get("oauth_redirect_uri")?.value
 
     if (!code || !state || state !== savedState) {
+      console.error("TikTok state mismatch or missing code", { code: !!code, state, savedState })
       return NextResponse.redirect(new URL("/dashboard/connections?error=invalid_tiktok_auth", request.url))
     }
 
     if (!userId) {
+      console.error("TikTok userId not found in cookies")
       return NextResponse.redirect(new URL("/dashboard/connections?error=user_not_found", request.url))
     }
 
-    // Exchange authorization code for access token (code verifier is optional for web)
-    const tokenData = await tiktokOAuth.exchangeCodeForToken(code, codeVerifier, storedRedirectUri)
+    // Exchange authorization code for access token
+    const tokenData = await tiktokOAuth.exchangeCodeForToken(code, storedRedirectUri)
 
     // Get user info from TikTok
-    let username = "tiktok_user"
+    let username = "TikTok User"
     let openId = null
     let profileImage = null
+    let followerCount = 0
+
     try {
       const userInfoResponse = await fetch(
         "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name",
@@ -79,6 +82,7 @@ export async function GET(request: NextRequest) {
       connectedAt: new Date().toISOString(),
       connected: true,
       openId,
+      followers: followerCount,
     }
 
     // Redirect to dashboard with handover flag
@@ -96,7 +100,6 @@ export async function GET(request: NextRequest) {
     // Clear OAuth state cookies
     response.cookies.delete("oauth_state")
     response.cookies.delete("oauth_user_id")
-    response.cookies.delete("tiktok_code_verifier")
     response.cookies.delete("oauth_redirect_uri")
 
     return response

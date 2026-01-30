@@ -29,14 +29,17 @@ export async function GET(request: NextRequest) {
 
     // Determine the host for dynamic redirect URI
     let redirectUri = config.tiktok.redirectUri
+
     // Use request origin if we're on localhost or if config URI doesn't match current origin (e.g. Vercel preview)
     if (process.env.NODE_ENV !== "production" || !redirectUri.startsWith(request.nextUrl.origin)) {
       redirectUri = `${request.nextUrl.origin}/api/auth/callback/tiktok`
     }
 
-    // Build TikTok OAuth URL (no PKCE for web)
+    console.log("TikTok OAuth Redirect URI being used:", redirectUri)
+
+    // Build TikTok OAuth URL
     const tiktokAuthUrl = tiktokOAuth.getAuthUrl(state, redirectUri)
-    console.log("TikTok Auth URL:", tiktokAuthUrl)
+    console.log("TikTok Auth URL initiated:", tiktokAuthUrl)
 
     // Store state, userId, and redirectUri in cookies
     const response = NextResponse.redirect(tiktokAuthUrl)

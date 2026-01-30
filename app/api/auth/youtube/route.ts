@@ -30,10 +30,8 @@ export async function GET(request: NextRequest) {
     // Determine the host for dynamic redirect URI
     let redirectUri = config.youtube.redirectUri
 
-    // In development environments that aren't production, we might want to use the request origin
-    // but since we just specifically configured the production URI, let's prioritize it 
-    // unless we are explicitly on localhost and want to test local flow.
-    if (process.env.NODE_ENV !== "production" && request.nextUrl.origin.includes("localhost")) {
+    // Use request origin if we're on localhost or if config URI doesn't match current origin (e.g. Vercel preview)
+    if (process.env.NODE_ENV !== "production" || !redirectUri.startsWith(request.nextUrl.origin)) {
       redirectUri = `${request.nextUrl.origin}/api/auth/callback/youtube`
     }
 

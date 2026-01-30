@@ -129,7 +129,7 @@ export default function ConnectionsPage() {
       // Clear the URL parameters
       router.replace("/dashboard/connections")
     }
-  }, [searchParams, toast, router])
+  }, [searchParams, toast, router, authUser, authLoading])
 
   // Helper to get account for a platform
   const getAccount = (platform: string) =>

@@ -181,23 +181,31 @@ export function DashboardSidebar() {
               Social Channels
             </h2>
             <SidebarMenu>
-              {socialChannels.map((channel) => {
-                const display = getChannelDisplay(channel)
-                return (
-                  <SidebarMenuItem key={channel.href}>
-                    <SidebarMenuButton asChild isActive={pathname === channel.href} tooltip={display.title}>
-                      <Link href={channel.href} className={cn("flex items-center")}>
-                        {display.image ? (
-                          <img src={display.image} alt="" className="mr-2 h-5 w-5 rounded-full" />
-                        ) : (
-                          <channel.icon className={cn("mr-2 h-5 w-5", channel.color)} />
-                        )}
-                        <span className="truncate">{display.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
+              {socialChannels.filter(channel => connectedAccounts[channel.title.toLowerCase()]).length > 0 ? (
+                socialChannels
+                  .filter(channel => connectedAccounts[channel.title.toLowerCase()])
+                  .map((channel) => {
+                    const display = getChannelDisplay(channel)
+                    return (
+                      <SidebarMenuItem key={channel.href}>
+                        <SidebarMenuButton asChild isActive={pathname === channel.href} tooltip={display.title}>
+                          <Link href={channel.href} className={cn("flex items-center")}>
+                            {display.image ? (
+                              <img src={display.image} alt="" className="mr-2 h-5 w-5 rounded-full" />
+                            ) : (
+                              <channel.icon className={cn("mr-2 h-5 w-5", channel.color)} />
+                            )}
+                            <span className="truncate">{display.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  })
+              ) : (
+                <div className="px-4 py-2 text-xs text-muted-foreground italic">
+                  No accounts connected yet.
+                </div>
+              )}
             </SidebarMenu>
           </div>
 

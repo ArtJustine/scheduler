@@ -29,7 +29,8 @@ export async function GET(request: NextRequest) {
 
     // Determine the host for dynamic redirect URI
     let redirectUri = config.tiktok.redirectUri
-    if (process.env.NODE_ENV !== "production" || redirectUri.includes("localhost")) {
+    // Use request origin if we're on localhost or if config URI doesn't match current origin (e.g. Vercel preview)
+    if (process.env.NODE_ENV !== "production" || !redirectUri.startsWith(request.nextUrl.origin)) {
       redirectUri = `${request.nextUrl.origin}/api/auth/callback/tiktok`
     }
 

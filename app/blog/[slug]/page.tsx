@@ -6,14 +6,15 @@ import { SiteFooter } from "@/components/site-footer"
 import { BlogPostContent } from "@/components/blog/blog-post-content"
 
 interface BlogPostPageProps {
-    params: {
+    params: Promise<{
         slug: string
-    }
+    }>
 }
 
 // Dynamic metadata for SEO
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-    const post = await getBlogPostBySlug(params.slug)
+    const { slug } = await params
+    const post = await getBlogPostBySlug(slug)
 
     if (!post) {
         return {
@@ -47,7 +48,8 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-    const post = await getBlogPostBySlug(params.slug)
+    const { slug } = await params
+    const post = await getBlogPostBySlug(slug)
 
     if (!post || post.status !== "published") {
         notFound()

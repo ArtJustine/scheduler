@@ -5,10 +5,11 @@ import { getBlogPostBySlug, incrementBlogPostViews } from "@/lib/blog-service"
 // GET - Get blog post by slug
 export async function GET(
     request: NextRequest,
-    { params }: { params: { slug: string } }
+    { params }: { params: Promise<{ slug: string }> }
 ) {
     try {
-        const post = await getBlogPostBySlug(params.slug)
+        const { slug } = await params
+        const post = await getBlogPostBySlug(slug)
 
         if (!post) {
             return NextResponse.json(

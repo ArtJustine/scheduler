@@ -22,7 +22,29 @@ export default function AdminDashboardPage() {
         if (!loading && !user) {
             router.push("/admin")
         }
+
+        if (user) {
+            fetchStats()
+        }
     }, [user, loading, router])
+
+    const fetchStats = async () => {
+        try {
+            const response = await fetch("/api/blog/posts?admin=true")
+            if (response.ok) {
+                const data = await response.json()
+                const posts = data.posts || []
+                setStats({
+                    totalPosts: posts.length,
+                    publishedPosts: posts.filter((p: any) => p.status === "published").length,
+                    draftPosts: posts.filter((p: any) => p.status === "draft").length,
+                    totalViews: posts.reduce((acc: number, p: any) => acc + (p.views || 0), 0),
+                })
+            }
+        } catch (error) {
+            console.error("Error fetching stats:", error)
+        }
+    }
 
     if (loading) {
         return (

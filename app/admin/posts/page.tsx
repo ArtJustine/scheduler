@@ -29,7 +29,7 @@ export default function AdminPostsPage() {
 
     const fetchPosts = async () => {
         try {
-            const response = await fetch("/api/blog/posts")
+            const response = await fetch("/api/blog/posts?admin=true")
             if (response.ok) {
                 const data = await response.json()
                 setPosts(data.posts || [])

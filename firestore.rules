@@ -11,6 +11,17 @@ service cloud.firestore {
       allow update, delete: if false; // No updates or deletes from client
     }
     
+    // Blog posts and categories - Publicly readable, but only admins can write
+    match /blog_posts/{document} {
+      allow read: if true;
+      allow write: if request.auth != null; // In production, refine this to admin only
+    }
+    
+    match /blog_categories/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
     // Protect all other collections - require authentication
     match /{document=**} {
       allow read, write: if request.auth != null;

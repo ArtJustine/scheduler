@@ -14,7 +14,12 @@ interface BlogPostPageProps {
 // Dynamic metadata for SEO
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
     const { slug } = await params
-    const post = await getBlogPostBySlug(slug)
+    let post = null
+    try {
+        post = await getBlogPostBySlug(slug)
+    } catch (error) {
+        console.error("Error fetching post metadata:", error)
+    }
 
     if (!post) {
         return {
@@ -49,7 +54,12 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
     const { slug } = await params
-    const post = await getBlogPostBySlug(slug)
+    let post = null
+    try {
+        post = await getBlogPostBySlug(slug)
+    } catch (error) {
+        console.error("Error fetching post content:", error)
+    }
 
     if (!post || post.status !== "published") {
         notFound()

@@ -13,7 +13,12 @@ export const metadata: Metadata = {
 }
 
 export default async function BlogPage() {
-    const posts = await getPublishedBlogPosts(50)
+    let posts: any[] = []
+    try {
+        posts = await getPublishedBlogPosts(50)
+    } catch (error) {
+        console.error("Error fetching blog posts:", error)
+    }
 
     return (
         <div className="flex flex-col min-h-screen bg-background">

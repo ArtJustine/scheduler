@@ -112,18 +112,23 @@ export const youtubeOAuth = {
 
 // TikTok OAuth utilities
 export const tiktokOAuth = {
-  getAuthUrl: (state: string = "tiktok_auth", redirectUri?: string): string => {
+  getAuthUrl: (state: string = "tiktok_auth", redirectUri?: string, codeChallenge?: string): string => {
     const url = new URL("https://www.tiktok.com/v2/auth/authorize/")
     url.searchParams.set("client_key", config.tiktok.clientKey)
     url.searchParams.set("redirect_uri", redirectUri || config.tiktok.redirectUri)
-    // Request basic info and video upload permissions
+    // Request user info and video posting permissions
     url.searchParams.set("scope", "user.info.basic,video.upload,video.publish")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
+    // Add PKCE parameters (required by TikTok)
+    if (codeChallenge) {
+      url.searchParams.set("code_challenge", codeChallenge)
+      url.searchParams.set("code_challenge_method", "S256")
+    }
     return url.toString()
   },
 
-  exchangeCodeForToken: async (code: string, redirectUri?: string): Promise<OAuthToken> => {
+  exchangeCodeForToken: async (code: string, redirectUri?: string, codeVerifier?: string): Promise<OAuthToken> => {
     const params = new URLSearchParams({
       client_key: config.tiktok.clientKey,
       client_secret: config.tiktok.clientSecret,
@@ -131,6 +136,11 @@ export const tiktokOAuth = {
       redirect_uri: redirectUri || config.tiktok.redirectUri,
       code: code,
     })
+
+    // Add code_verifier for PKCE (required by TikTok)
+    if (codeVerifier) {
+      params.set("code_verifier", codeVerifier)
+    }
 
     const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
       method: "POST",

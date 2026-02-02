@@ -66,6 +66,22 @@
     border: 1px solid rgba(255, 255, 255, 0.25) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
+
+  .animate-float-slow {
+    animation: float 6s ease-in-out infinite;
+  }
+  .animate-float-medium {
+    animation: float 4s ease-in-out infinite;
+  }
+  .animate-float-fast {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+  }
 }
 
 /* Global Button Liquid Glass Override */

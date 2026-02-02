@@ -1,33 +1,15 @@
-import { Calendar } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+"use client"
+
+import { SiteHeader } from "@/components/site-header"
+import { SiteFooter } from "@/components/site-footer"
 
 export default function AboutPage() {
     return (
         <div className="flex flex-col min-h-screen bg-background text-foreground font-sans">
-            <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/50 backdrop-blur-lg">
-                <div className="container flex h-16 items-center justify-between px-6">
-                    <Link href="/" className="flex items-center space-x-2">
-                        <Calendar className="h-6 w-6 text-primary" />
-                        <span className="text-xl font-bold font-heading tracking-tight">Chiyu</span>
-                    </Link>
-                    <nav className="hidden md:flex items-center space-x-8">
-                        <Link href="/features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</Link>
-
-                        <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">About</Link>
-                    </nav>
-                    <div className="flex items-center space-x-4">
-                        <Link href="/waitlist">
-                            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25">
-                                Join Waitlist
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-            </header>
+            <SiteHeader />
 
             <main className="flex-1">
-                <section className="py-20 md:py-32 relative overflow-hidden">
+                <section className="py-20 md:py-32 pt-32 relative overflow-hidden bg-background">
                     <div className="container px-6">
                         <div className="max-w-3xl mx-auto space-y-8">
                             <h1 className="text-4xl md:text-6xl font-bold font-heading mb-8">
@@ -54,19 +36,7 @@ export default function AboutPage() {
                 </section>
             </main>
 
-            <footer className="w-full py-8 border-t border-border/50 bg-background/50 backdrop-blur-lg">
-                <div className="container px-6 flex flex-col sm:flex-row items-center justify-between">
-                    <Link href="/" className="flex items-center space-x-2 mb-4 sm:mb-0">
-                        <Calendar className="h-5 w-5 text-primary" />
-                        <span className="font-semibold text-foreground">Chiyu</span>
-                    </Link>
-                    <nav className="flex gap-6">
-                        <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">Terms</Link>
-                        <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">Privacy</Link>
-                        <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">Contact</Link>
-                    </nav>
-                </div>
-            </footer>
+            <SiteFooter />
         </div>
     )
 }

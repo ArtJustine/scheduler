@@ -12,7 +12,7 @@ export default function FeaturesPage() {
             <SiteHeader />
 
             {/* Hero Section */}
-            <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden bg-slate-950">
+            <section className="relative w-full py-20 md:py-32 lg:py-40 pt-32 lg:pt-48 overflow-hidden bg-slate-950">
                 <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/30 rounded-full blur-[120px] opacity-50" />
                     <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] opacity-30" />

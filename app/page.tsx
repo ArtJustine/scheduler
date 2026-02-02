@@ -12,79 +12,91 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-background text-foreground font-sans">
       <SiteHeader />
 
-      {/* Hero Section - Premium Dark Background for both modes to support white headings */}
-      <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden bg-slate-950">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/30 rounded-full blur-[120px] opacity-50" />
-          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] opacity-30" />
-        </div>
-
-        <div className="container relative z-10 px-6">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-green-500/20 border border-green-500/30">
-              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm text-green-400 font-medium">Limited spots available</span>
+      {/* Hero Section - Redesigned to match inspiration */}
+      <section className="relative w-full min-h-[95vh] flex items-center justify-center overflow-hidden bg-[#fbfbfd] dark:bg-slate-950 transition-colors duration-500">
+        {/* Floating Social Platform Icons - Desktop */}
+        <div className="absolute inset-0 pointer-events-none hidden md:block">
+          {/* Top Row */}
+          <div className="absolute top-[12%] left-[12%] animate-float-slow">
+            <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+              <Instagram className="w-12 h-12 text-[#E1306C]" />
             </div>
+          </div>
+          <div className="absolute top-[8%] left-[48%] animate-float-medium">
+            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+              <Twitter className="w-10 h-10 text-black dark:text-white" />
+            </div>
+          </div>
+          <div className="absolute top-[18%] right-[12%] animate-float-fast">
+            <div className="w-28 h-28 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+              <Youtube className="w-14 h-14 text-red-600" />
+            </div>
+          </div>
 
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-white">
-              Manage All Your <br />
-              <span className="text-primary">Social Media</span> in One Place
-            </h1>
+          {/* Middle Row */}
+          <div className="absolute top-[48%] left-[8%] animate-float-medium">
+            <div className="w-32 h-32 bg-white dark:bg-slate-900 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+              <Video className="w-16 h-16 text-black dark:text-white" />
+            </div>
+          </div>
+          <div className="absolute top-[42%] right-[8%] animate-float-slow">
+            <div className="w-28 h-28 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+              <Facebook className="w-14 h-14 text-[#1877F2]" />
+            </div>
+          </div>
 
-            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
-              The ultimate social media scheduler and manager tool for teams and creators. Powerful social media posting tools to plan, schedule, and auto-publish content across 12+ platforms including Instagram, TikTok, X, LinkedIn, Facebook, YouTube, Threads, Bluesky, and more.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Link href="/signup">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 h-auto shadow-xl shadow-primary/20 transition-all hover:scale-105">
-                  Get Started for Free
-                </Button>
-              </Link>
-              <Link href="/features">
-                <Button size="lg" variant="outline" className="border-white/10 text-foreground hover:bg-white/5 text-lg px-8 py-6 h-auto backdrop-blur-sm">
-                  Explore Features
-                </Button>
-              </Link>
+          {/* Bottom Row */}
+          <div className="absolute bottom-[12%] left-[18%] animate-float-fast">
+            <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+              <Linkedin className="w-12 h-12 text-[#0077B5]" />
+            </div>
+          </div>
+          <div className="absolute bottom-[8%] right-[22%] animate-float-medium">
+            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+              <Globe className="w-10 h-10 text-primary" />
+            </div>
+          </div>
+          <div className="absolute bottom-[18%] left-[49%] animate-float-slow">
+            <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+              <QrCode className="w-12 h-12 text-slate-800 dark:text-white" />
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Supported Platforms */}
-      <section className="w-full py-12 bg-background border-b border-border/50">
-        <div className="container px-6">
-          <div className="flex flex-col items-center space-y-8">
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-center">Supported Platforms</p>
-            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-              <div className="flex flex-col items-center space-y-2 group">
-                <Instagram className="h-8 w-8 text-pink-500 group-hover:scale-110 transition-transform" />
-                <span className="text-[10px] font-medium hidden md:block">Instagram</span>
-              </div>
-              <div className="flex flex-col items-center space-y-2 group">
-                <Youtube className="h-8 w-8 text-red-600 group-hover:scale-110 transition-transform" />
-                <span className="text-[10px] font-medium hidden md:block">YouTube</span>
-              </div>
-              <div className="flex flex-col items-center space-y-2 group">
-                <Facebook className="h-8 w-8 text-blue-600 group-hover:scale-110 transition-transform" />
-                <span className="text-[10px] font-medium hidden md:block">Facebook</span>
-              </div>
-              <div className="flex flex-col items-center space-y-2 group">
-                <Twitter className="h-8 w-8 text-sky-500 group-hover:scale-110 transition-transform" />
-                <span className="text-[10px] font-medium hidden md:block">X (Twitter)</span>
-              </div>
-              <div className="flex flex-col items-center space-y-2 group">
-                <Linkedin className="h-8 w-8 text-blue-700 group-hover:scale-110 transition-transform" />
-                <span className="text-[10px] font-medium hidden md:block">LinkedIn</span>
-              </div>
-              <div className="flex flex-col items-center space-y-2 group">
-                <Video className="h-8 w-8 text-black dark:text-white group-hover:scale-110 transition-transform" />
-                <span className="text-[10px] font-medium hidden md:block">TikTok</span>
-              </div>
-              <div className="flex flex-col items-center space-y-2 group">
-                <Globe className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
-                <span className="text-[10px] font-medium hidden md:block">Threads</span>
-              </div>
+        {/* Mobile Icons (Simplified overlay) */}
+        <div className="absolute inset-0 pointer-events-none md:hidden opacity-[0.08] dark:opacity-[0.15] overflow-hidden">
+          <div className="absolute top-[10%] left-[10%] animate-float-slow">
+            <Instagram className="w-12 h-12 text-[#E1306C]" />
+          </div>
+          <div className="absolute top-[15%] right-[10%] animate-float-fast">
+            <Youtube className="w-16 h-16 text-red-600" />
+          </div>
+          <div className="absolute bottom-[20%] left-[15%] animate-float-medium">
+            <Video className="w-20 h-20 text-black dark:text-white" />
+          </div>
+          <div className="absolute bottom-[10%] right-[15%] animate-float-slow">
+            <Twitter className="w-12 h-12 text-black dark:text-white" />
+          </div>
+        </div>
+
+        <div className="container relative z-10 px-6 pt-32 pb-20">
+          <div className="max-w-5xl mx-auto text-center space-y-12">
+            <h1 className="text-5xl md:text-8xl lg:text-[110px] font-extrabold font-heading tracking-tight text-slate-900 dark:text-white leading-[0.85] animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              Manage <span className="text-primary italic">All</span> Your <br className="hidden lg:block" />
+              Social Media <br className="hidden lg:block" />
+              in One Place
+            </h1>
+
+            <p className="text-lg md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
+              The ultimate social media scheduler and manager tool for teams and creators. Powerful social media posting tools to plan, schedule, and auto-publish content across 12+ platforms.
+            </p>
+
+            <div className="flex justify-center pt-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
+              <Link href="/waitlist">
+                <Button size="lg" className="rounded-full bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-white text-xl px-12 py-8 h-auto shadow-2xl transition-all hover:scale-105 active:scale-95 border-0">
+                  Learn more
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

@@ -68,7 +68,7 @@ export default function WaitlistPage() {
         <div className="flex flex-col min-h-screen bg-background text-foreground font-sans">
             <SiteHeader />
 
-            <main className="flex-1 flex items-center justify-center relative overflow-hidden bg-slate-950 px-4 py-20">
+            <main className="flex-1 flex items-center justify-center relative overflow-hidden bg-slate-950 px-4 py-20 pt-32">
                 {/* Background Gradients */}
                 <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/30 rounded-full blur-[120px] opacity-50" />

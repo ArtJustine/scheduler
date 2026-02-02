@@ -1,35 +1,19 @@
-"use client"
-
-import { useState, useEffect } from "react"
+import { Metadata } from "next"
 import Link from "next/link"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Eye, ArrowRight } from "lucide-react"
-import type { BlogPost } from "@/types/blog"
+import { getPublishedBlogPosts } from "@/lib/blog-service"
 
-export default function BlogPage() {
-    const [posts, setPosts] = useState<BlogPost[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+export const metadata: Metadata = {
+    title: "Blog | Chiyu Social Media Scheduler",
+    description: "Insights, tutorials, and updates about social media management and automation with Chiyu.",
+}
 
-    useEffect(() => {
-        fetchPosts()
-    }, [])
-
-    const fetchPosts = async () => {
-        try {
-            const response = await fetch("/api/blog/posts")
-            if (response.ok) {
-                const data = await response.json()
-                setPosts(data.posts || [])
-            }
-        } catch (error) {
-            console.error("Error fetching posts:", error)
-        } finally {
-            setIsLoading(false)
-        }
-    }
+export default async function BlogPage() {
+    const posts = await getPublishedBlogPosts(50)
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -49,11 +33,7 @@ export default function BlogPage() {
 
                     {/* Blog Posts Grid */}
                     <div className="max-w-6xl mx-auto">
-                        {isLoading ? (
-                            <div className="text-center py-12">
-                                <div className="text-lg text-muted-foreground">Loading posts...</div>
-                            </div>
-                        ) : posts.length === 0 ? (
+                        {posts.length === 0 ? (
                             <div className="text-center py-12">
                                 <p className="text-lg text-muted-foreground">No blog posts yet. Check back soon!</p>
                             </div>

@@ -7,6 +7,7 @@ import { useAuth } from "../../../lib/auth-provider"
 import { Button } from "../../../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card"
 import { PlusCircle, FileText, FolderOpen, Eye, Edit, Trash2, LogOut } from "lucide-react"
+import type { BlogPost } from "../../../types/blog"
 
 export default function AdminDashboardPage() {
     const { user, loading } = useAuth()
@@ -36,9 +37,9 @@ export default function AdminDashboardPage() {
                 const posts = data.posts || []
                 setStats({
                     totalPosts: posts.length,
-                    publishedPosts: posts.filter((p: any) => p.status === "published").length,
-                    draftPosts: posts.filter((p: any) => p.status === "draft").length,
-                    totalViews: posts.reduce((acc: number, p: any) => acc + (p.views || 0), 0),
+                    publishedPosts: posts.filter((p: BlogPost) => p.status === "published").length,
+                    draftPosts: posts.filter((p: BlogPost) => p.status === "draft").length,
+                    totalViews: posts.reduce((acc: number, p: BlogPost) => acc + (p.views || 0), 0),
                 })
             }
         } catch (error) {

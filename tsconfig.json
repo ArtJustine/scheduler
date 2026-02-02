@@ -9,6 +9,7 @@
     "target": "ES6",
     "baseUrl": ".",
     "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,

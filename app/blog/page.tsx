@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Eye, ArrowRight } from "lucide-react"
 import { getPublishedBlogPosts } from "@/lib/blog-service"
+import type { BlogPost } from "@/types/blog"
 
 export const metadata: Metadata = {
     title: "Blog | Chiyu Social Media Scheduler",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 }
 
 export default async function BlogPage() {
-    let posts: any[] = []
+    let posts: BlogPost[] = []
     try {
         posts = await getPublishedBlogPosts(50)
     } catch (error) {
@@ -58,7 +59,7 @@ export default async function BlogPage() {
                                             )}
                                             <CardContent className="p-6">
                                                 <div className="flex items-center space-x-2 mb-3">
-                                                    {post.categories.slice(0, 2).map((category, idx) => (
+                                                    {post.categories.slice(0, 2).map((category: string, idx: number) => (
                                                         <Badge key={idx} variant="secondary" className="text-xs">
                                                             {category}
                                                         </Badge>

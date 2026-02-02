@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAuth } from "@/lib/auth-provider"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { useAuth } from "../../../lib/auth-provider"
+import { Button } from "../../../components/ui/button"
+import { Card } from "../../../components/ui/card"
+import { Badge } from "../../../components/ui/badge"
 import { FileText, PlusCircle, Edit, Trash2, Eye, LogOut, ArrowLeft } from "lucide-react"
-import type { BlogPost } from "@/types/blog"
+import type { BlogPost } from "../../../types/blog"
 
 export default function AdminPostsPage() {
     const { user, loading } = useAuth()

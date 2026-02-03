@@ -91,15 +91,16 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
       console.log("Storage ref created:", storageRef.fullPath)
 
       const uploadTask = uploadBytesResumable(storageRef, file)
+      let lastProgressUpdate = 0
 
       // Use a promise to handle the upload completion/error more robustly
       await new Promise<void>((resolve, reject) => {
-        // Safety timeout - if no progress after 30 seconds and still at 0, fail it
+        // Safety timeout - if no progress after 30 seconds, fail it
         const timeout = setTimeout(() => {
-          if (uploadProgress === 0) {
+          if (lastProgressUpdate === 0) {
             console.error("Upload timed out at 0% progress")
             uploadTask.cancel()
-            reject(new Error("Upload timed out. Please check your connection and try again."))
+            reject(new Error("Upload timed out at 0%. Please check your connection and try again."))
           }
         }, 30000)
 
@@ -107,6 +108,7 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
           "state_changed",
           (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            lastProgressUpdate = progress
             console.log(`Upload progress: ${Math.round(progress)}%`)
             setUploadProgress(progress)
           },

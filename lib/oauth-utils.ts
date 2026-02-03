@@ -116,8 +116,8 @@ export const tiktokOAuth = {
     const url = new URL("https://www.tiktok.com/v2/auth/authorize/")
     url.searchParams.set("client_key", config.tiktok.clientKey)
     url.searchParams.set("redirect_uri", redirectUri || config.tiktok.redirectUri)
-    // Request user info and video posting permissions
-    url.searchParams.set("scope", "user.info.basic video.upload video.publish")
+    // Request user info and video posting permissions (TikTok V2 uses comma-separated scopes)
+    url.searchParams.set("scope", "user.info.basic,video.upload,video.publish")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
     // Add PKCE parameters (required by TikTok)
@@ -420,4 +420,4 @@ export const oauthHelpers = {
     const refreshThreshold = 5 * 60 * 1000 // 5 minutes before expiration
     return Date.now() >= (expirationTime - refreshThreshold)
   },
-} 
+}

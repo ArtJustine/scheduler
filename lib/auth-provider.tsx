@@ -27,6 +27,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChange((currentUser) => {
       setUser(currentUser)
       setLoading(false)
+
+      // Set userId cookie for API routes that need it
+      if (currentUser) {
+        document.cookie = `userId=${currentUser.uid}; path=/; max-age=3600; SameSite=Lax`
+      } else {
+        document.cookie = "userId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+      }
     })
 
     return () => unsubscribe()

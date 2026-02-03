@@ -6,9 +6,10 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Upload, ImageIcon, Film } from "lucide-react"
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
 import { useToast } from "@/components/ui/use-toast"
 import { firebaseAuth, firebaseStorage } from "@/lib/firebase-client"
+import { Progress } from "@/components/ui/progress"
 
 interface MediaUploaderProps {
   onUpload: (url: string) => void
@@ -17,6 +18,7 @@ interface MediaUploaderProps {
 export function MediaUploader({ onUpload }: MediaUploaderProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const { toast } = useToast()
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -69,9 +71,9 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
     }
 
     setIsUploading(true)
+    setUploadProgress(0)
 
     try {
-
       const user = firebaseAuth?.currentUser
       if (!user) {
         throw new Error("User not authenticated")
@@ -86,24 +88,41 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
       const fileName = `${timestamp}_${file.name}`
       const storageRef = ref(firebaseStorage, `media/${user.uid}/${fileName}`)
 
-      await uploadBytes(storageRef, file)
+      const uploadTask = uploadBytesResumable(storageRef, file)
 
-      // Get download URL
-      const downloadURL = await getDownloadURL(storageRef)
-
-      onUpload(downloadURL)
-      toast({
-        title: "Upload successful",
-        description: "Media uploaded successfully",
-      })
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          setUploadProgress(progress)
+        },
+        (error) => {
+          console.error("Upload error:", error)
+          toast({
+            title: "Upload failed",
+            description: error.message || "Failed to upload media. Please try again.",
+            variant: "destructive",
+          })
+          setIsUploading(false)
+        },
+        async () => {
+          // Get download URL
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
+          onUpload(downloadURL)
+          toast({
+            title: "Upload successful",
+            description: "Media uploaded successfully",
+          })
+          setIsUploading(false)
+        }
+      )
     } catch (error: any) {
-      console.error("Error uploading file:", error)
+      console.error("Error initiating upload:", error)
       toast({
         title: "Upload failed",
         description: error.message || "Failed to upload media. Please try again.",
         variant: "destructive",
       })
-    } finally {
       setIsUploading(false)
     }
   }
@@ -156,9 +175,15 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
         </div>
       </Card>
       {isUploading && (
-        <div className="mt-4 flex items-center justify-center">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-          <span className="ml-2 text-sm">Uploading...</span>
+        <div className="mt-4 space-y-2">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent mr-2"></div>
+              <span>Uploading...</span>
+            </div>
+            <span>{Math.round(uploadProgress)}%</span>
+          </div>
+          <Progress value={uploadProgress} className="h-1" />
         </div>
       )}
     </div>

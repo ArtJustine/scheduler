@@ -68,33 +68,33 @@ export default function WaitlistPage() {
         <div className="flex flex-col min-h-screen bg-background text-foreground font-sans">
             <SiteHeader />
 
-            <main className="flex-1 flex items-center justify-center relative overflow-hidden bg-slate-950 px-4 py-20 pt-32">
+            <main className="flex-1 flex items-center justify-center relative overflow-hidden bg-white dark:bg-slate-950 px-4 py-20 pt-32 transition-colors duration-500">
                 {/* Background Gradients */}
                 <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/30 rounded-full blur-[120px] opacity-50" />
-                    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] opacity-30" />
+                    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/20 dark:bg-primary/30 rounded-full blur-[120px] opacity-30 dark:opacity-50" />
+                    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[120px] opacity-20 dark:opacity-30" />
                 </div>
 
                 <div className="container relative z-10 flex items-center justify-center">
-                    <Card className="w-full max-w-lg glass-card border-white/10 shadow-2xl">
+                    <Card className="w-full max-w-lg bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 shadow-2xl">
                         <CardHeader className="text-center space-y-4">
                             <div className="flex justify-center mb-2">
-                                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                                <div className="h-12 w-12 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
                                     <Mail className="h-6 w-6 text-primary" />
                                 </div>
                             </div>
-                            <CardTitle className="text-3xl md:text-4xl font-bold font-heading">Join the Waitlist</CardTitle>
-                            <CardDescription className="text-lg">
+                            <CardTitle className="text-3xl md:text-4xl font-bold font-heading text-slate-900 dark:text-white">Join the Waitlist</CardTitle>
+                            <CardDescription className="text-lg text-slate-600 dark:text-gray-400">
                                 Chiyu is currently opening to a limited number of creators. Sign up to get early access.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             {submitted ? (
                                 <div className="text-center py-8 space-y-4">
-                                    <h3 className="text-2xl font-bold text-green-400 font-heading">You're on the list!</h3>
-                                    <p className="text-muted-foreground">We'll let you know as soon as a spot opens up.</p>
+                                    <h3 className="text-2xl font-bold text-green-600 dark:text-green-400 font-heading">You're on the list!</h3>
+                                    <p className="text-slate-600 dark:text-muted-foreground">We'll let you know as soon as a spot opens up.</p>
                                     <Link href="/">
-                                        <Button variant="outline" className="mt-4 border-white/10 hover:bg-white/5">Back to Home</Button>
+                                        <Button variant="outline" className="mt-4 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5">Back to Home</Button>
                                     </Link>
                                 </div>
                             ) : (
@@ -107,10 +107,10 @@ export default function WaitlistPage() {
                                             onChange={(e) => setEmail(e.target.value)}
                                             required
                                             disabled={loading}
-                                            className="bg-white/5 border-white/10 py-6"
+                                            className="bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 py-6 text-slate-900 dark:text-white"
                                         />
                                         {error && (
-                                            <p className="text-sm text-red-400">{error}</p>
+                                            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                                         )}
                                     </div>
                                     <Button

@@ -12,18 +12,18 @@ export default function FeaturesPage() {
             <SiteHeader />
 
             {/* Hero Section */}
-            <section className="relative w-full py-20 md:py-32 lg:py-40 pt-32 lg:pt-48 overflow-hidden bg-slate-950">
+            <section className="relative w-full py-20 md:py-32 lg:py-40 pt-32 lg:pt-48 overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-500">
                 <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/30 rounded-full blur-[120px] opacity-50" />
-                    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] opacity-30" />
+                    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/20 dark:bg-primary/30 rounded-full blur-[120px] opacity-30 dark:opacity-50" />
+                    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[120px] opacity-20 dark:opacity-30" />
                 </div>
 
                 <div className="container relative z-10 px-6">
                     <div className="max-w-4xl mx-auto text-center space-y-8">
-                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-white text-balance">
+                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-slate-900 dark:text-white text-balance">
                             Manage All Your <span className="text-primary">Social Media</span>
                         </h1>
-                        <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+                        <p className="text-xl md:text-2xl text-slate-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
                             The ultimate video-first distribution engine. Master your presence on YouTube, TikTok, and LinkedIn with precision tools, while we build the future of cross-platform social management.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -115,11 +115,11 @@ export default function FeaturesPage() {
             </section>
 
             {/* Core Capabilities - New Section */}
-            <section className="w-full py-24 bg-slate-950 text-white overflow-hidden">
+            <section className="w-full py-24 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white overflow-hidden transition-colors duration-500">
                 <div className="container px-6">
                     <div className="max-w-4xl mb-20">
                         <h2 className="text-4xl md:text-6xl font-bold font-heading mb-6">Built for the next generation of <span className="text-primary italic">creators.</span></h2>
-                        <p className="text-xl text-gray-400">We've engineered Chiyu to solve the specific bottlenecks of modern distribution, starting with where the attention is now.</p>
+                        <p className="text-xl text-slate-600 dark:text-gray-400">We've engineered Chiyu to solve the specific bottlenecks of modern distribution, starting with where the attention is now.</p>
                     </div>
 
                     <div className="grid gap-24">
@@ -252,7 +252,7 @@ export default function FeaturesPage() {
                         </div>
 
                         {/* 5. Expansion Roadmap */}
-                        <div className="mt-12 bg-white/5 border border-white/10 rounded-3xl p-8 md:p-16 relative overflow-hidden">
+                        <div className="mt-12 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl p-8 md:p-16 relative overflow-hidden shadow-xl">
                             <div className="absolute top-0 right-0 p-8">
                                 <Rocket className="h-24 w-24 text-primary/10 -rotate-12" />
                             </div>
@@ -260,11 +260,11 @@ export default function FeaturesPage() {
                                 <div className="inline-flex items-center space-x-2 bg-primary/10 border border-primary/20 px-3 py-1 rounded-full text-primary text-sm font-medium mb-6">
                                     <span>Coming Soon</span>
                                 </div>
-                                <h3 className="text-3xl md:text-5xl font-bold font-heading mb-6">The Future of Your Distribution</h3>
+                                <h3 className="text-3xl md:text-5xl font-bold font-heading mb-6 text-slate-900 dark:text-white">The Future of Your Distribution</h3>
                                 <div className="space-y-6">
                                     <div>
-                                        <h4 className="text-xl font-bold text-white mb-2">Expanding the Ecosystem</h4>
-                                        <p className="text-gray-400 leading-relaxed max-w-xl">
+                                        <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Expanding the Ecosystem</h4>
+                                        <p className="text-slate-600 dark:text-gray-400 leading-relaxed max-w-xl">
                                             We&apos;re rapidly building deep integrations for Instagram Reels/Stories, Facebook, and X, alongside advanced Analytics Dashboards. Join now to be first in line for the ultimate all-in-one social powerhouse.
                                         </p>
                                     </div>
@@ -446,78 +446,78 @@ export default function FeaturesPage() {
             </section >
 
             {/* Features Gallery */}
-            < section id="features" className="w-full py-24 bg-gradient-to-b from-black to-gray-950" >
+            <section id="features" className="w-full py-24 bg-slate-50 dark:bg-gradient-to-b dark:from-black dark:to-gray-950 transition-colors duration-500">
                 <div className="container px-6">
                     <div className="text-center mb-16 space-y-4">
-                        <h2 className="text-3xl md:text-5xl font-bold font-heading text-white">Full-Stack Control</h2>
-                        <p className="text-gray-400 max-w-2xl mx-auto">Everything you need to dominate your social media stack, organized into a single, intuitive command center.</p>
+                        <h2 className="text-3xl md:text-5xl font-bold font-heading text-slate-900 dark:text-white">Full-Stack Control</h2>
+                        <p className="text-slate-600 dark:text-gray-400 max-w-2xl mx-auto">Everything you need to dominate your social media stack, organized into a single, intuitive command center.</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
                         {/* Dashboard Preview */}
-                        <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
+                        <div className="rounded-xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 flex flex-col space-y-6 shadow-md dark:shadow-none">
                             <div className="aspect-video bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg flex items-center justify-center">
                                 <Calendar className="h-16 w-16 text-purple-400" />
                             </div>
                             <div className="space-y-2">
-                                <h4 className="text-xl font-bold text-white">Universal Dashboard</h4>
-                                <p className="text-sm text-gray-400">A bird's-eye view of your entire social ecosystem. Track growth, upcoming posts, and account health in real-time.</p>
+                                <h4 className="text-xl font-bold text-slate-900 dark:text-white">Universal Dashboard</h4>
+                                <p className="text-sm text-slate-600 dark:text-gray-400">A bird's-eye view of your entire social ecosystem. Track growth, upcoming posts, and account health in real-time.</p>
                             </div>
                         </div>
 
                         {/* Content Preview */}
-                        <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
+                        <div className="rounded-xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 flex flex-col space-y-6 shadow-md dark:shadow-none">
                             <div className="aspect-video bg-gradient-to-br from-pink-600/20 to-purple-600/20 rounded-lg flex items-center justify-center">
                                 <Layers className="h-16 w-16 text-pink-400" />
                             </div>
                             <div className="space-y-2">
-                                <h4 className="text-xl font-bold text-white">Smart Posts</h4>
-                                <p className="text-sm text-gray-400">Native-feeling posts for every platform. Chiyu automatically formats and pre-checks your content for platform-specific rules.</p>
+                                <h4 className="text-xl font-bold text-slate-900 dark:text-white">Smart Posts</h4>
+                                <p className="text-sm text-slate-600 dark:text-gray-400">Native-feeling posts for every platform. Chiyu automatically formats and pre-checks your content for platform-specific rules.</p>
                             </div>
                         </div>
 
                         {/* Video Preview */}
-                        <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
+                        <div className="rounded-xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 flex flex-col space-y-6 shadow-md dark:shadow-none">
                             <div className="aspect-video bg-gradient-to-br from-red-600/20 to-orange-600/20 rounded-lg flex items-center justify-center">
                                 <Youtube className="h-16 w-16 text-red-400" />
                             </div>
                             <div className="space-y-2">
-                                <h4 className="text-xl font-bold text-white">Short-Form Studio</h4>
-                                <p className="text-sm text-gray-400">Optimized for TikTok and YouTube Shorts. Bulk upload and let Chiyu handle the distribution across your vertical video channels.</p>
+                                <h4 className="text-xl font-bold text-slate-900 dark:text-white">Short-Form Studio</h4>
+                                <p className="text-sm text-slate-600 dark:text-gray-400">Optimized for TikTok and YouTube Shorts. Bulk upload and let Chiyu handle the distribution across your vertical video channels.</p>
                             </div>
                         </div>
 
                         {/* Automation Preview */}
-                        <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
-                            <div className="aspect-video bg-gradient-to-br from-gray-800 to-black rounded-lg flex items-center justify-center">
-                                <Clock className="h-16 w-16 text-white" />
+                        <div className="rounded-xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 flex flex-col space-y-6 shadow-md dark:shadow-none">
+                            <div className="aspect-video bg-gradient-to-br from-gray-200 to-white dark:from-gray-800 dark:to-black rounded-lg flex items-center justify-center">
+                                <Clock className="h-16 w-16 text-slate-900 dark:text-white" />
                             </div>
                             <div className="space-y-2">
-                                <h4 className="text-xl font-bold text-white">Precision Scheduling</h4>
-                                <p className="text-sm text-gray-400">Queue posts weeks in advance. Our resilient engine ensures your content goes live even if you're offline.</p>
+                                <h4 className="text-xl font-bold text-slate-900 dark:text-white">Precision Scheduling</h4>
+                                <p className="text-sm text-slate-600 dark:text-gray-400">Queue posts weeks in advance. Our resilient engine ensures your content goes live even if you're offline.</p>
                             </div>
                         </div>
 
                         {/* Analytics Preview */}
-                        <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
+                        <div className="rounded-xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 flex flex-col space-y-6 shadow-md dark:shadow-none">
                             <div className="aspect-video bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-lg flex items-center justify-center">
-                                <div className="h-16 w-16 border-2 border-green-400/50 rounded-lg flex items-center justify-center">
-                                    <div className="h-8 w-8 border-t-2 border-green-400 rounded-full animate-spin" />
+                                <div className="h-16 w-16 border-2 border-green-600 dark:border-green-400/50 rounded-lg flex items-center justify-center">
+                                    <div className="h-8 w-8 border-t-2 border-green-600 dark:border-green-400 rounded-full animate-spin" />
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <h4 className="text-xl font-bold text-white">Core Insights</h4>
-                                <p className="text-sm text-gray-400">Track your trajectory. Monitor reach and engagement across YouTube, TikTok, and LinkedIn to see where your content hits hardest.</p>
+                                <h4 className="text-xl font-bold text-slate-900 dark:text-white">Core Insights</h4>
+                                <p className="text-sm text-slate-600 dark:text-gray-400">Track your trajectory. Monitor reach and engagement across YouTube, TikTok, and LinkedIn to see where your content hits hardest.</p>
                             </div>
                         </div>
 
                         {/* Calendar Preview */}
-                        <div className="rounded-xl overflow-hidden bg-white/5 border border-white/10 p-6 flex flex-col space-y-6">
+                        <div className="rounded-xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 flex flex-col space-y-6 shadow-md dark:shadow-none">
                             <div className="aspect-video bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-lg flex items-center justify-center">
                                 <Calendar className="h-16 w-16 text-blue-400" />
                             </div>
                             <div className="space-y-2">
-                                <h4 className="text-xl font-bold text-white">Content Planner</h4>
-                                <p className="text-sm text-gray-400">Visualize your content strategy with our drag-and-drop calendar. Balance your feed across all platforms effortlessly.</p>
+                                <h4 className="text-xl font-bold text-slate-900 dark:text-white">Content Planner</h4>
+                                <p className="text-sm text-slate-600 dark:text-gray-400">Visualize your content strategy with our drag-and-drop calendar. Balance your feed across all platforms effortlessly.</p>
                             </div>
                         </div>
                     </div>

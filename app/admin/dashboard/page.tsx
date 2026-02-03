@@ -31,10 +31,16 @@ export default function AdminDashboardPage() {
 
     const fetchStats = async () => {
         try {
-            const response = await fetch("/api/blog/posts?admin=true")
-            if (response.ok) {
-                const data = await response.json()
-                const posts = data.posts || []
+            const { firebaseDb } = await import("@/lib/firebase-client")
+            const { collection, getDocs } = await import("firebase/firestore")
+
+            if (firebaseDb) {
+                const querySnapshot = await getDocs(collection(firebaseDb, "blog_posts"))
+                const posts = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })) as BlogPost[]
+
                 setStats({
                     totalPosts: posts.length,
                     publishedPosts: posts.filter((p: BlogPost) => p.status === "published").length,

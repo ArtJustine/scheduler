@@ -32,15 +32,15 @@ export function SiteHeader() {
 
                     {/* Floating Pill Menu - Desktop */}
                     <div className="hidden md:flex fixed top-8 left-1/2 -translate-x-1/2 pointer-events-auto animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
-                        <nav className="flex items-center bg-slate-900/90 dark:bg-slate-800/90 backdrop-blur-xl border border-white/10 rounded-full px-2 py-2 shadow-2xl shadow-slate-900/20 hover:scale-[1.02] transition-transform duration-300">
+                        <nav className="flex items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-full px-2 py-2 shadow-2xl shadow-slate-900/10 hover:scale-[1.02] transition-transform duration-300">
                             <div className="flex items-center space-x-1 px-4">
-                                <Link href="/features" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/features' ? 'text-white' : 'text-white/60 hover:text-white'}`}>Features</Link>
-                                <Link href="/about" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/about' ? 'text-white' : 'text-white/60 hover:text-white'}`}>About</Link>
-                                <Link href="/blog" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/blog' ? 'text-white' : 'text-white/60 hover:text-white'}`}>Blog</Link>
-                                <Link href="/waitlist" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/waitlist' ? 'text-white' : 'text-white/60 hover:text-white'}`}>Waitlist</Link>
+                                <Link href="/features" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/features' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>Features</Link>
+                                <Link href="/about" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/about' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>About</Link>
+                                <Link href="/blog" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/blog' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>Blog</Link>
+                                <Link href="/waitlist" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/waitlist' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>Waitlist</Link>
                             </div>
                             <Link href="/signup">
-                                <Button className="rounded-full bg-white dark:bg-white text-slate-900 hover:bg-slate-100 px-6 py-2 h-auto text-sm font-bold border-0 shadow-none">
+                                <Button className="rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 px-6 py-2 h-auto text-sm font-bold border-0 shadow-none">
                                     Contact
                                 </Button>
                             </Link>

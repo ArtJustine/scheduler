@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-provider"
 import { Button } from "@/components/ui/button"
@@ -11,12 +11,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Save, Eye } from "lucide-react"
-import type { BlogCategory } from "@/types/blog"
+import type { BlogCategory, BlogPost } from "@/types/blog"
 
-export default function NewPostPage() {
+export default function EditPostPage() {
     const { user, loading } = useAuth()
     const router = useRouter()
+    const params = useParams()
+    const postId = params.id as string
     const [isSaving, setIsSaving] = useState(false)
+    const [isFetching, setIsFetching] = useState(true)
     const [categories, setCategories] = useState<BlogCategory[]>([])
 
     const [formData, setFormData] = useState({
@@ -43,10 +46,51 @@ export default function NewPostPage() {
             return
         }
 
-        if (user) {
+        if (user && postId) {
+            fetchPost()
             fetchCategories()
         }
-    }, [user, loading, router])
+    }, [user, loading, router, postId])
+
+    const fetchPost = async () => {
+        try {
+            const { firebaseDb } = await import("@/lib/firebase-client")
+            const { doc, getDoc } = await import("firebase/firestore")
+
+            if (firebaseDb) {
+                const docRef = doc(firebaseDb, "blog_posts", postId)
+                const docSnap = await getDoc(docRef)
+
+                if (docSnap.exists()) {
+                    const post = docSnap.data() as BlogPost
+                    setFormData({
+                        title: post.title,
+                        slug: post.slug,
+                        metaDescription: post.metaDescription,
+                        content: post.content,
+                        excerpt: post.excerpt || "",
+                        featuredImage: post.featuredImage || "",
+                        videoUrl: post.videoUrl || "",
+                        categories: post.categories || [],
+                        tags: post.tags?.join(", ") || "",
+                        status: post.status,
+                        seoKeywords: post.seo?.keywords?.join(", ") || "",
+                        ogTitle: post.seo?.ogTitle || "",
+                        ogDescription: post.seo?.ogDescription || "",
+                        ogImage: post.seo?.ogImage || "",
+                        canonicalUrl: post.seo?.canonicalUrl || "",
+                    })
+                } else {
+                    alert("Post not found")
+                    router.push("/admin/posts")
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching post:", error)
+        } finally {
+            setIsFetching(false)
+        }
+    }
 
     const fetchCategories = async () => {
         try {
@@ -66,40 +110,29 @@ export default function NewPostPage() {
         }
     }
 
-    const handleSubmit = async (e?: React.FormEvent, statusOverride?: "draft" | "published") => {
+    const handleSubmit = async (e?: React.FormEvent, statusOverride?: "draft" | "published" | "scheduled") => {
         if (e) e.preventDefault()
         setIsSaving(true)
 
         try {
             const finalStatus = statusOverride || formData.status
             const { firebaseDb } = await import("@/lib/firebase-client")
-            const { collection, addDoc, Timestamp } = await import("firebase/firestore")
+            const { doc, updateDoc, Timestamp } = await import("firebase/firestore")
 
             if (!firebaseDb) throw new Error("Firestore not initialized")
 
-            const slug = formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-            const excerpt = formData.excerpt || formData.content.substring(0, 160)
-
-            const blogPost = {
+            const blogPostUpdate: any = {
                 title: formData.title,
-                slug,
+                slug: formData.slug,
                 metaDescription: formData.metaDescription,
                 content: formData.content,
-                excerpt,
+                excerpt: formData.excerpt,
                 featuredImage: formData.featuredImage || null,
                 categories: formData.categories || [],
                 tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
                 videoUrl: formData.videoUrl || null,
-                author: {
-                    id: user.uid,
-                    name: user.displayName || "Admin",
-                    email: user.email,
-                },
                 status: finalStatus,
-                publishedAt: finalStatus === "published" ? Timestamp.now() : null,
-                createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
-                views: 0,
                 seo: {
                     keywords: formData.seoKeywords.split(",").map(k => k.trim()).filter(Boolean),
                     ogImage: formData.ogImage || formData.featuredImage || null,
@@ -109,16 +142,15 @@ export default function NewPostPage() {
                 },
             }
 
-            const docRef = await addDoc(collection(firebaseDb, "blog_posts"), blogPost)
-
-            if (docRef.id) {
-                router.push("/admin/posts")
-            } else {
-                alert("Failed to create post")
+            if (finalStatus === "published" && formData.status !== "published") {
+                blogPostUpdate.publishedAt = Timestamp.now()
             }
+
+            await updateDoc(doc(firebaseDb, "blog_posts", postId), blogPostUpdate)
+            router.push("/admin/posts")
         } catch (error: any) {
-            console.error("Error creating post:", error)
-            alert(`Failed to create post: ${error.message}`)
+            console.error("Error updating post:", error)
+            alert(`Failed to update post: ${error.message}`)
         } finally {
             setIsSaving(false)
         }
@@ -132,7 +164,7 @@ export default function NewPostPage() {
         setFormData({ ...formData, slug })
     }
 
-    if (loading) {
+    if (loading || isFetching) {
         return (
             <div className="flex min-h-screen items-center justify-center">
                 <div className="text-lg">Loading...</div>
@@ -154,7 +186,7 @@ export default function NewPostPage() {
                                 Back
                             </Button>
                         </Link>
-                        <h1 className="text-xl font-bold">Create New Post</h1>
+                        <h1 className="text-xl font-bold">Edit Post</h1>
                     </div>
                     <div className="flex items-center space-x-2">
                         <Button
@@ -169,7 +201,7 @@ export default function NewPostPage() {
                             disabled={isSaving}
                         >
                             <Save className="h-4 w-4 mr-2" />
-                            {isSaving ? "Publishing..." : "Publish"}
+                            {isSaving ? "Updating..." : "Update & Publish"}
                         </Button>
                     </div>
                 </div>

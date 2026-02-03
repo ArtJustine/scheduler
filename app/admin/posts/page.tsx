@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAuth } from "../../../lib/auth-provider"
-import { Button } from "../../../components/ui/button"
-import { Card } from "../../../components/ui/card"
-import { Badge } from "../../../components/ui/badge"
+import { useAuth } from "@/lib/auth-provider"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { FileText, PlusCircle, Edit, Trash2, Eye, LogOut, ArrowLeft } from "lucide-react"
-import type { BlogPost } from "../../../types/blog"
+import type { BlogPost } from "@/types/blog"
 
 export default function AdminPostsPage() {
     const { user, loading } = useAuth()
@@ -29,10 +29,21 @@ export default function AdminPostsPage() {
 
     const fetchPosts = async () => {
         try {
-            const response = await fetch("/api/blog/posts?admin=true")
-            if (response.ok) {
-                const data = await response.json()
-                setPosts(data.posts || [])
+            const { firebaseDb } = await import("@/lib/firebase-client")
+            const { collection, query, getDocs, orderBy } = await import("firebase/firestore")
+
+            if (firebaseDb) {
+                const q = query(collection(firebaseDb, "blog_posts"), orderBy("createdAt", "desc"))
+                const querySnapshot = await getDocs(q)
+                const fetchedPosts = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    // Handle dates correctly
+                    publishedAt: doc.data().publishedAt?.toDate?.() || doc.data().publishedAt,
+                    createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt,
+                    updatedAt: doc.data().updatedAt?.toDate?.() || doc.data().updatedAt,
+                })) as BlogPost[]
+                setPosts(fetchedPosts)
             }
         } catch (error) {
             console.error("Error fetching posts:", error)
@@ -45,11 +56,11 @@ export default function AdminPostsPage() {
         if (!confirm("Are you sure you want to delete this post?")) return
 
         try {
-            const response = await fetch(`/api/blog/posts/${postId}`, {
-                method: "DELETE",
-            })
+            const { firebaseDb } = await import("@/lib/firebase-client")
+            const { doc, deleteDoc } = await import("firebase/firestore")
 
-            if (response.ok) {
+            if (firebaseDb) {
+                await deleteDoc(doc(firebaseDb, "blog_posts", postId))
                 setPosts(posts.filter(p => p.id !== postId))
             }
         } catch (error) {

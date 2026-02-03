@@ -5,7 +5,6 @@ interface PlatformEngagementCardProps {
   stats: {
     likes: number
     comments: number
-    shares: number
     saves?: number
   }
   color?: string
@@ -27,7 +26,7 @@ export function PlatformEngagementCard({ platform, stats, color }: PlatformEngag
   }
 
   // Calculate total for percentage
-  const total = stats.likes + stats.comments + stats.shares + (stats.saves || 0)
+  const total = stats.likes + stats.comments + (stats.saves || 0)
 
   // Function to calculate percentage
   const getPercentage = (value: number) => {
@@ -54,11 +53,6 @@ export function PlatformEngagementCard({ platform, stats, color }: PlatformEngag
             <span className="text-sm text-muted-foreground">Comments</span>
             <span className="text-xl font-bold">{stats.comments.toLocaleString()}</span>
             <span className="text-xs text-muted-foreground">{getPercentage(stats.comments)}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">Shares</span>
-            <span className="text-xl font-bold">{stats.shares.toLocaleString()}</span>
-            <span className="text-xs text-muted-foreground">{getPercentage(stats.shares)}</span>
           </div>
           {stats.saves !== undefined && (
             <div className="flex flex-col">

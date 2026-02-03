@@ -1,25 +1,78 @@
-import { Metadata } from "next"
+"use client"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Eye, ArrowRight } from "lucide-react"
-import { getPublishedBlogPosts } from "@/lib/blog-service"
-import type { BlogPost } from "@/types/blog"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Calendar, Eye, ArrowRight, Search, Tag } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import type { BlogPost, BlogCategory } from "@/types/blog"
 
-export const metadata: Metadata = {
-    title: "Blog | Chiyu Social Media Scheduler",
-    description: "Insights, tutorials, and updates about social media management and automation with Chiyu.",
-}
+export default function BlogPage() {
+    const [posts, setPosts] = useState<BlogPost[]>([])
+    const [categories, setCategories] = useState<BlogCategory[]>([])
+    const [selectedCategory, setSelectedCategory] = useState<string>("all")
+    const [searchQuery, setSearchQuery] = useState("")
+    const [isLoading, setIsLoading] = useState(true)
 
-export default async function BlogPage() {
-    let posts: BlogPost[] = []
-    try {
-        posts = await getPublishedBlogPosts(50)
-    } catch (error) {
-        console.error("Error fetching blog posts:", error)
+    useEffect(() => {
+        fetchData()
+    }, [])
+
+    const fetchData = async () => {
+        try {
+            setIsLoading(true)
+            const { firebaseDb } = await import("@/lib/firebase-client")
+            const { collection, query, where, getDocs } = await import("firebase/firestore")
+
+            if (firebaseDb) {
+                // Fetch categories
+                const catSnap = await getDocs(collection(firebaseDb, "blog_categories"))
+                const cats = catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as BlogCategory[]
+                setCategories(cats)
+
+                // Fetch published posts - simplify query to avoid index requirement if possible
+                const q = query(
+                    collection(firebaseDb, "blog_posts"),
+                    where("status", "==", "published")
+                )
+                const querySnapshot = await getDocs(q)
+                const fetchedPosts = querySnapshot.docs.map(doc => {
+                    const data = doc.data()
+                    return {
+                        id: doc.id,
+                        ...data,
+                        publishedAt: data.publishedAt?.toDate?.() || data.publishedAt,
+                        createdAt: data.createdAt?.toDate?.() || data.createdAt,
+                        updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
+                    }
+                }) as BlogPost[]
+
+                // Sort in memory to be safe
+                fetchedPosts.sort((a, b) => {
+                    const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0
+                    const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0
+                    return dateB - dateA
+                })
+
+                setPosts(fetchedPosts)
+            }
+        } catch (error) {
+            console.error("Error fetching blog data:", error)
+        } finally {
+            setIsLoading(false)
+        }
     }
+
+    const filteredPosts = posts.filter(post => {
+        const matchesCategory = selectedCategory === "all" || post.categories.includes(selectedCategory)
+        const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            post.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+        return matchesCategory && matchesSearch
+    })
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -28,66 +81,129 @@ export default async function BlogPage() {
             <main className="flex-1 pt-32 pb-20">
                 <div className="container px-6">
                     {/* Hero Section */}
-                    <div className="max-w-3xl mx-auto text-center mb-16">
+                    <div className="max-w-4xl mx-auto text-center mb-16">
                         <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-600 to-pink-600">
-                            Blog
+                            Our Blog
                         </h1>
-                        <p className="text-xl text-muted-foreground">
-                            Insights, tutorials, and updates about social media management
+                        <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+                            Expert insights, step-by-step tutorials, and the latest updates in social media management.
                         </p>
+
+                        {/* Search and Filters */}
+                        <div className="flex flex-col md:flex-row items-center justify-center gap-4 max-w-2xl mx-auto">
+                            <div className="relative w-full">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search articles..."
+                                    className="pl-10 h-12 bg-muted/50 border-none focus-visible:ring-primary"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="max-w-6xl mx-auto mb-12">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+                            <div className="flex items-center space-x-2 text-muted-foreground">
+                                <Tag className="h-4 w-4" />
+                                <span className="text-sm font-medium">Filter by category:</span>
+                            </div>
+                            <Tabs
+                                value={selectedCategory}
+                                onValueChange={setSelectedCategory}
+                                className="w-full md:w-auto overflow-x-auto"
+                            >
+                                <TabsList className="bg-transparent h-auto p-0 flex flex-wrap justify-start gap-2">
+                                    <TabsTrigger
+                                        value="all"
+                                        className="rounded-full px-6 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border"
+                                    >
+                                        All Posts
+                                    </TabsTrigger>
+                                    {categories.map((category) => (
+                                        <TabsTrigger
+                                            key={category.id}
+                                            value={category.name}
+                                            className="rounded-full px-6 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border"
+                                        >
+                                            {category.name}
+                                        </TabsTrigger>
+                                    ))}
+                                </TabsList>
+                            </Tabs>
+                        </div>
                     </div>
 
                     {/* Blog Posts Grid */}
                     <div className="max-w-6xl mx-auto">
-                        {posts.length === 0 ? (
-                            <div className="text-center py-12">
-                                <p className="text-lg text-muted-foreground">No blog posts yet. Check back soon!</p>
+                        {isLoading ? (
+                            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                                {[1, 2, 3, 4, 5, 6].map((i) => (
+                                    <div key={i} className="h-[400px] rounded-xl bg-muted animate-pulse" />
+                                ))}
+                            </div>
+                        ) : filteredPosts.length === 0 ? (
+                            <div className="text-center py-20 border rounded-3xl bg-muted/20">
+                                <p className="text-xl text-muted-foreground">No articles found matching your criteria.</p>
+                                <button
+                                    onClick={() => { setSelectedCategory("all"); setSearchQuery(""); }}
+                                    className="mt-4 text-primary font-semibold hover:underline"
+                                >
+                                    Clear all filters
+                                </button>
                             </div>
                         ) : (
                             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                                {posts.map((post) => (
+                                {filteredPosts.map((post) => (
                                     <Link key={post.id} href={`/blog/${post.slug}`}>
-                                        <Card className="h-full hover:shadow-lg transition-all duration-300 hover:scale-[1.02] overflow-hidden group">
+                                        <Card className="h-full border-none bg-muted/30 hover:bg-muted/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden group rounded-3xl">
                                             {post.featuredImage && (
-                                                <div className="aspect-video overflow-hidden bg-muted">
+                                                <div className="aspect-[16/10] overflow-hidden">
                                                     <img
                                                         src={post.featuredImage}
                                                         alt={post.title}
-                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                     />
                                                 </div>
                                             )}
-                                            <CardContent className="p-6">
-                                                <div className="flex items-center space-x-2 mb-3">
-                                                    {post.categories.slice(0, 2).map((category: string, idx: number) => (
-                                                        <Badge key={idx} variant="secondary" className="text-xs">
+                                            <CardContent className="p-8">
+                                                <div className="flex flex-wrap gap-2 mb-4">
+                                                    {post.categories.map((category: string, idx: number) => (
+                                                        <span key={idx} className="text-[10px] font-bold uppercase tracking-wider text-primary">
                                                             {category}
-                                                        </Badge>
+                                                        </span>
                                                     ))}
                                                 </div>
 
-                                                <h2 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors line-clamp-2">
+                                                <h2 className="text-2xl font-bold mb-4 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
                                                     {post.title}
                                                 </h2>
 
-                                                <p className="text-muted-foreground mb-4 line-clamp-3">
+                                                <p className="text-muted-foreground mb-6 line-clamp-3 text-sm leading-relaxed">
                                                     {post.excerpt}
                                                 </p>
 
-                                                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                                <div className="pt-6 border-t border-muted-foreground/10 flex items-center justify-between text-xs text-muted-foreground">
                                                     <div className="flex items-center space-x-4">
                                                         {post.publishedAt && (
                                                             <span className="flex items-center">
-                                                                <Calendar className="h-3 w-3 mr-1" />
-                                                                {new Date(post.publishedAt).toLocaleDateString()}
+                                                                <Calendar className="h-3 w-3 mr-1.5" />
+                                                                {new Date(post.publishedAt).toLocaleDateString(undefined, {
+                                                                    month: 'short',
+                                                                    day: 'numeric',
+                                                                    year: 'numeric'
+                                                                })}
                                                             </span>
                                                         )}
                                                         <span className="flex items-center">
-                                                            <Eye className="h-3 w-3 mr-1" />
+                                                            <Eye className="h-3 w-3 mr-1.5" />
                                                             {post.views}
                                                         </span>
                                                     </div>
-                                                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                                    <div className="flex items-center font-bold text-primary group-hover:translate-x-1 transition-transform">
+                                                        Read More <ArrowRight className="h-3 w-3 ml-1" />
+                                                    </div>
                                                 </div>
                                             </CardContent>
                                         </Card>

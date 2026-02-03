@@ -117,7 +117,7 @@ export const tiktokOAuth = {
     url.searchParams.set("client_key", config.tiktok.clientKey)
     url.searchParams.set("redirect_uri", redirectUri || config.tiktok.redirectUri)
     // Request user info and video posting permissions
-    url.searchParams.set("scope", "user.info.basic,video.upload,video.publish")
+    url.searchParams.set("scope", "user.info.basic video.upload video.publish")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
     // Add PKCE parameters (required by TikTok)

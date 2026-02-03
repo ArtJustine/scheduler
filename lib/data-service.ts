@@ -181,8 +181,8 @@ export const deleteCaption = async (id: string) => {
 }
 
 // Analytics functions
-export const getAnalytics = async () => {
-  return await firebaseGetAnalytics()
+export const getAnalytics = async (timeframe: string = "month") => {
+  return await firebaseGetAnalytics(timeframe)
 }
 
 // Scheduled posts functions

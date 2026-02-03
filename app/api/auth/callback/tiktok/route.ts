@@ -95,12 +95,13 @@ export async function GET(request: NextRequest) {
     try {
       if (serverDb) {
         const userDocRef = doc(serverDb, "users", userId)
-        await updateDoc(userDocRef, {
+        // Use setDoc with merge to create document if it doesn't exist
+        await setDoc(userDocRef, {
           tiktok: {
             ...accountData,
             updatedAt: new Date().toISOString()
           }
-        })
+        }, { merge: true })
         console.log("TikTok account saved to Firestore for user:", userId)
       }
     } catch (saveError) {

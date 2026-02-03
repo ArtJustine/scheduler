@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -74,6 +73,8 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
     setUploadProgress(0)
 
     try {
+      console.log("Initiating upload for file:", file.name, "size:", file.size)
+
       const user = firebaseAuth?.currentUser
       if (!user) {
         throw new Error("User not authenticated")
@@ -87,25 +88,40 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
       const timestamp = Date.now()
       const fileName = `${timestamp}_${file.name}`
       const storageRef = ref(firebaseStorage, `media/${user.uid}/${fileName}`)
+      console.log("Storage ref created:", storageRef.fullPath)
 
       const uploadTask = uploadBytesResumable(storageRef, file)
 
       // Use a promise to handle the upload completion/error more robustly
       await new Promise<void>((resolve, reject) => {
+        // Safety timeout - if no progress after 30 seconds and still at 0, fail it
+        const timeout = setTimeout(() => {
+          if (uploadProgress === 0) {
+            console.error("Upload timed out at 0% progress")
+            uploadTask.cancel()
+            reject(new Error("Upload timed out. Please check your connection and try again."))
+          }
+        }, 30000)
+
         uploadTask.on(
           "state_changed",
           (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            console.log(`Upload progress: ${Math.round(progress)}%`)
             setUploadProgress(progress)
           },
           (error) => {
-            console.error("Upload error:", error)
+            clearTimeout(timeout)
+            console.error("Firebase Storage upload error:", error)
             reject(error)
           },
           async () => {
+            clearTimeout(timeout)
             try {
+              console.log("Upload task completed successfully")
               // Get download URL
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
+              console.log("Download URL obtained:", downloadURL)
               onUpload(downloadURL)
               toast({
                 title: "Upload successful",
@@ -113,13 +129,14 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
               })
               resolve()
             } catch (err) {
+              console.error("Error getting download URL:", err)
               reject(err)
             }
           }
         )
       })
     } catch (error: any) {
-      console.error("Error during upload:", error)
+      console.error("Detailed upload failure:", error)
       toast({
         title: "Upload failed",
         description: error.message || "Failed to upload media. Please try again.",
@@ -128,6 +145,7 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
     } finally {
       setIsUploading(false)
       setUploadProgress(0)
+      console.log("Media upload process finalized")
     }
   }
 

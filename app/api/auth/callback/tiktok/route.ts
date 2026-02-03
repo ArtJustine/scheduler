@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       console.warn("Could not fetch TikTok user info:", err)
     }
 
-    // Prepare account data for handover
+    // Prepare account data
     const accountData = {
       platform: "tiktok",
       id: openId || userId,
@@ -91,14 +91,31 @@ export async function GET(request: NextRequest) {
       followers: followerCount,
     }
 
-    // Redirect to dashboard with handover flag
-    const response = NextResponse.redirect(new URL("/dashboard/connections?success=tiktok_connected&handover=true", request.url))
+    // Save to Firestore directly from the server for better reliability
+    try {
+      if (serverDb) {
+        const userDocRef = doc(serverDb, "users", userId)
+        await updateDoc(userDocRef, {
+          tiktok: {
+            ...accountData,
+            updatedAt: new Date().toISOString()
+          }
+        })
+        console.log("TikTok account saved to Firestore for user:", userId)
+      }
+    } catch (saveError) {
+      console.error("Error saving TikTok account to Firestore:", saveError)
+      // We'll still try the handover cookie as a fallback
+    }
 
-    // Set handover cookie (short-lived, accessible by client)
+    // Redirect to dashboard with success flag
+    const response = NextResponse.redirect(new URL("/dashboard/connections?success=tiktok_connected", request.url))
+
+    // Set handover cookie as fallback (still useful for immediate UI update without wait)
     response.cookies.set("social_handover_data", JSON.stringify(accountData), {
-      httpOnly: false, // Must be accessible by client-side JS
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 300, // 5 minutes
+      maxAge: 300,
       path: "/",
       sameSite: "lax",
     })

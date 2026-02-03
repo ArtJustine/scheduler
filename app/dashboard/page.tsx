@@ -50,6 +50,16 @@ export default function DashboardPage() {
     return posts.filter((p) => p?.platform?.toLowerCase() === platform.toLowerCase()).length
   }
 
+  // Determine which platforms to show
+  const getConnectedPlatformsList = () => {
+    const connected = Object.keys(socialAccounts).filter(
+      (key) => socialAccounts[key as keyof SocialAccounts]?.connected
+    )
+    return connected.length > 0 ? connected : ["tiktok", "youtube"]
+  }
+
+  const platformsToShow = getConnectedPlatformsList()
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -88,24 +98,21 @@ export default function DashboardPage() {
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <PlatformStats
-              platform="TikTok"
-              postCount={getPostCount("tiktok")}
-              followers={socialAccounts?.tiktok?.followers}
-              posts={socialAccounts?.tiktok?.posts}
-              connected={!!socialAccounts?.tiktok?.connected}
-              username={socialAccounts?.tiktok?.username}
-              profileImage={socialAccounts?.tiktok?.profileImage}
-            />
-            <PlatformStats
-              platform="YouTube"
-              postCount={getPostCount("youtube")}
-              followers={socialAccounts?.youtube?.followers}
-              posts={socialAccounts?.youtube?.posts}
-              connected={!!socialAccounts?.youtube?.connected}
-              username={socialAccounts?.youtube?.username}
-              profileImage={socialAccounts?.youtube?.profileImage}
-            />
+            {platformsToShow.map((platformKey) => {
+              const account = socialAccounts[platformKey as keyof SocialAccounts]
+              return (
+                <PlatformStats
+                  key={platformKey}
+                  platform={platformKey.charAt(0).toUpperCase() + platformKey.slice(1)}
+                  postCount={getPostCount(platformKey)}
+                  followers={account?.followers}
+                  posts={account?.posts}
+                  connected={!!account?.connected}
+                  username={account?.username}
+                  profileImage={account?.profileImage}
+                />
+              )
+            })}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -178,19 +185,11 @@ export default function DashboardPage() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Platform Analytics</CardTitle>
-              <CardDescription>View performance metrics across your social platforms</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                Analytics data will appear here once you have published posts.
-              </div>
-            </CardContent>
-          </Card>
+          <AnalyticsPage />
         </TabsContent>
       </Tabs>
     </div>
   )
 }
+
+import AnalyticsPage from "./analytics/page"

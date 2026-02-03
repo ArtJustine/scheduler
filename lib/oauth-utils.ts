@@ -117,7 +117,8 @@ export const tiktokOAuth = {
     url.searchParams.set("client_key", config.tiktok.clientKey)
     url.searchParams.set("redirect_uri", redirectUri || config.tiktok.redirectUri)
     // Request user info and video posting permissions (TikTok V2 uses comma-separated scopes)
-    url.searchParams.set("scope", "user.info.basic,video.upload,video.publish")
+    // Removed video.publish as it requires special approval and can cause scope errors in sandbox
+    url.searchParams.set("scope", "user.info.basic,video.upload")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
     // Add PKCE parameters (required by TikTok)

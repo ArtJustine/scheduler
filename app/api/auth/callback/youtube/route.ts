@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
     let channelThumbnail = null
     let subscribers = 0
     let videos = 0
+    let views = 0
 
     try {
       const channelResponse = await fetch(
@@ -64,6 +65,7 @@ export async function GET(request: NextRequest) {
 
           subscribers = parseInt(channel.statistics?.subscriberCount || "0")
           videos = parseInt(channel.statistics?.videoCount || "0")
+          views = parseInt(channel.statistics?.viewCount || "0")
         }
       }
     } catch (err) {
@@ -84,6 +86,7 @@ export async function GET(request: NextRequest) {
       connectedAt: new Date().toISOString(),
       followers: subscribers,
       posts: videos,
+      views: views,
       channelId,
       connected: true,
     }

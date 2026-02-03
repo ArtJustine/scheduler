@@ -90,40 +90,44 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
 
       const uploadTask = uploadBytesResumable(storageRef, file)
 
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-          setUploadProgress(progress)
-        },
-        (error) => {
-          console.error("Upload error:", error)
-          toast({
-            title: "Upload failed",
-            description: error.message || "Failed to upload media. Please try again.",
-            variant: "destructive",
-          })
-          setIsUploading(false)
-        },
-        async () => {
-          // Get download URL
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
-          onUpload(downloadURL)
-          toast({
-            title: "Upload successful",
-            description: "Media uploaded successfully",
-          })
-          setIsUploading(false)
-        }
-      )
+      // Use a promise to handle the upload completion/error more robustly
+      await new Promise<void>((resolve, reject) => {
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            setUploadProgress(progress)
+          },
+          (error) => {
+            console.error("Upload error:", error)
+            reject(error)
+          },
+          async () => {
+            try {
+              // Get download URL
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
+              onUpload(downloadURL)
+              toast({
+                title: "Upload successful",
+                description: "Media uploaded successfully",
+              })
+              resolve()
+            } catch (err) {
+              reject(err)
+            }
+          }
+        )
+      })
     } catch (error: any) {
-      console.error("Error initiating upload:", error)
+      console.error("Error during upload:", error)
       toast({
         title: "Upload failed",
         description: error.message || "Failed to upload media. Please try again.",
         variant: "destructive",
       })
+    } finally {
       setIsUploading(false)
+      setUploadProgress(0)
     }
   }
 
@@ -145,31 +149,16 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
             <p className="text-xs text-muted-foreground">Supports images and videos up to 100MB</p>
           </div>
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" disabled={isUploading}>
-              <ImageIcon className="mr-2 h-4 w-4" />
-              <label className="cursor-pointer">
-                Upload Image
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileInput}
-                  disabled={isUploading}
-                />
-              </label>
-            </Button>
-            <Button size="sm" variant="outline" disabled={isUploading}>
-              <Film className="mr-2 h-4 w-4" />
-              <label className="cursor-pointer">
-                Upload Video
-                <input
-                  type="file"
-                  accept="video/*"
-                  className="hidden"
-                  onChange={handleFileInput}
-                  disabled={isUploading}
-                />
-              </label>
+            <Button size="sm" variant="outline" disabled={isUploading} className="relative">
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Media
+              <input
+                type="file"
+                accept="image/*,video/*"
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                onChange={handleFileInput}
+                disabled={isUploading}
+              />
             </Button>
           </div>
         </div>
@@ -183,7 +172,7 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
             </div>
             <span>{Math.round(uploadProgress)}%</span>
           </div>
-          <Progress value={uploadProgress} className="h-1" />
+          <Progress value={uploadProgress} className="h-1 shadow-sm" />
         </div>
       )}
     </div>

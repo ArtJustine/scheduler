@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Redirect to dashboard with success flag
-    const response = NextResponse.redirect(new URL("/dashboard/connections?success=tiktok_connected", request.url))
+    const response = NextResponse.redirect(new URL("/dashboard/connections?success=tiktok_connected&handover=true", request.url))
 
     // Set handover cookie as fallback (still useful for immediate UI update without wait)
     response.cookies.set("social_handover_data", JSON.stringify(accountData), {

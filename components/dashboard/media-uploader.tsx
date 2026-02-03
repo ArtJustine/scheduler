@@ -139,9 +139,20 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
       })
     } catch (error: any) {
       console.error("Detailed upload failure:", error)
+      let errorMessage = error.message || "Failed to upload media. Please try again."
+
+      // Handle specific Firebase Storage errors
+      if (error.code === 'storage/unauthorized') {
+        errorMessage = "Permission denied. Please check Firebase Storage rules."
+      } else if (error.code === 'storage/unknown' || error.message?.includes('network')) {
+        errorMessage = "Network error. This is likely a CORS issue. Please configure CORS for your storage bucket."
+      } else if (error.code === 'storage/retry-limit-exceeded') {
+        errorMessage = "Upload timed out. Please check your internet connection."
+      }
+
       toast({
         title: "Upload failed",
-        description: error.message || "Failed to upload media. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {

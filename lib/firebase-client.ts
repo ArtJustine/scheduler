@@ -5,14 +5,16 @@ import { getAuth } from "firebase/auth"
 import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
 
-// Your web app's Firebase configuration
+import { config } from "./config"
+
+// Use configuration from the central config file
 const firebaseConfig = {
-  apiKey: "AIzaSyC9LlfyJStd8YjczRPU82BzVmTKxQmMQZ8",
-  authDomain: "socialmedia-scheduler-eb22f.firebaseapp.com",
-  projectId: "socialmedia-scheduler-eb22f",
-  storageBucket: "socialmedia-scheduler-eb22f.firebasestorage.app",
-  messagingSenderId: "974176191059",
-  appId: "1:974176191059:web:4b29d837e57c00a97abca6",
+  apiKey: config.firebase.apiKey,
+  authDomain: config.firebase.authDomain,
+  projectId: config.firebase.projectId,
+  storageBucket: config.firebase.storageBucket,
+  messagingSenderId: config.firebase.messagingSenderId,
+  appId: config.firebase.appId,
 }
 
 import type { FirebaseApp } from "firebase/app"

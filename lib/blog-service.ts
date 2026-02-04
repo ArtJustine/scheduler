@@ -101,9 +101,9 @@ export async function getBlogPostById(postId: string): Promise<BlogPost | null> 
     return {
         id: docSnap.id,
         ...data,
-        publishedAt: data.publishedAt?.toDate(),
-        createdAt: data.createdAt?.toDate(),
-        updatedAt: data.updatedAt?.toDate(),
+        publishedAt: data.publishedAt?.toDate?.() || data.publishedAt,
+        createdAt: data.createdAt?.toDate?.() || data.createdAt,
+        updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
     } as BlogPost
 }
 
@@ -122,9 +122,9 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
     return {
         id: docSnap.id,
         ...data,
-        publishedAt: data.publishedAt?.toDate(),
-        createdAt: data.createdAt?.toDate(),
-        updatedAt: data.updatedAt?.toDate(),
+        publishedAt: data.publishedAt?.toDate?.() || data.publishedAt,
+        createdAt: data.createdAt?.toDate?.() || data.createdAt,
+        updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
     } as BlogPost
 }
 
@@ -145,9 +145,9 @@ export async function getPublishedBlogPosts(limitCount: number = 20): Promise<Bl
         return {
             id: doc.id,
             ...data,
-            publishedAt: data.publishedAt?.toDate(),
-            createdAt: data.createdAt?.toDate(),
-            updatedAt: data.updatedAt?.toDate(),
+            publishedAt: data.publishedAt?.toDate?.() || data.publishedAt,
+            createdAt: data.createdAt?.toDate?.() || data.createdAt,
+            updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
         } as BlogPost
     })
 }
@@ -164,9 +164,9 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
         return {
             id: doc.id,
             ...data,
-            publishedAt: data.publishedAt?.toDate(),
-            createdAt: data.createdAt?.toDate(),
-            updatedAt: data.updatedAt?.toDate(),
+            publishedAt: data.publishedAt?.toDate?.() || data.publishedAt,
+            createdAt: data.createdAt?.toDate?.() || data.createdAt,
+            updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
         } as BlogPost
     })
 }

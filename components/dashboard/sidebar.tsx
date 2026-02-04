@@ -11,7 +11,7 @@ import {
   Library,
   HelpCircle,
   User,
-  LucideLink,
+  Link as LucideLink,
   Menu,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -77,6 +77,12 @@ export function Sidebar() {
       icon: LucideLink,
       href: "/dashboard/connections",
       active: pathname === "/dashboard/connections",
+    },
+    {
+      label: "Link-in-Bio",
+      icon: LucideLink,
+      href: "/dashboard/link-in-bio",
+      active: pathname === "/dashboard/link-in-bio",
     },
     {
       label: "Profile",

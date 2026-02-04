@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, Calendar, FolderPlus, HelpCircle, Home, ImageIcon, Link2, Settings, User, Facebook, Twitter, Instagram, Youtube, MessageSquare, Share2 } from "lucide-react"
+import { BarChart3, Calendar, FolderPlus, HelpCircle, Home, ImageIcon, Link2, Settings, User, Facebook, Twitter, Instagram, Youtube, MessageSquare, Share2, Link as LucideLink } from "lucide-react"
 
 
 
@@ -48,6 +48,11 @@ const sidebarItems = [
     title: "Content Library",
     icon: ImageIcon,
     href: "/dashboard/library",
+  },
+  {
+    title: "Link-in-Bio",
+    icon: LucideLink,
+    href: "/dashboard/link-in-bio",
   },
 ]
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Calendar, Zap, ThumbsUp, Instagram, Youtube, Video, ArrowRight, Star, Globe, Clock, Layers, ShieldCheck, Mail, CheckCircle2, Edit3, BarChart3, Facebook, Twitter, Linkedin, Users, Rocket, Smartphone } from "lucide-react"
+import { Calendar, Zap, ThumbsUp, Instagram, Youtube, Video, ArrowRight, Star, Globe, Clock, Layers, ShieldCheck, Mail, CheckCircle2, Edit3, BarChart3, Facebook, Twitter, Linkedin, Users, Rocket, Smartphone, Link as LucideLink } from "lucide-react"
 import Link from "next/link"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
@@ -255,7 +255,43 @@ export default function FeaturesPage() {
                             </div>
                         </div>
 
-                        {/* 5. Expansion Roadmap */}
+                        {/* 5. Link-in-Bio Engine */}
+                        <div className="grid md:grid-cols-2 gap-12 items-center">
+                            <div className="space-y-6">
+                                <div className="inline-flex items-center space-x-2 bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full text-orange-400 text-sm font-medium">
+                                    <LucideLink className="h-4 w-4" />
+                                    <span>Link-in-Bio Engine</span>
+                                </div>
+                                <h3 className="text-3xl md:text-5xl font-bold font-heading leading-tight">Your Digital <br />Home Base</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <h4 className="text-xl font-bold text-white mb-2">Beautiful, Custom Link Pages</h4>
+                                        <p className="text-gray-400 leading-relaxed">
+                                            Turn your social traffic into results with a high-performance link-in-bio page. Customize colors, add unlimited links, and track every click directly from your Chiyu dashboard. It's more than a link—it's your command center.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="relative group">
+                                <div className="absolute inset-0 bg-orange-500/10 blur-[100px] rounded-full group-hover:bg-orange-500/20 transition-all" />
+                                <div className="relative bg-white/5 border border-white/10 rounded-3xl p-8 aspect-square flex items-center justify-center overflow-hidden">
+                                    <div className="w-full max-w-[200px] bg-slate-900 border border-white/10 rounded-[2rem] p-4 shadow-2xl skew-y-3 group-hover:skew-y-0 transition-transform duration-500">
+                                        <div className="w-12 h-12 bg-primary/20 rounded-full mx-auto mb-4" />
+                                        <div className="space-y-2">
+                                            <div className="h-2 w-20 bg-white/20 rounded-full mx-auto" />
+                                            <div className="h-2 w-32 bg-white/10 rounded-full mx-auto" />
+                                        </div>
+                                        <div className="mt-6 space-y-2">
+                                            {[1, 2, 3].map(i => (
+                                                <div key={i} className="h-8 w-full bg-white/5 border border-white/10 rounded-lg" />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 6. Expansion Roadmap */}
                         <div className="mt-12 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl p-8 md:p-16 relative overflow-hidden shadow-xl">
                             <div className="absolute top-0 right-0 p-8">
                                 <Rocket className="h-24 w-24 text-primary/10 -rotate-12" />
@@ -317,7 +353,8 @@ export default function FeaturesPage() {
                                         { name: 'Universal Dashboard', benefit: 'A bird\'s-eye view of your entire social ecosystem with real-time health tracking.' },
                                         { name: 'Content Planner', benefit: 'Visualize your strategy with our drag-and-drop calendar for effortless feed balance.' },
                                         { name: 'Multi-Platform Engine', benefit: 'Sync content across all channels with zero friction and automatic technical encoding.' },
-                                        { name: 'Enterprise Security', benefit: 'Bank-grade encryption and official API integrations to protect your accounts and content.' }
+                                        { name: 'Enterprise Security', benefit: 'Bank-grade encryption and official API integrations to protect your accounts and content.' },
+                                        { name: 'Link-in-Bio Builder', benefit: 'Create a beautiful, optimized landing page for your social traffic with zero effort.' }
                                     ].map((item) => (
                                         <tr key={item.name} className="hover:bg-primary/5 transition-colors border-b border-border">
                                             <td className="p-6 font-bold text-foreground">{item.name}</td>

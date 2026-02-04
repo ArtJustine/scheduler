@@ -37,6 +37,7 @@ export default function CreatePostPage() {
   const [showMediaUploader, setShowMediaUploader] = useState(false)
   const [previewPlatform, setPreviewPlatform] = useState<string>("tiktok")
   const [previewView, setPreviewView] = useState<string>("mobile")
+  const [youtubeAspectRatio, setYoutubeAspectRatio] = useState<"9:16" | "16:9">("16:9")
 
   useEffect(() => {
     async function loadPlatforms() {
@@ -107,6 +108,7 @@ export default function CreatePostPage() {
           mediaUrl,
           scheduledFor: scheduledDateTime.toISOString(),
           status: "scheduled",
+          aspectRatio: platform === "youtube" ? youtubeAspectRatio : undefined,
         })
       }
 
@@ -247,18 +249,42 @@ export default function CreatePostPage() {
               )}
 
               {/* Action Buttons */}
-              <div className="border-t px-4 py-3 flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowMediaUploader(!showMediaUploader)}
-                  title="Add media"
-                >
-                  <FileImage className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon" title="Add emoji">
-                  <Smile className="h-5 w-5" />
-                </Button>
+              <div className="border-t px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowMediaUploader(!showMediaUploader)}
+                    title="Add media"
+                  >
+                    <FileImage className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" title="Add emoji">
+                    <Smile className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                {/* YouTube Aspect Ratio Selection */}
+                {selectedPlatforms.includes("youtube") && (
+                  <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
+                    <Button
+                      variant={youtubeAspectRatio === "9:16" ? "default" : "ghost"}
+                      size="sm"
+                      className="h-7 text-[10px] px-2"
+                      onClick={() => setYoutubeAspectRatio("9:16")}
+                    >
+                      Shorts (9:16)
+                    </Button>
+                    <Button
+                      variant={youtubeAspectRatio === "16:9" ? "default" : "ghost"}
+                      size="sm"
+                      className="h-7 text-[10px] px-2"
+                      onClick={() => setYoutubeAspectRatio("16:9")}
+                    >
+                      Video (16:9)
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -520,7 +546,10 @@ export default function CreatePostPage() {
 
                           {/* Media Preview */}
                           {mediaUrl ? (
-                            <div className="aspect-[9/16] bg-muted flex items-center justify-center overflow-hidden">
+                            <div className={cn(
+                              "bg-muted flex items-center justify-center overflow-hidden transition-all duration-300",
+                              (previewPlatform === "youtube" && youtubeAspectRatio === "16:9") ? "aspect-video" : "aspect-[9/16]"
+                            )}>
                               {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                                 <img
                                   src={mediaUrl}
@@ -535,7 +564,10 @@ export default function CreatePostPage() {
                               )}
                             </div>
                           ) : (
-                            <div className="aspect-[9/16] bg-muted flex items-center justify-center">
+                            <div className={cn(
+                              "bg-muted flex items-center justify-center transition-all duration-300",
+                              (previewPlatform === "youtube" && youtubeAspectRatio === "16:9") ? "aspect-video" : "aspect-[9/16]"
+                            )}>
                               <div className="text-center text-muted-foreground">
                                 <FileImage className="h-8 w-8 mx-auto mb-2" />
                                 <p className="text-xs">No media</p>
@@ -608,7 +640,10 @@ export default function CreatePostPage() {
 
                         {/* Media Preview */}
                         {mediaUrl ? (
-                          <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
+                          <div className={cn(
+                            "bg-muted flex items-center justify-center overflow-hidden transition-all duration-300",
+                            (previewPlatform === "youtube" && youtubeAspectRatio === "9:16") ? "aspect-[9/16] max-h-[500px]" : "aspect-video"
+                          )}>
                             {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                               <img
                                 src={mediaUrl}
@@ -623,7 +658,10 @@ export default function CreatePostPage() {
                             )}
                           </div>
                         ) : (
-                          <div className="aspect-video bg-muted flex items-center justify-center">
+                          <div className={cn(
+                            "bg-muted flex items-center justify-center transition-all duration-300",
+                            (previewPlatform === "youtube" && youtubeAspectRatio === "9:16") ? "aspect-[9/16] max-h-[500px]" : "aspect-video"
+                          )}>
                             <div className="text-center text-muted-foreground">
                               <FileImage className="h-12 w-12 mx-auto mb-2" />
                               <p className="text-sm">No media uploaded</p>

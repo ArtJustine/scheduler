@@ -17,4 +17,5 @@ export interface PostType {
     shares: number
     impressions: number
   }
+  aspectRatio?: "9:16" | "16:9"
 }

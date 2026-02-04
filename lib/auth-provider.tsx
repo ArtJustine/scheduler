@@ -45,7 +45,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // If user is not logged in and trying to access protected routes
       const isAuthRoute = pathname && (pathname.startsWith("/login") || pathname.startsWith("/signup"))
       const isWaitlistRoute = pathname === "/waitlist" || pathname === "/thank-you"
-      const isPublicRoute = pathname === "/" || isAuthRoute || isWaitlistRoute || pathname?.startsWith("/privacy") || pathname?.startsWith("/terms")
+      const isCmsRoute = pathname?.startsWith("/admin")
+      const isPublicRoute =
+        pathname === "/" ||
+        isAuthRoute ||
+        isWaitlistRoute ||
+        isCmsRoute ||
+        pathname?.startsWith("/blog") ||
+        pathname?.startsWith("/features") ||
+        pathname?.startsWith("/pricing") ||
+        pathname?.startsWith("/about") ||
+        pathname?.startsWith("/privacy") ||
+        pathname?.startsWith("/terms")
 
       if (!user && !isPublicRoute) {
         router.push("/login")

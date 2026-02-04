@@ -35,13 +35,11 @@ export function SiteHeader() {
                         <nav className="flex items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-full px-2 py-2 shadow-2xl shadow-slate-900/10 hover:scale-[1.02] transition-transform duration-300">
                             <div className="flex items-center space-x-1 px-4">
                                 <Link href="/features" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/features' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>Features</Link>
-                                <Link href="/about" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/about' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>About</Link>
                                 <Link href="/blog" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/blog' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>Blog</Link>
-                                <Link href="/waitlist" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/waitlist' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>Waitlist</Link>
                             </div>
-                            <Link href="/signup">
+                            <Link href="/waitlist">
                                 <Button className="rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 px-6 py-2 h-auto text-sm font-bold border-0 shadow-none">
-                                    Contact
+                                    Waitlist
                                 </Button>
                             </Link>
                         </nav>
@@ -71,12 +69,10 @@ export function SiteHeader() {
                                     <div className="flex flex-col space-y-4 mt-8">
                                         <Link href="/" className="text-lg font-medium hover:text-primary transition-colors">Home</Link>
                                         <Link href="/features" className="text-lg font-medium hover:text-primary transition-colors">Features</Link>
-                                        <Link href="/about" className="text-lg font-medium hover:text-primary transition-colors">About</Link>
                                         <Link href="/blog" className="text-lg font-medium hover:text-primary transition-colors">Blog</Link>
-                                        <Link href="/waitlist" className="text-lg font-medium hover:text-primary transition-colors">Waitlist</Link>
                                         <hr className="border-border" />
-                                        <Link href="/signup" className="w-full">
-                                            <Button className="w-full bg-slate-900 text-white rounded-xl">Get Started</Button>
+                                        <Link href="/waitlist" className="w-full">
+                                            <Button className="w-full bg-slate-900 text-white rounded-xl">Waitlist</Button>
                                         </Link>
                                     </div>
                                 </SheetContent>
@@ -118,14 +114,11 @@ export function SiteHeader() {
                             <Link href="/features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                                 Features
                             </Link>
-                            <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                                About
-                            </Link>
                             <Link href="/blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                                 Blog
                             </Link>
                             <Link href="/waitlist" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                                Join Waitlist
+                                Waitlist
                             </Link>
                         </>
                     )}
@@ -146,9 +139,9 @@ export function SiteHeader() {
                                 <Link href="/login" className="text-sm font-medium hover:text-primary transition-colors text-foreground">
                                     Login
                                 </Link>
-                                <Link href="/signup">
+                                <Link href="/waitlist">
                                     <Button className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-lg shadow-primary/25">
-                                        Get Started
+                                        Waitlist
                                     </Button>
                                 </Link>
                             </>
@@ -193,14 +186,11 @@ export function SiteHeader() {
                                             <Link href="/features" className="text-lg font-medium hover:text-primary transition-colors">
                                                 Features
                                             </Link>
-                                            <Link href="/about" className="text-lg font-medium hover:text-primary transition-colors">
-                                                About
-                                            </Link>
                                             <Link href="/blog" className="text-lg font-medium hover:text-primary transition-colors">
                                                 Blog
                                             </Link>
                                             <Link href="/waitlist" className="text-lg font-medium hover:text-primary transition-colors">
-                                                Join Waitlist
+                                                Waitlist
                                             </Link>
                                         </>
                                     )}
@@ -216,8 +206,8 @@ export function SiteHeader() {
                                             <Link href="/login" className="w-full">
                                                 <Button variant="outline" className="w-full">Login</Button>
                                             </Link>
-                                            <Link href="/signup" className="w-full">
-                                                <Button className="w-full bg-primary text-primary-foreground">Get Started</Button>
+                                            <Link href="/waitlist" className="w-full">
+                                                <Button className="w-full bg-primary text-primary-foreground">Waitlist</Button>
                                             </Link>
                                         </div>
                                     )}

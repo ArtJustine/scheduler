@@ -35,15 +35,15 @@ export default function CalendarPage() {
 
   const postsOnSelectedDate = selectedDate
     ? posts.filter((post) => {
-        if (!post.scheduledFor) return false;
-        const postDate = new Date(post.scheduledFor)
-        if (isNaN(postDate.getTime()) || !selectedDate) return false;
-        return (
-          postDate.getDate() === selectedDate.getDate() &&
-          postDate.getMonth() === selectedDate.getMonth() &&
-          postDate.getFullYear() === selectedDate.getFullYear()
-        )
-      })
+      if (!post.scheduledFor) return false;
+      const postDate = new Date(post.scheduledFor)
+      if (isNaN(postDate.getTime()) || !selectedDate) return false;
+      return (
+        postDate.getDate() === selectedDate.getDate() &&
+        postDate.getMonth() === selectedDate.getMonth() &&
+        postDate.getFullYear() === selectedDate.getFullYear()
+      )
+    })
     : []
 
   // Function to get posts for a specific date (used for calendar day rendering)
@@ -60,21 +60,16 @@ export default function CalendarPage() {
     })
   }
 
-  // Custom day rendering for the calendar
-  const renderDay = (day: Date) => {
+  // Custom day content rendering for the calendar to show indicators
+  const CustomDayContent = ({ date: day }: { date: Date }) => {
     const postsOnDay = getPostsForDate(day)
-    const hasInstagram = postsOnDay.some((post) => post.platform === "instagram")
-    const hasTikTok = postsOnDay.some((post) => post.platform === "tiktok")
-    const hasYouTube = postsOnDay.some((post) => post.platform === "youtube")
 
     return (
       <div className="relative w-full h-full flex items-center justify-center">
         <span>{format(day, "d")}</span>
         {postsOnDay.length > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-0.5 pb-1">
-            {hasInstagram && <div className="h-1 w-1 rounded-full bg-pink-500"></div>}
-            {hasTikTok && <div className="h-1 w-1 rounded-full bg-black"></div>}
-            {hasYouTube && <div className="h-1 w-1 rounded-full bg-red-600"></div>}
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex justify-center">
+            <div className="h-1 w-1 rounded-full bg-red-600"></div>
           </div>
         )}
       </div>
@@ -138,7 +133,9 @@ export default function CalendarPage() {
                 month={date}
                 onMonthChange={setDate}
                 className="rounded-md border-0"
-                // Use default Day rendering for now to avoid prop errors
+                components={{
+                  DayContent: CustomDayContent
+                }}
               />
             )}
           </CardContent>

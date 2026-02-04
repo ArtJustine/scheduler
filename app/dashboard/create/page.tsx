@@ -21,6 +21,13 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown } from "lucide-react"
 import { useEffect } from "react"
 import { useAuth } from "@/lib/auth-provider"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function CreatePostPage() {
   const router = useRouter()
@@ -266,23 +273,20 @@ export default function CreatePostPage() {
 
                 {/* YouTube Aspect Ratio Selection */}
                 {selectedPlatforms.includes("youtube") && (
-                  <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
-                    <Button
-                      variant={youtubeAspectRatio === "9:16" ? "default" : "ghost"}
-                      size="sm"
-                      className="h-7 text-[10px] px-2"
-                      onClick={() => setYoutubeAspectRatio("9:16")}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold">Format:</span>
+                    <Select
+                      value={youtubeAspectRatio}
+                      onValueChange={(val: "9:16" | "16:9") => setYoutubeAspectRatio(val)}
                     >
-                      Shorts (9:16)
-                    </Button>
-                    <Button
-                      variant={youtubeAspectRatio === "16:9" ? "default" : "ghost"}
-                      size="sm"
-                      className="h-7 text-[10px] px-2"
-                      onClick={() => setYoutubeAspectRatio("16:9")}
-                    >
-                      Video (16:9)
-                    </Button>
+                      <SelectTrigger className="h-8 w-[120px] text-[10px] bg-muted/50 border-0">
+                        <SelectValue placeholder="Select ratio" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="9:16" className="text-[10px]">Shorts (9:16)</SelectItem>
+                        <SelectItem value="16:9" className="text-[10px]">Video (16:9)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
               </div>

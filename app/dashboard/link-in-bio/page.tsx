@@ -90,10 +90,6 @@ export default function LinkInBioPage() {
                     </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <Button variant="outline" className="hidden md:flex">
-                        <Eye className="mr-2 h-4 w-4" />
-                        Preview Page
-                    </Button>
                     <Button onClick={saveProfile} disabled={isLoading}>
                         <Save className="mr-2 h-4 w-4" />
                         {isLoading ? "Saving..." : "Save Changes"}
@@ -105,16 +101,16 @@ export default function LinkInBioPage() {
                 {/* Editor Side */}
                 <div className="lg:col-span-7 space-y-8">
                     <Tabs defaultValue="links" className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 mb-8 bg-muted/50 p-1 rounded-xl">
-                            <TabsTrigger value="links" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                        <TabsList className="flex w-fit gap-3 mb-8 bg-muted/50 p-1 rounded-xl">
+                            <TabsTrigger value="links" className="rounded-lg px-4 py-2 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
                                 <Layout className="mr-2 h-4 w-4" />
                                 Links
                             </TabsTrigger>
-                            <TabsTrigger value="appearance" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                            <TabsTrigger value="appearance" className="rounded-lg px-4 py-2 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
                                 <Palette className="mr-2 h-4 w-4" />
                                 Appearance
                             </TabsTrigger>
-                            <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                            <TabsTrigger value="settings" className="rounded-lg px-4 py-2 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
                                 <Globe className="mr-2 h-4 w-4" />
                                 Settings
                             </TabsTrigger>
@@ -319,10 +315,6 @@ export default function LinkInBioPage() {
                         </div>
 
                         <div className="mt-8 flex justify-center gap-4">
-                            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
-                                <Layout className="mr-2 h-3 w-3" />
-                                Desktop View
-                            </Button>
                             <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
                                 <Smartphone className="mr-2 h-3 w-3" />
                                 Mobile View

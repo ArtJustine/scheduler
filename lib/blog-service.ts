@@ -1,6 +1,6 @@
 // lib/blog-service.ts
 // Blog service for managing blog posts in Firebase
-import { serverDb } from "./firebase-server"
+import { getFirebaseAdmin } from "./firebase-server"
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, Timestamp } from "firebase/firestore"
 import type { BlogPost, BlogCategory, CreateBlogPostInput } from "@/types/blog"
 
@@ -14,6 +14,7 @@ export function generateSlug(title: string): string {
 
 // Create a new blog post
 export async function createBlogPost(input: CreateBlogPostInput, authorId: string, authorName: string, authorEmail: string): Promise<string> {
+    const { firebaseDb: serverDb } = getFirebaseAdmin()
     if (!serverDb) throw new Error("Database not initialized")
 
     const slug = input.slug || generateSlug(input.title)
@@ -54,6 +55,7 @@ export async function createBlogPost(input: CreateBlogPostInput, authorId: strin
 
 // Update an existing blog post
 export async function updateBlogPost(postId: string, input: Partial<CreateBlogPostInput>): Promise<void> {
+    const { firebaseDb: serverDb } = getFirebaseAdmin()
     if (!serverDb) throw new Error("Database not initialized")
 
     const updates: any = {
@@ -86,12 +88,14 @@ export async function updateBlogPost(postId: string, input: Partial<CreateBlogPo
 
 // Delete a blog post
 export async function deleteBlogPost(postId: string): Promise<void> {
+    const { firebaseDb: serverDb } = getFirebaseAdmin()
     if (!serverDb) throw new Error("Database not initialized")
     await deleteDoc(doc(serverDb, "blog_posts", postId))
 }
 
 // Get a single blog post by ID
 export async function getBlogPostById(postId: string): Promise<BlogPost | null> {
+    const { firebaseDb: serverDb } = getFirebaseAdmin()
     if (!serverDb) throw new Error("Database not initialized")
 
     const docSnap = await getDoc(doc(serverDb, "blog_posts", postId))
@@ -109,9 +113,10 @@ export async function getBlogPostById(postId: string): Promise<BlogPost | null> 
 
 // Get a blog post by slug
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+    const { firebaseDb: serverDb } = getFirebaseAdmin()
     if (!serverDb) throw new Error("Database not initialized")
 
-    const cleanSlug = slug.trim()
+    const cleanSlug = slug.trim().toLowerCase()
     const q = query(collection(serverDb, "blog_posts"), where("slug", "==", cleanSlug), limit(1))
     const querySnapshot = await getDocs(q)
 
@@ -130,6 +135,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
 
 // Get all published blog posts
 export async function getPublishedBlogPosts(limitCount: number = 20): Promise<BlogPost[]> {
+    const { firebaseDb: serverDb } = getFirebaseAdmin()
     if (!serverDb) throw new Error("Database not initialized")
 
     const q = query(
@@ -154,6 +160,7 @@ export async function getPublishedBlogPosts(limitCount: number = 20): Promise<Bl
 
 // Get all blog posts (admin)
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
+    const { firebaseDb: serverDb } = getFirebaseAdmin()
     if (!serverDb) throw new Error("Database not initialized")
 
     const q = query(collection(serverDb, "blog_posts"), orderBy("createdAt", "desc"))
@@ -173,6 +180,7 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
 
 // Increment blog post views
 export async function incrementBlogPostViews(postId: string): Promise<void> {
+    const { firebaseDb: serverDb } = getFirebaseAdmin()
     if (!serverDb) throw new Error("Database not initialized")
 
     const postRef = doc(serverDb, "blog_posts", postId)
@@ -186,6 +194,7 @@ export async function incrementBlogPostViews(postId: string): Promise<void> {
 
 // Category management
 export async function createCategory(name: string, description: string): Promise<string> {
+    const { firebaseDb: serverDb } = getFirebaseAdmin()
     if (!serverDb) throw new Error("Database not initialized")
 
     const slug = generateSlug(name)
@@ -202,6 +211,7 @@ export async function createCategory(name: string, description: string): Promise
 }
 
 export async function getAllCategories(): Promise<BlogCategory[]> {
+    const { firebaseDb: serverDb } = getFirebaseAdmin()
     if (!serverDb) throw new Error("Database not initialized")
 
     const querySnapshot = await getDocs(collection(serverDb, "blog_categories"))

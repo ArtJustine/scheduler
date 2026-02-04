@@ -78,54 +78,69 @@ export default function BlogPage() {
         <div className="flex flex-col min-h-screen bg-background">
             <SiteHeader />
 
-            <main className="flex-1 pt-32 pb-20">
+            <main className="flex-1 pt-32 pb-20 relative overflow-hidden">
+                {/* Background Blobs */}
+                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -z-10" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] -z-10" />
+
                 <div className="container px-6">
                     {/* Hero Section */}
-                    <div className="max-w-4xl mx-auto text-center mb-16">
-                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-600 to-pink-600">
-                            Our Blog
+                    <div className="max-w-4xl mx-auto text-center mb-24">
+                        <div className="inline-flex items-center space-x-2 bg-primary/10 border border-primary/20 px-4 py-2 rounded-full text-primary text-sm font-bold mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <span className="relative flex h-2 w-2 mr-1">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                            </span>
+                            THE CHIYU JOURNAL
+                        </div>
+                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-8 text-slate-900 dark:text-white leading-[0.9] animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
+                            Insights for the <br />
+                            <span className="text-primary italic">Vertical Era.</span>
                         </h1>
-                        <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-                            Expert insights, step-by-step tutorials, and the latest updates in social media management.
+                        <p className="text-xl text-slate-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+                            Master your distribution with expert guides, platform updates, and strategy breakdowns from the creators of Chiyu.
                         </p>
 
                         {/* Search and Filters */}
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-4 max-w-2xl mx-auto">
-                            <div className="relative w-full">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search articles..."
-                                    className="pl-10 h-12 bg-muted/50 border-none focus-visible:ring-primary"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
+                        <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300">
+                            <div className="relative group">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                                <div className="relative flex items-center bg-white dark:bg-slate-900 rounded-2xl border border-border/50 shadow-2xl p-2">
+                                    <Search className="ml-4 h-5 w-5 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search the archive..."
+                                        className="border-none focus-visible:ring-0 text-lg bg-transparent py-6"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="max-w-6xl mx-auto mb-12">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
-                            <div className="flex items-center space-x-2 text-muted-foreground">
-                                <Tag className="h-4 w-4" />
-                                <span className="text-sm font-medium">Filter by category:</span>
+                    <div className="max-w-6xl mx-auto mb-16">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-border/50 pb-8">
+                            <div className="flex items-center space-x-3 text-slate-900 dark:text-white">
+                                <Tag className="h-5 w-5 text-primary" />
+                                <span className="text-sm font-bold uppercase tracking-widest">Explore Categories</span>
                             </div>
                             <Tabs
                                 value={selectedCategory}
                                 onValueChange={setSelectedCategory}
-                                className="w-full md:w-auto overflow-x-auto"
+                                className="w-full md:w-auto"
                             >
-                                <TabsList className="bg-transparent h-auto p-0 flex flex-wrap justify-start gap-2">
+                                <TabsList className="bg-muted/50 h-auto p-1.5 flex flex-wrap justify-start gap-1 rounded-2xl border border-border/50 backdrop-blur-sm">
                                     <TabsTrigger
                                         value="all"
-                                        className="rounded-full px-6 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border"
+                                        className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all font-bold text-sm"
                                     >
-                                        All Posts
+                                        All Chapters
                                     </TabsTrigger>
                                     {categories.map((category) => (
                                         <TabsTrigger
                                             key={category.id}
                                             value={category.name}
-                                            className="rounded-full px-6 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border"
+                                            className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all font-bold text-sm"
                                         >
                                             {category.name}
                                         </TabsTrigger>

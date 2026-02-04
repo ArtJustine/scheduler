@@ -111,7 +111,8 @@ export async function getBlogPostById(postId: string): Promise<BlogPost | null> 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
     if (!serverDb) throw new Error("Database not initialized")
 
-    const q = query(collection(serverDb, "blog_posts"), where("slug", "==", slug), limit(1))
+    const cleanSlug = slug.trim()
+    const q = query(collection(serverDb, "blog_posts"), where("slug", "==", cleanSlug), limit(1))
     const querySnapshot = await getDocs(q)
 
     if (querySnapshot.empty) return null

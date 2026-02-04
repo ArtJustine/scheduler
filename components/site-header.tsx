@@ -158,59 +158,79 @@ export function SiteHeader() {
                                     <span className="sr-only">Toggle menu</span>
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                                <SheetHeader className="text-left">
-                                    <SheetTitle className="flex items-center space-x-2">
-                                        <Calendar className="h-6 w-6 text-primary" />
-                                        <span className="text-xl font-bold">Chiyu</span>
-                                    </SheetTitle>
-                                </SheetHeader>
-                                <div className="flex flex-col space-y-4 mt-8">
-                                    {isDashboard ? (
-                                        <>
-                                            <Link href="/dashboard" className="text-lg font-medium hover:text-primary transition-colors">
-                                                Overview
-                                            </Link>
-                                            <Link href="/dashboard/posts" className="text-lg font-medium hover:text-primary transition-colors">
-                                                Posts
-                                            </Link>
-                                            <Link href="/dashboard/analytics" className="text-lg font-medium hover:text-primary transition-colors">
-                                                Analytics
-                                            </Link>
-                                            <Link href="/dashboard/profile" className="text-lg font-medium hover:text-primary transition-colors">
-                                                Profile
-                                            </Link>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Link href="/features" className="text-lg font-medium hover:text-primary transition-colors">
-                                                Features
-                                            </Link>
-                                            <Link href="/blog" className="text-lg font-medium hover:text-primary transition-colors">
-                                                Blog
-                                            </Link>
-                                            <Link href="/waitlist" className="text-lg font-medium hover:text-primary transition-colors">
-                                                Waitlist
-                                            </Link>
-                                        </>
-                                    )}
-                                    <hr className="border-border" />
-                                    {user ? (
-                                        <div className="flex flex-col space-y-3">
-                                            <Link href={isDashboard ? "/" : "/dashboard"} className="w-full">
-                                                <Button className="w-full bg-primary text-primary-foreground">{isDashboard ? "Exit Dashboard" : "Dashboard"}</Button>
-                                            </Link>
+                            <SheetContent side="right" className="w-[85vw] sm:w-[400px] border-l border-white/10 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-2xl p-0">
+                                <div className="flex flex-col h-full">
+                                    <div className="p-8 pb-4">
+                                        <SheetHeader className="text-left">
+                                            <SheetTitle className="flex items-center space-x-3">
+                                                <div className="w-10 h-10 bg-gradient-to-br from-primary via-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
+                                                    <Calendar className="h-6 w-6 text-white" />
+                                                </div>
+                                                <span className="text-2xl font-bold font-heading tracking-tighter">Chiyu</span>
+                                            </SheetTitle>
+                                        </SheetHeader>
+                                    </div>
+
+                                    <div className="flex-1 overflow-y-auto px-8 py-6">
+                                        <div className="flex flex-col space-y-6">
+                                            {isDashboard ? (
+                                                <>
+                                                    <Link href="/dashboard" className={`text-xl font-semibold transition-colors ${pathname === '/dashboard' ? 'text-primary' : 'hover:text-primary'}`}>
+                                                        Overview
+                                                    </Link>
+                                                    <Link href="/dashboard/posts" className={`text-xl font-semibold transition-colors ${pathname === '/dashboard/posts' ? 'text-primary' : 'hover:text-primary'}`}>
+                                                        Posts
+                                                    </Link>
+                                                    <Link href="/dashboard/analytics" className={`text-xl font-semibold transition-colors ${pathname === '/dashboard/analytics' ? 'text-primary' : 'hover:text-primary'}`}>
+                                                        Analytics
+                                                    </Link>
+                                                    <Link href="/dashboard/profile" className={`text-xl font-semibold transition-colors ${pathname === '/dashboard/profile' ? 'text-primary' : 'hover:text-primary'}`}>
+                                                        Profile
+                                                    </Link>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Link href="/" className="text-xl font-semibold hover:text-primary transition-colors">
+                                                        Home
+                                                    </Link>
+                                                    <Link href="/features" className={`text-xl font-semibold transition-colors ${pathname === '/features' ? 'text-primary' : 'hover:text-primary'}`}>
+                                                        Features
+                                                    </Link>
+                                                    <Link href="/blog" className={`text-xl font-semibold transition-colors ${pathname === '/blog' ? 'text-primary' : 'hover:text-primary'}`}>
+                                                        Blog
+                                                    </Link>
+                                                    <Link href="/waitlist" className={`text-xl font-semibold transition-colors ${pathname === '/waitlist' ? 'text-primary' : 'hover:text-primary'}`}>
+                                                        Waitlist
+                                                    </Link>
+                                                </>
+                                            )}
                                         </div>
-                                    ) : (
-                                        <div className="flex flex-col space-y-3">
-                                            <Link href="/login" className="w-full">
-                                                <Button variant="outline" className="w-full">Login</Button>
-                                            </Link>
-                                            <Link href="/waitlist" className="w-full">
-                                                <Button className="w-full bg-primary text-primary-foreground">Waitlist</Button>
-                                            </Link>
+
+                                        <div className="mt-12 pt-8 border-t border-border/50">
+                                            {user ? (
+                                                <div className="flex flex-col space-y-4">
+                                                    <Link href={isDashboard ? "/" : "/dashboard"} className="w-full">
+                                                        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-14 text-lg rounded-2xl shadow-xl shadow-primary/20">
+                                                            {isDashboard ? "Exit Dashboard" : "Dashboard"}
+                                                        </Button>
+                                                    </Link>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col space-y-4">
+                                                    <Link href="/login" className="w-full">
+                                                        <Button variant="outline" className="w-full h-14 text-lg rounded-2xl border-border/50 bg-background/50">Login</Button>
+                                                    </Link>
+                                                    <Link href="/waitlist" className="w-full">
+                                                        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-14 text-lg rounded-2xl shadow-xl shadow-primary/20">Waitlist</Button>
+                                                    </Link>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
+
+                                    <div className="p-8 border-t border-border/50 bg-muted/30">
+                                        <p className="text-sm text-muted-foreground">© 2026 Chiyu. Built for creators.</p>
+                                    </div>
                                 </div>
                             </SheetContent>
                         </Sheet>

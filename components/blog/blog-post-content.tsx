@@ -53,81 +53,90 @@ export function BlogPostContent({ post }: BlogPostContentProps) {
     }
 
     return (
-        <article className="flex-1 pt-32 pb-20">
+        <article className="flex-1 pt-32 pb-20 relative overflow-hidden">
+            {/* Background decorative elements */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -z-10" />
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px] -z-10" />
+
             <div className="container px-6 max-w-4xl mx-auto">
                 {/* Back Button */}
-                <Link href="/blog">
-                    <Button variant="ghost" className="mb-8">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Blog
-                    </Button>
-                </Link>
+                <div className="mb-12">
+                    <Link href="/blog">
+                        <Button variant="ghost" className="group text-muted-foreground hover:text-primary transition-colors pl-0 hover:bg-transparent">
+                            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                            Back to Insights
+                        </Button>
+                    </Link>
+                </div>
 
                 {/* Post Header */}
-                <header className="mb-12">
-                    <div className="flex flex-wrap items-center gap-2 mb-6">
+                <header className="mb-16">
+                    <div className="flex flex-wrap items-center gap-3 mb-8">
                         {post.categories.map((category, idx) => (
-                            <Badge key={idx} variant="secondary">
+                            <Badge key={idx} variant="secondary" className="px-4 py-1.5 rounded-full bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors uppercase tracking-wider text-[10px] font-bold">
                                 {category}
                             </Badge>
                         ))}
                     </div>
 
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">
+                    <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-8 leading-[1.1] text-slate-900 dark:text-white">
                         {post.title}
                     </h1>
 
-                    <div className="flex flex-wrap items-center gap-6 text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-8 text-muted-foreground border-y border-border/50 py-6">
                         <div className="flex items-center">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
-                                <span className="text-sm font-semibold text-primary">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center mr-4 shadow-lg">
+                                <span className="text-base font-bold text-white">
                                     {post.author.name.charAt(0).toUpperCase()}
                                 </span>
                             </div>
                             <div>
-                                <div className="font-medium text-foreground">{post.author.name}</div>
+                                <div className="font-bold text-slate-900 dark:text-white">{post.author.name}</div>
+                                <div className="text-xs uppercase tracking-widest font-medium">Expert Contributor</div>
                             </div>
                         </div>
 
-                        {post.publishedAt && (
-                            <span className="flex items-center">
-                                <Calendar className="h-4 w-4 mr-2" />
-                                {new Date(post.publishedAt).toLocaleDateString("en-US", {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                })}
-                            </span>
-                        )}
+                        <div className="flex items-center bg-muted/50 px-4 py-2 rounded-full border border-border/50">
+                            {post.publishedAt && (
+                                <span className="flex items-center text-sm font-medium">
+                                    <Calendar className="h-4 w-4 mr-2 text-primary" />
+                                    {new Date(post.publishedAt).toLocaleDateString("en-US", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                    })}
+                                </span>
+                            )}
+                        </div>
 
-                        <span className="flex items-center">
-                            <Eye className="h-4 w-4 mr-2" />
-                            {post.views.toLocaleString()} views
-                        </span>
+                        <div className="flex items-center text-sm font-medium ml-auto">
+                            <Eye className="h-4 w-4 mr-2 text-primary" />
+                            {post.views.toLocaleString()} reads
+                        </div>
                     </div>
                 </header>
 
                 {/* Featured Image */}
                 {post.featuredImage && (
-                    <div className="mb-12 rounded-2xl overflow-hidden">
+                    <div className="mb-16 rounded-[2rem] overflow-hidden shadow-2xl shadow-primary/10 border border-white/10 group">
                         <img
                             src={post.featuredImage}
                             alt={post.title}
-                            className="w-full h-auto"
+                            className="w-full h-auto group-hover:scale-[1.02] transition-transform duration-700"
                         />
                     </div>
                 )}
 
                 {/* Post Content */}
                 <div
-                    className="prose prose-lg dark:prose-invert max-w-none mb-12"
+                    className="prose prose-lg md:prose-xl dark:prose-invert max-w-none mb-16 prose-p:leading-relaxed prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-strong:text-slate-900 dark:prose-strong:text-white"
                     dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
                 />
 
                 {/* Video */}
                 {post.videoUrl && (
-                    <div className="mb-12">
-                        <div className="aspect-video rounded-xl overflow-hidden bg-muted">
+                    <div className="mb-16">
+                        <div className="aspect-video rounded-[2rem] overflow-hidden bg-muted border border-white/10 shadow-2xl">
                             {post.videoUrl.includes("youtube.com") || post.videoUrl.includes("youtu.be") ? (
                                 <iframe
                                     src={post.videoUrl.replace("watch?v=", "embed/")}
@@ -141,23 +150,22 @@ export function BlogPostContent({ post }: BlogPostContentProps) {
                     </div>
                 )}
 
-                {/* Tags */}
-                {post.tags.length > 0 && (
-                    <div className="mb-12 flex flex-wrap gap-2">
-                        <span className="text-sm text-muted-foreground mr-2">Tags:</span>
+                {/* Tags & Share */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pt-12 border-t border-border/50">
+                    <div className="flex flex-wrap gap-2">
                         {post.tags.map((tag, idx) => (
-                            <Badge key={idx} variant="outline">
+                            <Badge key={idx} variant="outline" className="px-4 py-1.5 rounded-full border-border hover:bg-muted transition-colors text-sm font-medium">
                                 #{tag}
                             </Badge>
                         ))}
                     </div>
-                )}
 
-                {/* Share */}
-                <div className="border-t pt-8">
-                    <Button variant="outline" onClick={handleShare}>
+                    <Button
+                        onClick={handleShare}
+                        className="rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-all shadow-xl shadow-slate-900/10 dark:shadow-white/10 px-8 h-12"
+                    >
                         <Share2 className="h-4 w-4 mr-2" />
-                        Share this post
+                        Share Insight
                     </Button>
                 </div>
             </div>

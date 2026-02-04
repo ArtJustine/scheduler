@@ -12,23 +12,27 @@ export default function FeaturesPage() {
             <SiteHeader />
 
             {/* Hero Section */}
-            <section className="relative w-full py-20 md:py-32 lg:py-40 pt-32 lg:pt-48 overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-500">
+            <section className="relative w-full py-24 md:py-32 lg:py-48 pt-32 lg:pt-56 overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-500">
                 <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/20 dark:bg-primary/30 rounded-full blur-[120px] opacity-30 dark:opacity-50" />
-                    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[120px] opacity-20 dark:opacity-30" />
+                    <div className="absolute top-0 right-[-10%] w-[1000px] h-[1000px] bg-primary/20 dark:bg-primary/30 rounded-full blur-[140px] opacity-20 dark:opacity-40 animate-pulse" />
+                    <div className="absolute bottom-[-10%] left-[-10%] w-[800px] h-[800px] bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-[140px] opacity-20 dark:opacity-30" />
                 </div>
 
                 <div className="container relative z-10 px-6">
-                    <div className="max-w-4xl mx-auto text-center space-y-8">
-                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-slate-900 dark:text-white text-balance">
-                            Manage All Your <span className="text-primary">Social Media</span>
+                    <div className="max-w-5xl mx-auto text-center space-y-10">
+                        <div className="inline-flex items-center space-x-2 bg-primary/10 border border-primary/20 px-4 py-2 rounded-full text-primary text-sm font-bold animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            PLATFORM CAPABILITIES
+                        </div>
+                        <h1 className="text-6xl md:text-8xl lg:text-9xl font-black font-heading tracking-tighter text-slate-900 dark:text-white leading-[0.85] animate-in fade-in slide-in-from-bottom-6 duration-700">
+                            The Engine <br />
+                            of <span className="text-primary italic">Distribution.</span>
                         </h1>
-                        <p className="text-xl md:text-2xl text-slate-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
-                            The ultimate video-first distribution engine. Master your presence on YouTube, TikTok, and LinkedIn with precision tools, while we build the future of cross-platform social management.
+                        <p className="text-xl md:text-3xl text-slate-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+                            We&apos;ve engineered the world&apos;s most precise social media distribution engine. Master your presence across 12+ platforms from a single, high-performance command center.
                         </p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-200">
                             <Link href="/signup">
-                                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 h-auto shadow-xl shadow-primary/20 transition-all hover:scale-105">
+                                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-xl px-12 py-8 h-auto rounded-full shadow-2xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 border-0 font-bold">
                                     Get Started for Free
                                 </Button>
                             </Link>
@@ -59,9 +63,9 @@ export default function FeaturesPage() {
                                 <Twitter className="h-8 w-8 text-sky-500 group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">X (Soon)</span>
                             </div>
-                            <div className="flex flex-col items-center space-y-2 group">
+                            <div className="flex flex-col items-center space-y-2 group opacity-40">
                                 <Linkedin className="h-8 w-8 text-blue-700 group-hover:scale-110 transition-transform" />
-                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-blue-700">LinkedIn</span>
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">LinkedIn (Soon)</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group">
                                 <Video className="h-8 w-8 text-black dark:text-white group-hover:scale-110 transition-transform" />
@@ -296,14 +300,13 @@ export default function FeaturesPage() {
                                 <thead>
                                     <tr className="bg-muted/30 border-b border-border">
                                         <th className="p-6 text-sm font-bold uppercase tracking-wider text-muted-foreground">Feature/Platform</th>
-                                        <th className="p-6 text-sm font-bold uppercase tracking-wider text-muted-foreground">Status</th>
                                         <th className="p-6 text-sm font-bold uppercase tracking-wider text-muted-foreground">Benefit</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
                                     {/* Active Now */}
                                     <tr className="bg-primary/5">
-                                        <td className="p-6" colSpan={3}>
+                                        <td className="p-6" colSpan={2}>
                                             <span className="text-xs font-bold uppercase tracking-widest text-primary">Active Now</span>
                                         </td>
                                     </tr>
@@ -311,32 +314,29 @@ export default function FeaturesPage() {
                                         { name: 'YouTube', benefit: 'Command the world\'s largest video stage with precision long-form scheduling.' },
                                         { name: 'YouTube Shorts', benefit: 'Explode your reach with optimized 9:16 vertical distribution.' },
                                         { name: 'TikTok', benefit: 'Own the "For You" feed with seamless, direct-to-platform publishing.' },
-                                        { name: 'LinkedIn', benefit: 'Build professional authority on the world\'s premier business network.' }
+                                        { name: 'Universal Dashboard', benefit: 'A bird\'s-eye view of your entire social ecosystem with real-time health tracking.' },
+                                        { name: 'Content Planner', benefit: 'Visualize your strategy with our drag-and-drop calendar for effortless feed balance.' },
+                                        { name: 'Multi-Platform Engine', benefit: 'Sync content across all channels with zero friction and automatic technical encoding.' },
+                                        { name: 'Enterprise Security', benefit: 'Bank-grade encryption and official API integrations to protect your accounts and content.' }
                                     ].map((item) => (
                                         <tr key={item.name} className="hover:bg-primary/5 transition-colors border-b border-border">
                                             <td className="p-6 font-bold text-foreground">{item.name}</td>
-                                            <td className="p-6">
-                                                <div className="h-3 w-3 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
-                                            </td>
                                             <td className="p-6 text-muted-foreground text-sm">{item.benefit}</td>
                                         </tr>
                                     ))}
 
                                     {/* Coming Soon */}
                                     <tr className="bg-secondary/20">
-                                        <td className="p-6" colSpan={3}>
+                                        <td className="p-6" colSpan={2}>
                                             <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground font-semibold">Coming Soon</span>
                                         </td>
                                     </tr>
                                     {[
+                                        { name: 'LinkedIn', benefit: 'Build professional authority on the world\'s premier business network.' },
                                         { name: 'AI-Driven Content Writer', benefit: 'Generate authentic, engaging captions and content ideas that sound exactly like you.' },
                                         { name: 'SEO Optimization', benefit: 'Rank higher with built-in styling and hashtag recommendations tailored for maximum reach.' },
-                                        { name: 'Universal Dashboard', benefit: 'A bird\'s-eye view of your entire social ecosystem with real-time health tracking.' },
-                                        { name: 'Content Planner', benefit: 'Visualize your strategy with our drag-and-drop calendar for effortless feed balance.' },
                                         { name: 'Smart Posts', benefit: 'Natural-feeling posts with automatic formatting and platform-specific rule checking.' },
                                         { name: 'Short-Form Studio', benefit: 'Bulk upload and distribute vertical content across TikTok and YouTube Shorts instantly.' },
-                                        { name: 'Multi-Platform Engine', benefit: 'Sync content across all channels with zero friction and automatic technical encoding.' },
-                                        { name: 'Enterprise Security', benefit: 'Bank-grade encryption and official API integrations to protect your accounts and content.' },
                                         { name: 'Team Collaboration', benefit: 'Streamline production with internal notes and multi-user approval workflows.' },
                                         { name: 'Instagram (Reels & Stories)', benefit: 'Master visual storytelling and capture the vertical era at scale.' },
                                         { name: 'Facebook', benefit: 'Reach and engage the world’s most diverse social community effortlessly.' },
@@ -347,9 +347,6 @@ export default function FeaturesPage() {
                                     ].map((item) => (
                                         <tr key={item.name} className="hover:bg-muted/5 transition-colors border-b border-border">
                                             <td className="p-6 font-bold text-foreground/70">{item.name}</td>
-                                            <td className="p-6">
-                                                {/* Empty Status Col */}
-                                            </td>
                                             <td className="p-6 text-muted-foreground text-sm italic">{item.benefit}</td>
                                         </tr>
                                     ))}

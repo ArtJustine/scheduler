@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,10 +16,27 @@ import type { HashtagGroup } from "@/types/hashtag"
 import type { CaptionTemplate } from "@/types/caption"
 
 export default function LibraryPage() {
+  return (
+    <Suspense fallback={<div>Loading library...</div>}>
+      <LibraryContent />
+    </Suspense>
+  )
+}
+
+function LibraryContent() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([])
   const [captionTemplates, setCaptionTemplates] = useState<CaptionTemplate[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get("tab") || "media"
+  const [activeTab, setActiveTab] = useState(tabParam)
+
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
 
   useEffect(() => {
     const loadLibraryData = async () => {
@@ -50,7 +68,7 @@ export default function LibraryPage() {
       </div>
 
 
-      <Tabs defaultValue="media" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="media">Media</TabsTrigger>
           <TabsTrigger value="hashtags">Hashtags</TabsTrigger>
@@ -129,3 +147,4 @@ export default function LibraryPage() {
     </div>
   )
 }
+

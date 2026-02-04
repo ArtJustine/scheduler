@@ -16,6 +16,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarProvider,
   SidebarRail,
 } from "@/components/ui/sidebar"
@@ -48,6 +51,11 @@ const sidebarItems = [
     title: "Content Library",
     icon: ImageIcon,
     href: "/dashboard/library",
+    items: [
+      { title: "Media", href: "/dashboard/library?tab=media" },
+      { title: "Hashtags", href: "/dashboard/library?tab=hashtags" },
+      { title: "Captions", href: "/dashboard/library?tab=captions" },
+    ]
   },
   {
     title: "Link-in-Bio",
@@ -177,6 +185,17 @@ export function DashboardSidebar() {
                     <span>{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
+                {item.items && (
+                  <SidebarMenuSub>
+                    {item.items.map((subItem) => (
+                      <SidebarMenuSubItem key={subItem.href}>
+                        <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
+                          <Link href={subItem.href}>{subItem.title}</Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                )}
               </SidebarMenuItem>
             ))}
           </SidebarMenu>

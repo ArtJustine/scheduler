@@ -44,15 +44,17 @@ export async function GET(request: NextRequest) {
     // Exchange authorization code for access token with PKCE code_verifier
     const tokenData = await tiktokOAuth.exchangeCodeForToken(code, storedRedirectUri, codeVerifier)
 
-    // Get user info from TikTok
+    // Get user info and stats from TikTok
     let username = "TikTok User"
     let openId = null
     let profileImage = null
     let followerCount = 0
+    let videoCount = 0
+    let likesCount = 0
 
     try {
       const userInfoResponse = await fetch(
-        "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name",
+        "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,follower_count,video_count,likes_count",
         {
           headers: {
             Authorization: `Bearer ${tokenData.access_token}`,
@@ -60,11 +62,15 @@ export async function GET(request: NextRequest) {
         }
       )
       if (userInfoResponse.ok) {
-        const userInfo = await userInfoResponse.json()
-        if (userInfo.data && userInfo.data.user) {
-          username = userInfo.data.user.display_name || username
-          openId = userInfo.data.user.open_id || null
-          profileImage = userInfo.data.user.avatar_url || null
+        const resData = await userInfoResponse.json()
+        if (resData.data && resData.data.user) {
+          const u = resData.data.user
+          username = u.display_name || username
+          openId = u.open_id || null
+          profileImage = u.avatar_url || null
+          followerCount = u.follower_count || 0
+          videoCount = u.video_count || 0
+          likesCount = u.likes_count || 0
         }
       } else {
         const errorData = await userInfoResponse.json()
@@ -89,6 +95,8 @@ export async function GET(request: NextRequest) {
       connected: true,
       openId,
       followers: followerCount,
+      posts: videoCount,
+      likes: likesCount,
     }
 
     // Save to Firestore directly from the server for better reliability

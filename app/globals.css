@@ -90,8 +90,16 @@
 
 /* Minimalist Component Overrides */
 @layer base {
-  button:not(.ghost):not(.link):not(.secondary) {
-    @apply bg-primary text-primary-foreground shadow-sm hover:opacity-90 active:scale-[0.98] transition-all !important;
+  button:not(.ghost):not(.link):not(.secondary):not([variant="outline"]):not(.outline):not([role="tab"]) {
+    @apply bg-primary text-primary-foreground shadow-sm transition-all !important;
+  }
+
+  button:hover {
+    @apply scale-[1.02] shadow-md transition-all duration-300 !important;
+  }
+
+  button:active {
+    @apply scale-[0.98] transition-all duration-100 !important;
   }
 
   button.secondary {
@@ -114,7 +122,7 @@
     background: transparent;
   }
 
-  button[data-state] {
+  [data-orientation="vertical"] button[data-state] {
     @apply px-6 py-5 !important;
   }
 

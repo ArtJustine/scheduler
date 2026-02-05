@@ -8,8 +8,7 @@ export const metadata: Metadata = {
   description: "Manage and schedule your social media posts",
 }
 
-import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
 export default function DashboardLayout({
   children,
@@ -18,18 +17,26 @@ export default function DashboardLayout({
 }) {
   return (
     <AuthProvider>
-      <div className="min-h-screen flex flex-col bg-background text-foreground font-sans">
-        <div className="flex flex-1 overflow-hidden">
-          <div className="flex-shrink-0 hidden md:block">
-            <DashboardSidebar />
-          </div>
-          <main className="flex-1 flex flex-col items-center w-full overflow-y-auto bg-slate-50 dark:bg-slate-950/20">
-            <div className="w-full max-w-5xl px-4 sm:px-6 md:px-8 py-8">
-              {children}
+      <SidebarProvider defaultOpen={true}>
+        <div className="min-h-screen flex w-full bg-background text-foreground font-sans">
+          <DashboardSidebar />
+          <main className="flex-1 flex flex-col min-h-screen overflow-hidden bg-slate-50 dark:bg-slate-950/20">
+            {/* Top Bar for Desktop/Mobile Toggle */}
+            <header className="h-14 border-b bg-background/50 backdrop-blur-md flex items-center px-4 sticky top-0 z-40">
+              <SidebarTrigger className="h-9 w-9 border border-border bg-white dark:bg-black shadow-sm hover:bg-accent transition-all" />
+              <div className="ml-4 flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground">Dashboard</span>
+              </div>
+            </header>
+
+            <div className="flex-1 overflow-y-auto">
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-8 w-full">
+                {children}
+              </div>
             </div>
           </main>
         </div>
-      </div>
+      </SidebarProvider>
     </AuthProvider>
   )
 }

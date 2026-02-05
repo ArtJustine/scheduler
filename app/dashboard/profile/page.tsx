@@ -45,6 +45,13 @@ export default function ProfilePage() {
     loadStats()
   }, [])
 
+  useEffect(() => {
+    if (user) {
+      setName(user.displayName || "")
+      setAvatarPreview(user.photoURL || null)
+    }
+  }, [user])
+
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsUpdating(true)
@@ -121,10 +128,25 @@ export default function ProfilePage() {
 
       <div className="grid gap-6 md:grid-cols-[1fr_300px]">
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="account">Account</TabsTrigger>
-            <TabsTrigger value="billing">Billing</TabsTrigger>
+          <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-border/50">
+            <TabsTrigger
+              value="profile"
+              className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
+            >
+              Profile
+            </TabsTrigger>
+            <TabsTrigger
+              value="account"
+              className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
+            >
+              Account
+            </TabsTrigger>
+            <TabsTrigger
+              value="billing"
+              className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
+            >
+              Billing
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">

@@ -42,6 +42,13 @@ export default function SettingsPage() {
     loadSocialAccounts()
   }, [])
 
+  useEffect(() => {
+    if (user) {
+      setName(user.displayName || "")
+      setEmail(user.email || "")
+    }
+  }, [user])
+
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsUpdating(true)
@@ -71,12 +78,37 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="account">Account</TabsTrigger>
-          <TabsTrigger value="appearance">Appearance</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="connections">Social Connections</TabsTrigger>
+        <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-border/50">
+          <TabsTrigger
+            value="profile"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
+          >
+            Profile
+          </TabsTrigger>
+          <TabsTrigger
+            value="account"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
+          >
+            Account
+          </TabsTrigger>
+          <TabsTrigger
+            value="appearance"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
+          >
+            Appearance
+          </TabsTrigger>
+          <TabsTrigger
+            value="notifications"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
+          >
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger
+            value="connections"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
+          >
+            Connections
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6">

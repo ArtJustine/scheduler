@@ -7,6 +7,7 @@ import { ModeToggle } from "@/components/mode-toggle"
 import { useAuth } from "@/lib/auth-provider"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { usePathname } from "next/navigation"
+import { useState } from "react"
 
 export function SiteHeader() {
     const { user } = useAuth()
@@ -32,17 +33,7 @@ export function SiteHeader() {
 
                     {/* Floating Pill Menu - Desktop */}
                     <div className="hidden md:flex fixed top-8 left-1/2 -translate-x-1/2 pointer-events-auto animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
-                        <nav className="flex items-center bg-white/80 dark:bg-black/80 backdrop-blur-xl border border-border rounded-full px-2 py-2 shadow-2xl hover:scale-[1.02] transition-transform duration-300">
-                            <div className="flex items-center space-x-1 px-4">
-                                <Link href="/features" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/features' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>Features</Link>
-                                <Link href="/blog" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/blog' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>Blog</Link>
-                            </div>
-                            <Link href="/waitlist">
-                                <Button className="rounded-full bg-primary text-white hover:opacity-90 px-6 py-2 h-auto text-sm font-bold border-0 shadow-none">
-                                    Waitlist
-                                </Button>
-                            </Link>
-                        </nav>
+                        <HeaderNav pathname={pathname} />
                     </div>
 
                     {/* Right Side - Theme/Mobile */}
@@ -96,9 +87,9 @@ export function SiteHeader() {
                 </div>
 
                 {/* Desktop Navigation - Centered */}
-                <nav className="hidden md:flex flex-1 justify-center items-center space-x-8">
+                <nav className="hidden md:flex flex-1 justify-center items-center">
                     {isDashboard ? (
-                        <>
+                        <div className="flex space-x-8">
                             <Link href="/dashboard" className={`text-sm font-medium transition-colors hover:text-foreground ${pathname === '/dashboard' ? 'text-foreground' : 'text-muted-foreground'}`}>
                                 Overview
                             </Link>
@@ -108,19 +99,9 @@ export function SiteHeader() {
                             <Link href="/dashboard/analytics" className={`text-sm font-medium transition-colors hover:text-foreground ${pathname === '/dashboard/analytics' ? 'text-foreground' : 'text-muted-foreground'}`}>
                                 Analytics
                             </Link>
-                        </>
+                        </div>
                     ) : (
-                        <>
-                            <Link href="/features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                                Features
-                            </Link>
-                            <Link href="/blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                                Blog
-                            </Link>
-                            <Link href="/waitlist" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                                Waitlist
-                            </Link>
-                        </>
+                        <HeaderNav pathname={pathname} minimalist />
                     )}
                 </nav>
 
@@ -238,5 +219,85 @@ export function SiteHeader() {
                 </div>
             </div>
         </header>
+    )
+}
+
+function HeaderNav({ pathname, minimalist = false }: { pathname: string | null, minimalist?: boolean }) {
+    const [hoveredLink, setHoveredLink] = useState<string | null>(null)
+
+    if (minimalist) {
+        return (
+            <div className="relative flex items-center space-x-8 h-10">
+                <div
+                    className="absolute bottom-0 h-0.5 bg-primary transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)"
+                    style={{
+                        width: hoveredLink === 'features' ? '60px' : hoveredLink === 'blog' ? '32px' : hoveredLink === 'waitlist' ? '54px' : '0px',
+                        left: hoveredLink === 'features' ? '0px' : hoveredLink === 'blog' ? '92px' : hoveredLink === 'waitlist' ? '156px' : '0px',
+                        opacity: hoveredLink ? 1 : 0
+                    }}
+                />
+                <Link
+                    href="/features"
+                    onMouseEnter={() => setHoveredLink('features')}
+                    onMouseLeave={() => setHoveredLink(null)}
+                    className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors py-2"
+                >
+                    Features
+                </Link>
+                <Link
+                    href="/blog"
+                    onMouseEnter={() => setHoveredLink('blog')}
+                    onMouseLeave={() => setHoveredLink(null)}
+                    className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors py-2"
+                >
+                    Blog
+                </Link>
+                <Link
+                    href="/waitlist"
+                    onMouseEnter={() => setHoveredLink('waitlist')}
+                    onMouseLeave={() => setHoveredLink(null)}
+                    className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors py-2"
+                >
+                    Waitlist
+                </Link>
+            </div>
+        )
+    }
+
+    return (
+        <nav className="flex items-center bg-white/80 dark:bg-black/80 backdrop-blur-xl border border-border rounded-full px-2 py-2 shadow-2xl hover:scale-[1.02] transition-transform duration-500">
+            <div className="relative flex items-center px-1">
+                {/* Sliding background */}
+                <div
+                    className="absolute h-9 bg-slate-100 dark:bg-white/10 rounded-full transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) -z-10"
+                    style={{
+                        width: hoveredLink === 'features' ? '88px' : hoveredLink === 'blog' ? '72px' : '0px',
+                        left: hoveredLink === 'features' ? '0px' : hoveredLink === 'blog' ? '88px' : '0px',
+                        opacity: hoveredLink ? 1 : 0
+                    }}
+                />
+                <Link
+                    href="/features"
+                    onMouseEnter={() => setHoveredLink('features')}
+                    onMouseLeave={() => setHoveredLink(null)}
+                    className={`px-4 py-2 text-sm font-medium transition-colors relative z-10 ${pathname === '/features' ? 'text-primary font-bold' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}
+                >
+                    Features
+                </Link>
+                <Link
+                    href="/blog"
+                    onMouseEnter={() => setHoveredLink('blog')}
+                    onMouseLeave={() => setHoveredLink(null)}
+                    className={`px-4 py-2 text-sm font-medium transition-colors relative z-10 ${pathname === '/blog' ? 'text-primary font-bold' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}
+                >
+                    Blog
+                </Link>
+            </div>
+            <Link href="/waitlist">
+                <Button className="rounded-full bg-primary text-white hover:opacity-90 px-6 py-2 h-auto text-sm font-bold border-0 shadow-none">
+                    Waitlist
+                </Button>
+            </Link>
+        </nav>
     )
 }

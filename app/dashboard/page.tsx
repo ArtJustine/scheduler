@@ -75,22 +75,22 @@ export default function DashboardPage() {
 
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="bg-transparent gap-2 h-auto p-0">
+        <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-border/50 h-auto">
           <TabsTrigger
             value="overview"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground bg-muted h-8 px-3 text-xs rounded-md transition-all"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200 px-4 py-2"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger
             value="scheduled"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground bg-muted h-8 px-3 text-xs rounded-md transition-all"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200 px-4 py-2"
           >
             Scheduled
           </TabsTrigger>
           <TabsTrigger
             value="analytics"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground bg-muted h-8 px-3 text-xs rounded-md transition-all"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200 px-4 py-2"
           >
             Analytics
           </TabsTrigger>

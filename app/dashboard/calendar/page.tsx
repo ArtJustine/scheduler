@@ -133,6 +133,7 @@ export default function CalendarPage() {
                 month={date}
                 onMonthChange={setDate}
                 className="rounded-md border-0"
+                showOutsideDays={false}
                 components={{
                   DayContent: CustomDayContent
                 }}

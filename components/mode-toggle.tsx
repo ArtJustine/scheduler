@@ -38,7 +38,7 @@ export function ModeToggle() {
             variant="outline"
             size="icon"
             onClick={cycleTheme}
-            className="bg-transparent border-border hover:bg-muted transition-colors relative"
+            className="outline bg-transparent border-border hover:bg-muted transition-colors relative"
             title={`Current theme: ${theme}. Click to change.`}
         >
             <Sun className={`h-[1.2rem] w-[1.2rem] text-primary transition-all ${theme === 'light' ? 'scale-100 rotate-0' : 'scale-0 -rotate-90 absolute'}`} />

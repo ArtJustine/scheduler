@@ -138,16 +138,16 @@ export default function AnalyticsPage() {
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[
-              { label: "Total Views", value: calculateRealStats(accounts, selectedPlatform).views, icon: Eye, color: "text-blue-500", bg: "bg-blue-500/10" },
-              { label: "Subscribers", value: calculateRealStats(accounts, selectedPlatform).followers, icon: Users, color: "text-purple-500", bg: "bg-purple-500/10" },
-              { label: "Total Likes", value: calculateRealStats(accounts, selectedPlatform).likes, icon: Heart, color: "text-red-500", bg: "bg-red-500/10" },
-              { label: "Total Posts", value: calculateRealStats(accounts, selectedPlatform).posts, icon: BarChart3, color: "text-green-500", bg: "bg-green-500/10" },
+              { label: "Total Views", value: calculateRealStats(accounts, selectedPlatform).views, icon: Eye },
+              { label: "Subscribers", value: calculateRealStats(accounts, selectedPlatform).followers, icon: Users },
+              { label: "Total Likes", value: calculateRealStats(accounts, selectedPlatform).likes, icon: Heart },
+              { label: "Total Posts", value: calculateRealStats(accounts, selectedPlatform).posts, icon: BarChart3 },
             ].map((stat, i) => (
-              <Card key={i} className="border-[0.5px] hover:shadow-md transition-shadow duration-200">
+              <Card key={i} className="hover:shadow-soft transition-shadow duration-200">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                   <CardTitle className="text-sm font-medium">{stat.label}</CardTitle>
-                  <div className={cn("p-2 rounded-lg", stat.bg)}>
-                    <stat.icon className={cn("h-4 w-4", stat.color)} />
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <stat.icon className="h-4 w-4 text-primary" />
                   </div>
                 </CardHeader>
                 <CardContent>

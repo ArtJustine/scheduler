@@ -12,8 +12,8 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-background text-foreground font-sans">
       <SiteHeader />
 
-      {/* Hero Section - Redesigned to match inspiration */}
-      <section className="relative w-full min-h-[95vh] flex items-center justify-center overflow-hidden bg-[#fbfbfd] dark:bg-slate-950 transition-colors duration-500">
+      {/* Hero Section - Minimalist Apple-style */}
+      <section className="relative w-full min-h-[90vh] flex items-center justify-center overflow-hidden bg-white dark:bg-black transition-colors duration-500">
         {/* Floating Social Platform Icons - Desktop */}
         <div className="absolute inset-0 pointer-events-none hidden md:block">
           {/* Top Row */}
@@ -39,9 +39,9 @@ export default function Home() {
               <Video className="w-16 h-16 text-black dark:text-white" />
             </div>
           </div>
-          <div className="absolute top-[42%] right-[8%] animate-float-slow">
-            <div className="w-28 h-28 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
-              <Facebook className="w-14 h-14 text-[#1877F2]" />
+          <div className="absolute top-[42%] right-[8%] animate-float">
+            <div className="w-28 h-28 bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-soft flex items-center justify-center border border-border group hover:scale-105 transition-transform duration-500 pointer-events-auto cursor-help">
+              <Facebook className="w-14 h-14 text-[#0668E1]" />
             </div>
           </div>
 
@@ -56,9 +56,9 @@ export default function Home() {
               <Globe className="w-10 h-10 text-primary" />
             </div>
           </div>
-          <div className="absolute bottom-[18%] left-[49%] animate-float-slow">
-            <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
-              <QrCode className="w-12 h-12 text-slate-800 dark:text-white" />
+          <div className="absolute bottom-[18%] left-[49%] animate-float">
+            <div className="w-24 h-24 bg-white dark:bg-zinc-900 rounded-[2rem] shadow-soft flex items-center justify-center border border-border group hover:scale-105 transition-transform duration-500 pointer-events-auto cursor-help">
+              <QrCode className="w-12 h-12 text-foreground" />
             </div>
           </div>
         </div>
@@ -91,10 +91,10 @@ export default function Home() {
               The ultimate social media scheduler and manager tool for teams and creators. Powerful social media posting tools to plan, schedule, and auto-publish content across 12+ platforms.
             </p>
 
-            <div className="flex justify-center pt-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
+            <div className="flex justify-center pt-8 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
               <Link href="/waitlist">
-                <Button size="lg" className="rounded-full bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-white text-xl px-12 py-8 h-auto shadow-2xl transition-all hover:scale-105 active:scale-95 border-0">
-                  Learn more
+                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-xl px-12 py-8 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
+                  Try Chiyu for free
                 </Button>
               </Link>
             </div>
@@ -200,8 +200,8 @@ export default function Home() {
               </div>
 
               {/* Step 3: Publish */}
-              <div className="space-y-4 p-6 rounded-2xl bg-secondary/20 border border-secondary/30 hover:border-primary/30 transition-colors">
-                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-green-500/20 text-green-500 mx-auto">
+              <div className="space-y-4 p-6 rounded-2xl border border-border bg-card/50 hover:border-primary transition-colors">
+                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mx-auto">
                   <CheckCircle2 className="h-8 w-8" />
                 </div>
                 <h3 className="text-xl font-bold text-foreground">Publish</h3>

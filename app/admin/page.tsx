@@ -39,29 +39,28 @@ export default function AdminLoginPage() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4">
-            {/* Background Effects */}
+        <div className="flex min-h-screen items-center justify-center bg-background px-4">
+            {/* Background Effects - Minimal */}
             <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] opacity-30" />
-                <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-500/20 rounded-full blur-[120px] opacity-20" />
+                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] opacity-30" />
             </div>
 
-            <Card className="relative z-10 w-full max-w-md border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+            <Card className="relative z-10 w-full max-w-md border-border bg-card shadow-soft">
                 <CardHeader className="space-y-2 text-center">
-                    <div className="mx-auto w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-2">
+                    <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                         <Lock className="h-6 w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-3xl font-bold text-white">Admin Login</CardTitle>
-                    <CardDescription className="text-slate-300">
+                    <CardTitle className="text-3xl font-bold">Admin Login</CardTitle>
+                    <CardDescription>
                         Access the content management system
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email" className="text-slate-200">Email</Label>
+                            <Label htmlFor="email">Email</Label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     id="email"
                                     type="email"
@@ -69,21 +68,21 @@ export default function AdminLoginPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-primary"
+                                    className="pl-10"
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password" className="text-slate-200">Password</Label>
+                            <Label htmlFor="password">Password</Label>
                             <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     id="password"
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-primary"
+                                    className="pl-10"
                                 />
                             </div>
                         </div>
@@ -97,14 +96,14 @@ export default function AdminLoginPage() {
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 h-11"
+                            className="w-full h-11 font-bold"
                         >
                             {isLoading ? "Signing in..." : "Sign In"}
                         </Button>
                     </form>
 
                     <div className="mt-6 text-center">
-                        <Link href="/" className="text-sm text-slate-400 hover:text-white transition-colors">
+                        <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                             ← Back to website
                         </Link>
                     </div>

@@ -59,7 +59,7 @@ export default function PublicBioPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+            <div className="min-h-screen bg-black flex items-center justify-center">
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
             </div>
         )
@@ -67,32 +67,31 @@ export default function PublicBioPage() {
 
     if (!profile) {
         return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-center p-8">
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center p-8">
                 <h1 className="text-4xl font-bold text-white mb-4">404</h1>
-                <p className="text-slate-400 mb-8">This digital space hasn't been claimed yet.</p>
+                <p className="text-zinc-500 mb-8">This digital space hasn't been claimed yet.</p>
                 <a href="/" className="px-6 py-3 bg-primary text-white rounded-full font-bold">Start yours at Chiyu</a>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white selection:bg-primary/30">
-            {/* Dynamic Background Effects */}
+        <div className="min-h-screen bg-black text-white selection:bg-primary/30">
+            {/* Dynamic Background Effects - Minimal */}
             <div className="fixed inset-0 overflow-hidden -z-10">
-                <div className="absolute top-[-20%] left-[-10%] w-[1000px] h-[1000px] bg-primary/20 rounded-full blur-[140px] opacity-40 animate-pulse" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] bg-purple-500/10 rounded-full blur-[140px] opacity-20" />
+                <div className="absolute top-[-20%] left-[-10%] w-[1000px] h-[1000px] bg-primary/10 rounded-full blur-[140px] opacity-40" />
             </div>
 
             <main className="max-w-2xl mx-auto px-6 py-20 flex flex-col items-center">
                 {/* Profile Header */}
                 <div className="flex flex-col items-center mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                    <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary to-purple-600 p-1 mb-6 shadow-2xl">
-                        <div className="h-full w-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
+                    <div className="h-24 w-24 rounded-full bg-primary p-[2px] mb-6 shadow-2xl">
+                        <div className="h-full w-full rounded-full bg-black flex items-center justify-center overflow-hidden">
                             <span className="text-3xl font-bold">{profile.displayName.charAt(0)}</span>
                         </div>
                     </div>
                     <h1 className="text-2xl font-bold mb-2 tracking-tight">@{username}</h1>
-                    <p className="text-slate-400 text-center max-w-sm leading-relaxed">{profile.bio}</p>
+                    <p className="text-zinc-500 text-center max-w-sm leading-relaxed">{profile.bio}</p>
                 </div>
 
                 {/* Social Bar - Simplified for now */}
@@ -102,7 +101,6 @@ export default function PublicBioPage() {
                     <Heart className="h-5 w-5 cursor-pointer hover:text-primary transition-colors" />
                 </div>
 
-                {/* Links Container */}
                 <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-12 duration-700 delay-200">
                     {profile.links.filter(l => l.enabled).map((link, index) => (
                         <a
@@ -110,13 +108,12 @@ export default function PublicBioPage() {
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group block w-full p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/50 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden active:scale-[0.98]"
+                            className="group block w-full p-4 bg-[#111] hover:bg-zinc-900 border border-zinc-800 hover:border-primary rounded-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden active:scale-[0.98]"
                         >
                             <div className="relative z-10 flex items-center justify-between">
                                 <span className="font-semibold text-lg">{link.title}</span>
                                 <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </a>
                     ))}
                 </div>

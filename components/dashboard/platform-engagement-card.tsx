@@ -13,16 +13,7 @@ interface PlatformEngagementCardProps {
 export function PlatformEngagementCard({ platform, stats, color }: PlatformEngagementCardProps) {
   // Get platform color
   const getPlatformColor = () => {
-    switch (platform.toLowerCase()) {
-      case "instagram":
-        return "#E1306C"
-      case "youtube":
-        return "#FF0000"
-      case "tiktok":
-        return "#69C9D0"
-      default:
-        return color || "#888888"
-    }
+    return "var(--primary)"
   }
 
   // Calculate total for percentage

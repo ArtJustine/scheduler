@@ -4,48 +4,48 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 0%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 252 80% 58%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 252 20% 94%;
-    --secondary-foreground: 252 60% 30%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 252 80% 96%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 210 99% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 210 99% 97%;
+    --accent-foreground: 210 99% 45%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 252 80% 58%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 92%;
+    --input: 0 0% 92%;
+    --ring: 210 99% 45%;
     --radius: 0.75rem;
   }
 
   .dark {
-    --background: 240 10% 4%;
-    --foreground: 210 40% 98%;
-    --card: 240 10% 6%;
-    --card-foreground: 210 40% 98%;
-    --popover: 240 10% 6%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 252 100% 68%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 240 6% 15%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 240 6% 15%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 252 100% 68%;
-    --accent-foreground: 210 40% 98%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 210 99% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 210 99% 10%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 240 6% 15%;
-    --input: 240 6% 15%;
-    --ring: 252 100% 68%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 210 99% 45%;
   }
 }
 
@@ -59,99 +59,59 @@
   }
 }
 
-/* Glassmorphism Utilities */
+/* Minimalist UI Utilities */
 @layer utilities {
-  .liquid-glass {
-    backdrop-filter: blur(25px) saturate(180%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  .glass-card {
+    @apply border bg-background/50 backdrop-blur-xl transition-all duration-300;
   }
 
-  .animate-float-slow {
+  .shadow-soft {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .animate-float {
     animation: float 6s ease-in-out infinite;
-  }
-  .animate-float-medium {
-    animation: float 4s ease-in-out infinite;
-  }
-  .animate-float-fast {
-    animation: float 3s ease-in-out infinite;
   }
 
   @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-    100% { transform: translateY(0px); }
+    0% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+
+    100% {
+      transform: translateY(0px);
+    }
   }
 }
 
-/* Global Button Liquid Glass Override */
+/* Minimalist Component Overrides */
 @layer base {
-  button:not(.ghost):not(.link) {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05)) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
-    color: hsl(var(--foreground)) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  button:not(.ghost):not(.link):not(.secondary) {
+    @apply bg-primary text-primary-foreground shadow-sm hover:opacity-90 active:scale-[0.98] transition-all !important;
   }
 
-  /* Specific logic for buttons on dark backgrounds (Hero Section) */
-  .bg-slate-950 button:not(.ghost):not(.link),
-  .bg-slate-900 button:not(.ghost):not(.link),
-  .bg-black button:not(.ghost):not(.link),
-  .dark button:not(.ghost):not(.link) {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.02)) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    color: white !important;
-  }
-
-  button:not(.ghost):not(.link):hover {
-    transform: translateY(-2px) scale(1.02) !important;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.15)) !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2) !important;
-  }
-
-  /* Primary Button Contrast Fix */
-  .bg-primary {
-    background: linear-gradient(135deg, hsla(var(--primary), 0.8), hsla(var(--primary), 0.6)) !important;
-    color: white !important;
-  }
-
-  .dark .bg-primary {
-    background: linear-gradient(135deg, hsla(var(--primary), 0.4), hsla(var(--primary), 0.2)) !important;
+  button.secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 !important;
   }
 
   /* Header Glassmorphism */
   header.sticky {
-    background-color: rgba(255, 255, 255, 0.6) !important;
-    backdrop-filter: blur(25px) saturate(200%) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    @apply bg-background/80 backdrop-blur-md border-b !important;
   }
 
-  .dark header.sticky {
-    background-color: rgba(0, 0, 0, 0.5) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  /* Section Styles */
+  section {
+    @apply py-20 px-6 sm:px-12 md:px-24;
   }
 
-  /* Section Glassmorphism */
-  section:not(.bg-slate-950) {
-    backdrop-filter: blur(16px);
-    border-y: 1px solid rgba(0, 0, 0, 0.05);
-  }
-
-  .dark section:not(.bg-slate-950) {
-    border-y: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  /* Accordion/FAQ Breathing Room */
+  /* Accordion/FAQ Minimal Styling */
   [data-orientation="vertical"]>div {
-    @apply rounded-xl mb-3 border border-white/10 overflow-hidden transition-all duration-300;
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(12px);
-  }
-
-  .dark [data-orientation="vertical"]>div {
-    background: rgba(255, 255, 255, 0.01);
+    @apply rounded-xl mb-3 border border-border overflow-hidden transition-all duration-300;
+    background: transparent;
   }
 
   button[data-state] {
@@ -159,6 +119,6 @@
   }
 
   div[data-state="open"]>div {
-    @apply px-6 pt-4 pb-6 text-base !important;
+    @apply px-6 pt-0 pb-6 text-base !important;
   }
 }

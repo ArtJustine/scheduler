@@ -166,17 +166,17 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
         console.log(`All connected accounts:`, connectedAccounts)
 
         return (
-          <Card key={platform.name} className={isConnected ? "border-green-500 border-2" : ""}>
+          <Card key={platform.name} className={isConnected ? "border-primary border-2 shadow-sm" : ""}>
             <CardHeader>
               <div className="flex items-start gap-3">
                 {isConnected && connectedAccount?.profileImage ? (
                   <img
                     src={connectedAccount.profileImage}
                     alt={connectedAccount.username}
-                    className="h-10 w-10 rounded-full border-2 border-green-500"
+                    className="h-10 w-10 rounded-full border-2 border-primary"
                   />
                 ) : (
-                  <div className={isConnected ? "text-green-600" : ""}>
+                  <div className={isConnected ? "text-primary" : ""}>
                     {getPlatformIcon(platform.name)}
                   </div>
                 )}
@@ -184,7 +184,7 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
                   <div className="flex items-center gap-2">
                     <CardTitle className="text-lg">{platform.name}</CardTitle>
                     {isConnected && (
-                      <Badge className="bg-green-500 hover:bg-green-600 text-white gap-1">
+                      <Badge className="bg-primary text-primary-foreground gap-1 border-0">
                         <CheckCircle2 className="h-3 w-3" />
                         Connected
                       </Badge>

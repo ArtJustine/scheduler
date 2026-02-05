@@ -79,9 +79,8 @@ export default function BlogPage() {
             <SiteHeader />
 
             <main className="flex-1 pt-32 pb-20 relative overflow-hidden">
-                {/* Background Blobs */}
+                {/* Background Blobs - Minimal */}
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -z-10" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] -z-10" />
 
                 <div className="container px-6">
                     {/* Hero Section */}
@@ -93,7 +92,7 @@ export default function BlogPage() {
                             </span>
                             THE CHIYU JOURNAL
                         </div>
-                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-8 text-slate-900 dark:text-white leading-[0.9] animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
+                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-8 text-foreground leading-[0.9] animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
                             Insights for the <br />
                             <span className="text-primary italic">Vertical Era.</span>
                         </h1>
@@ -104,8 +103,7 @@ export default function BlogPage() {
                         {/* Search and Filters */}
                         <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300">
                             <div className="relative group">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-                                <div className="relative flex items-center bg-white dark:bg-slate-900 rounded-2xl border border-border/50 shadow-2xl p-2">
+                                <div className="relative flex items-center bg-card rounded-2xl border border-border shadow-soft p-2">
                                     <Search className="ml-4 h-5 w-5 text-muted-foreground" />
                                     <Input
                                         placeholder="Search the archive..."
@@ -129,10 +127,10 @@ export default function BlogPage() {
                                 onValueChange={setSelectedCategory}
                                 className="w-full md:w-auto"
                             >
-                                <TabsList className="bg-muted/50 h-auto p-1.5 flex flex-wrap justify-start gap-1 rounded-2xl border border-border/50 backdrop-blur-sm">
+                                <TabsList className="bg-muted h-auto p-1 flex flex-wrap justify-start gap-1 rounded-xl border border-border">
                                     <TabsTrigger
                                         value="all"
-                                        className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all font-bold text-sm"
+                                        className="rounded-lg px-6 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all font-bold text-sm"
                                     >
                                         All Chapters
                                     </TabsTrigger>
@@ -140,7 +138,7 @@ export default function BlogPage() {
                                         <TabsTrigger
                                             key={category.id}
                                             value={category.name}
-                                            className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all font-bold text-sm"
+                                            className="rounded-lg px-6 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all font-bold text-sm"
                                         >
                                             {category.name}
                                         </TabsTrigger>

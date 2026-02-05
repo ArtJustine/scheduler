@@ -12,10 +12,9 @@ export default function FeaturesPage() {
             <SiteHeader />
 
             {/* Hero Section */}
-            <section className="relative w-full py-24 md:py-32 lg:py-48 pt-32 lg:pt-56 overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-500">
+            <section className="relative w-full py-24 md:py-32 lg:py-48 pt-32 lg:pt-56 overflow-hidden bg-white dark:bg-black transition-colors duration-500">
                 <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute top-0 right-[-10%] w-[1000px] h-[1000px] bg-primary/20 dark:bg-primary/30 rounded-full blur-[140px] opacity-20 dark:opacity-40 animate-pulse" />
-                    <div className="absolute bottom-[-10%] left-[-10%] w-[800px] h-[800px] bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-[140px] opacity-20 dark:opacity-30" />
+                    <div className="absolute top-0 right-[-10%] w-[1000px] h-[1000px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[140px] opacity-20 animate-pulse" />
                 </div>
 
                 <div className="container relative z-10 px-6">
@@ -48,32 +47,32 @@ export default function FeaturesPage() {
                         <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-center">Supported Platforms</p>
                         <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 transition-all duration-500">
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <Instagram className="h-8 w-8 text-pink-500 group-hover:scale-110 transition-transform" />
-                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Instagram (Soon)</span>
+                                <Instagram className="h-8 w-8 text-foreground group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Instagram</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group">
-                                <Youtube className="h-8 w-8 text-red-600 group-hover:scale-110 transition-transform" />
+                                <Youtube className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">YouTube</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <Facebook className="h-8 w-8 text-blue-600 group-hover:scale-110 transition-transform" />
-                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Facebook (Soon)</span>
+                                <Facebook className="h-8 w-8 text-foreground group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Facebook</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <Twitter className="h-8 w-8 text-sky-500 group-hover:scale-110 transition-transform" />
-                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">X (Soon)</span>
+                                <Twitter className="h-8 w-8 text-foreground group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">X</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <Linkedin className="h-8 w-8 text-blue-700 group-hover:scale-110 transition-transform" />
-                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">LinkedIn (Soon)</span>
+                                <Linkedin className="h-8 w-8 text-foreground group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">LinkedIn</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group">
-                                <Video className="h-8 w-8 text-black dark:text-white group-hover:scale-110 transition-transform" />
-                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter font-bold">TikTok</span>
+                                <Video className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">TikTok</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <Globe className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
-                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Threads (Soon)</span>
+                                <Globe className="h-8 w-8 text-foreground group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Threads</span>
                             </div>
                         </div>
                     </div>
@@ -119,7 +118,7 @@ export default function FeaturesPage() {
             </section>
 
             {/* Core Capabilities - New Section */}
-            <section className="w-full py-24 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white overflow-hidden transition-colors duration-500">
+            <section className="w-full py-24 bg-secondary/30 text-foreground overflow-hidden transition-colors duration-500">
                 <div className="container px-6">
                     <div className="max-w-4xl mb-20">
                         <h2 className="text-4xl md:text-6xl font-bold font-heading mb-6">Built for the next generation of <span className="text-primary italic">creators.</span></h2>
@@ -191,14 +190,14 @@ export default function FeaturesPage() {
                         {/* 3. The Master Calendar */}
                         <div className="grid md:grid-cols-2 gap-12 items-center">
                             <div className="space-y-6">
-                                <div className="inline-flex items-center space-x-2 bg-purple-500/10 border border-purple-500/20 px-3 py-1 rounded-full text-purple-400 text-sm font-medium">
+                                <div className="inline-flex items-center space-x-2 bg-primary/10 border border-primary/20 px-3 py-1 rounded-full text-primary text-sm font-medium">
                                     <Calendar className="h-4 w-4" />
                                     <span>The Master Calendar</span>
                                 </div>
                                 <h3 className="text-3xl md:text-5xl font-bold font-heading leading-tight">Command Your <br />Content Timeline</h3>
                                 <div className="space-y-4">
                                     <div>
-                                        <h4 className="text-xl font-bold text-white mb-2">Visual Multi-Platform Scheduling</h4>
+                                        <h4 className="text-xl font-bold text-foreground mb-2">Visual Multi-Platform Scheduling</h4>
                                         <p className="text-gray-400 leading-relaxed">
                                             Orchestrate your entire strategy with a drag-and-drop calendar and bulk scheduling capabilities. Use AI-powered caption generation to maintain a consistent voice across TikTok, YouTube, and LinkedIn.
                                         </p>
@@ -258,14 +257,14 @@ export default function FeaturesPage() {
                         {/* 5. Link-in-Bio Engine */}
                         <div className="grid md:grid-cols-2 gap-12 items-center">
                             <div className="space-y-6">
-                                <div className="inline-flex items-center space-x-2 bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full text-orange-400 text-sm font-medium">
+                                <div className="inline-flex items-center space-x-2 bg-primary/10 border border-primary/20 px-3 py-1 rounded-full text-primary text-sm font-medium">
                                     <LucideLink className="h-4 w-4" />
                                     <span>Link-in-Bio Engine</span>
                                 </div>
                                 <h3 className="text-3xl md:text-5xl font-bold font-heading leading-tight">Your Digital <br />Home Base</h3>
                                 <div className="space-y-4">
                                     <div>
-                                        <h4 className="text-xl font-bold text-white mb-2">Beautiful, Custom Link Pages</h4>
+                                        <h4 className="text-xl font-bold text-foreground mb-2">Beautiful, Custom Link Pages</h4>
                                         <p className="text-gray-400 leading-relaxed">
                                             Turn your social traffic into results with a high-performance link-in-bio page. Customize colors, add unlimited links, and track every click directly from your Chiyu dashboard. It's more than a link—it's your command center.
                                         </p>

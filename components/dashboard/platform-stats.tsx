@@ -60,12 +60,7 @@ export function PlatformStats({
   }
 
   const getPlatformColors = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case "youtube": return "text-red-600 bg-red-50 dark:bg-red-950/20";
-      case "tiktok": return "text-rose-600 bg-rose-50 dark:bg-rose-950/20";
-      case "instagram": return "text-pink-600 bg-pink-50 dark:bg-pink-950/20";
-      default: return "text-primary bg-primary/10";
-    }
+    return "text-primary bg-primary/10";
   }
 
   return (
@@ -89,8 +84,8 @@ export function PlatformStats({
           </div>
         </div>
         {connected ? (
-          <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+          <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
             Connected
           </div>
         ) : (

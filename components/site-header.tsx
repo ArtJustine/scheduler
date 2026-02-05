@@ -21,7 +21,7 @@ export function SiteHeader() {
                     {/* Logo - Top Left */}
                     <div className="pointer-events-auto">
                         <Link href="/" className="flex items-center space-x-3 group animate-in fade-in slide-in-from-left-4 duration-700">
-                            <div className="w-10 h-10 bg-gradient-to-br from-primary via-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform">
+                            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
                                 <Calendar className="h-6 w-6 text-white" />
                             </div>
                             <span className="text-2xl font-bold font-heading tracking-tighter text-slate-900 dark:text-white drop-shadow-sm">
@@ -32,13 +32,13 @@ export function SiteHeader() {
 
                     {/* Floating Pill Menu - Desktop */}
                     <div className="hidden md:flex fixed top-8 left-1/2 -translate-x-1/2 pointer-events-auto animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
-                        <nav className="flex items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-full px-2 py-2 shadow-2xl shadow-slate-900/10 hover:scale-[1.02] transition-transform duration-300">
+                        <nav className="flex items-center bg-white/80 dark:bg-black/80 backdrop-blur-xl border border-border rounded-full px-2 py-2 shadow-2xl hover:scale-[1.02] transition-transform duration-300">
                             <div className="flex items-center space-x-1 px-4">
                                 <Link href="/features" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/features' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>Features</Link>
                                 <Link href="/blog" className={`px-4 py-2 text-sm font-medium transition-colors ${pathname === '/blog' ? 'text-primary' : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'}`}>Blog</Link>
                             </div>
                             <Link href="/waitlist">
-                                <Button className="rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 px-6 py-2 h-auto text-sm font-bold border-0 shadow-none">
+                                <Button className="rounded-full bg-primary text-white hover:opacity-90 px-6 py-2 h-auto text-sm font-bold border-0 shadow-none">
                                     Waitlist
                                 </Button>
                             </Link>
@@ -158,12 +158,12 @@ export function SiteHeader() {
                                     <span className="sr-only">Toggle menu</span>
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="right" className="w-[85vw] sm:w-[400px] border-l border-white/10 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-2xl p-0">
+                            <SheetContent side="right" className="w-[85vw] sm:w-[400px] border-l border-border bg-white/95 dark:bg-black/95 backdrop-blur-2xl p-0">
                                 <div className="flex flex-col h-full">
                                     <div className="p-8 pb-4">
                                         <SheetHeader className="text-left">
                                             <SheetTitle className="flex items-center space-x-3">
-                                                <div className="w-10 h-10 bg-gradient-to-br from-primary via-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
+                                                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-lg">
                                                     <Calendar className="h-6 w-6 text-white" />
                                                 </div>
                                                 <span className="text-2xl font-bold font-heading tracking-tighter">Chiyu</span>

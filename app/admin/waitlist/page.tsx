@@ -9,12 +9,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-provider"
 import { LogOut, Lock } from "lucide-react"
 
-interface WaitlistEntry {
-    id: string
-    email: string
-    createdAt: string
-    status: string
-}
+import { WaitlistEntry } from "@/lib/firebase/waitlist"
 
 export default function AdminWaitlistPage() {
     const { user, loading: authLoading } = useAuth()
@@ -34,11 +29,10 @@ export default function AdminWaitlistPage() {
 
     const fetchSignups = async () => {
         try {
-            const response = await fetch("/api/admin/waitlist")
-            if (response.ok) {
-                const data = await response.json()
-                setSignups(data.signups || [])
-            }
+            // Import the function here to ensure it's used on the client
+            const { getWaitlistSignups } = await import("@/lib/firebase/waitlist")
+            const data = await getWaitlistSignups()
+            setSignups(data || [])
         } catch (error) {
             console.error("Error fetching signups:", error)
         } finally {

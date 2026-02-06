@@ -35,10 +35,13 @@ export async function addToWaitlist(email: string): Promise<{ success: boolean; 
 
         // Check if email already exists
         const waitlistRef = collection(db, "waitlist")
-        const snapshot = await getDocs(waitlistRef)
-        const existingEmail = snapshot.docs.find((doc) => doc.data().email === email)
+        const normalizedEmail = email.toLowerCase().trim()
 
-        if (existingEmail) {
+        const { query, where, getDocs: getDocsQuery } = await import("firebase/firestore")
+        const q = query(waitlistRef, where("email", "==", normalizedEmail))
+        const snapshot = await getDocsQuery(q)
+
+        if (!snapshot.empty) {
             return { success: false, message: "This email is already on the waitlist" }
         }
 
@@ -62,15 +65,35 @@ export async function addToWaitlist(email: string): Promise<{ success: boolean; 
 export async function getWaitlistSignups(): Promise<WaitlistEntry[]> {
     try {
         const waitlistRef = collection(db, "waitlist")
-        const q = query(waitlistRef, orderBy("createdAt", "desc"))
-        const snapshot = await getDocs(q)
+        // Try to get docs. We'll sort them in memory to avoid index requirements
+        const snapshot = await getDocs(waitlistRef)
 
-        return snapshot.docs.map((doc) => ({
-            id: doc.id,
-            email: doc.data().email,
-            createdAt: doc.data().createdAt.toDate().toISOString(),
-            status: doc.data().status || "pending",
-        }))
+        const signups = snapshot.docs.map((doc) => {
+            const data = doc.data()
+            let createdAt = new Date().toISOString()
+
+            if (data.createdAt) {
+                try {
+                    createdAt = typeof data.createdAt.toDate === 'function'
+                        ? data.createdAt.toDate().toISOString()
+                        : new Date(data.createdAt).toISOString()
+                } catch (e) {
+                    console.warn(`Invalid date for doc ${doc.id}:`, data.createdAt)
+                }
+            }
+
+            return {
+                id: doc.id,
+                email: data.email || "",
+                createdAt: createdAt,
+                status: data.status || "pending",
+            } as WaitlistEntry
+        })
+
+        // Sort by date descending in memory
+        return signups.sort((a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
     } catch (error: any) {
         console.error("Error getting waitlist signups:", error)
         return []

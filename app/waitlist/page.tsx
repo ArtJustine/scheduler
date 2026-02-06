@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { firebaseDb } from "@/lib/firebase-client"
-import { collection, addDoc, getDocs, query, where, Timestamp } from "firebase/firestore"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 
@@ -25,35 +23,14 @@ export default function WaitlistPage() {
         setError("")
 
         try {
-            if (!firebaseDb) {
-                throw new Error("Database not initialized")
-            }
+            const { addToWaitlist } = await import("@/lib/firebase/waitlist")
+            const response = await addToWaitlist(email)
 
-            // Validate email format
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-            if (!emailRegex.test(email)) {
-                setError("Invalid email format")
+            if (!response.success) {
+                setError(response.message)
                 setLoading(false)
                 return
             }
-
-            // Check if email already exists
-            const waitlistRef = collection(firebaseDb, "waitlist")
-            const q = query(waitlistRef, where("email", "==", email.toLowerCase().trim()))
-            const snapshot = await getDocs(q)
-
-            if (!snapshot.empty) {
-                setError("This email is already on the waitlist")
-                setLoading(false)
-                return
-            }
-
-            // Add to waitlist
-            await addDoc(waitlistRef, {
-                email: email.toLowerCase().trim(),
-                createdAt: Timestamp.now(),
-                status: "pending",
-            })
 
             setSubmitted(true)
         } catch (err: any) {

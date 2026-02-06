@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from "react"
-import AnalyticsPage from "./analytics/page"
+import { AnalyticsView } from "@/components/dashboard/analytics-view"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -201,7 +201,7 @@ function DashboardContent() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
-          <AnalyticsPage />
+          <AnalyticsView />
         </TabsContent>
       </Tabs>
     </div>

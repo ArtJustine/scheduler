@@ -6,8 +6,9 @@ import Link from "next/link"
 import { useAuth } from "../../../lib/auth-provider"
 import { Button } from "../../../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card"
-import { PlusCircle, FileText, FolderOpen, Eye, Edit, Trash2, LogOut } from "lucide-react"
+import { PlusCircle, FileText, FolderOpen, Eye, Edit, Trash2, LogOut, Users, Mail, Lock } from "lucide-react"
 import type { BlogPost } from "../../../types/blog"
+import { getWaitlistSignups } from "@/lib/firebase/waitlist"
 
 export default function AdminDashboardPage() {
     const { user, loading } = useAuth()
@@ -17,6 +18,7 @@ export default function AdminDashboardPage() {
         publishedPosts: 0,
         draftPosts: 0,
         totalViews: 0,
+        totalWaitlist: 0,
     })
 
     useEffect(() => {
@@ -35,17 +37,22 @@ export default function AdminDashboardPage() {
             const { collection, getDocs } = await import("firebase/firestore")
 
             if (firebaseDb) {
+                // Fetch Blog Stats
                 const querySnapshot = await getDocs(collection(firebaseDb, "blog_posts"))
                 const posts = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 })) as BlogPost[]
 
+                // Fetch Waitlist Stats
+                const waitlistEntries = await getWaitlistSignups()
+
                 setStats({
                     totalPosts: posts.length,
                     publishedPosts: posts.filter((p: BlogPost) => p.status === "published").length,
                     draftPosts: posts.filter((p: BlogPost) => p.status === "draft").length,
                     totalViews: posts.reduce((acc: number, p: BlogPost) => acc + (p.views || 0), 0),
+                    totalWaitlist: waitlistEntries.length,
                 })
             }
         } catch (error) {
@@ -71,8 +78,8 @@ export default function AdminDashboardPage() {
             <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-16 items-center justify-between px-6">
                     <div className="flex items-center space-x-2">
-                        <FileText className="h-6 w-6 text-primary" />
-                        <span className="text-xl font-bold">CMS Admin</span>
+                        <Lock className="h-6 w-6 text-primary" />
+                        <span className="text-xl font-bold">Admin Portal</span>
                     </div>
                     <div className="flex items-center space-x-4">
                         <span className="text-sm text-muted-foreground">{user.email}</span>
@@ -88,7 +95,7 @@ export default function AdminDashboardPage() {
                 {/* Page Title */}
                 <div className="mb-8">
                     <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-                    <p className="text-muted-foreground mt-2">Manage your blog content</p>
+                    <p className="text-muted-foreground mt-2">Manage your content and waitlist</p>
                 </div>
 
                 {/* Quick Actions */}
@@ -129,18 +136,18 @@ export default function AdminDashboardPage() {
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-                            <Eye className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-medium">Waitlist</CardTitle>
+                            <Users className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</div>
-                            <p className="text-xs text-muted-foreground">All time</p>
+                            <div className="text-2xl font-bold">{stats.totalWaitlist}</div>
+                            <p className="text-xs text-muted-foreground">Total signups</p>
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Quick Links */}
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <Card>
                         <CardHeader>
                             <CardTitle>Blog Posts</CardTitle>
@@ -164,8 +171,27 @@ export default function AdminDashboardPage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Categories</CardTitle>
-                            <CardDescription>Organize your content</CardDescription>
+                            <CardTitle>Waitlist</CardTitle>
+                            <CardDescription>Manage early access signups</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <Link href="/admin/waitlist">
+                                <Button className="w-full justify-start" variant="outline">
+                                    <Users className="mr-2 h-4 w-4" />
+                                    View Waitlist
+                                </Button>
+                            </Link>
+                            <Button className="w-full justify-start" variant="outline" disabled>
+                                <Mail className="mr-2 h-4 w-4" />
+                                Send Invitations
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>System</CardTitle>
+                            <CardDescription>Administrative settings</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2">
                             <Link href="/admin/categories">

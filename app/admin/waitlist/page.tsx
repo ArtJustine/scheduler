@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Calendar, Download, Mail, Users } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { firebaseAuth } from "@/lib/firebase-client"
-import { onAuthStateChanged } from "firebase/auth"
+import { useAuth } from "@/lib/auth-provider"
+import { LogOut, Lock } from "lucide-react"
 
 interface WaitlistEntry {
     id: string
@@ -17,28 +17,20 @@ interface WaitlistEntry {
 }
 
 export default function AdminWaitlistPage() {
+    const { user, loading: authLoading } = useAuth()
     const [signups, setSignups] = useState<WaitlistEntry[]>([])
     const [loading, setLoading] = useState(true)
-    const [isAuthenticated, setIsAuthenticated] = useState(false)
     const router = useRouter()
 
     useEffect(() => {
-        if (!firebaseAuth) {
-            router.push("/login")
-            return
+        if (!authLoading && !user) {
+            router.push("/admin")
         }
 
-        const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
-            if (user) {
-                setIsAuthenticated(true)
-                fetchSignups()
-            } else {
-                router.push("/login")
-            }
-        })
-
-        return () => unsubscribe()
-    }, [router])
+        if (user) {
+            fetchSignups()
+        }
+    }, [user, authLoading, router])
 
     const fetchSignups = async () => {
         try {
@@ -70,30 +62,45 @@ export default function AdminWaitlistPage() {
         a.click()
     }
 
-    if (!isAuthenticated || loading) {
+    if (authLoading || loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <p>Loading...</p>
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </div>
         )
     }
 
+    if (!user) return null
+
     return (
-        <div className="min-h-screen bg-background p-8">
-            <div className="max-w-6xl mx-auto space-y-6">
+        <div className="min-h-screen bg-background">
+            {/* Header */}
+            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="container flex h-16 items-center justify-between px-6">
+                    <div className="flex items-center space-x-2">
+                        <Lock className="h-6 w-6 text-primary" />
+                        <span className="text-xl font-bold">Admin Portal</span>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                        <span className="text-sm text-muted-foreground">{user.email}</span>
+                        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/dashboard")}>
+                            Back to Dashboard
+                        </Button>
+                    </div>
+                </div>
+            </header>
+
+            <main className="container py-8 px-6 space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold font-heading">Waitlist Signups</h1>
-                        <p className="text-muted-foreground">Manage your waitlist entries</p>
+                        <h1 className="text-3xl font-bold tracking-tight">Waitlist Signups</h1>
+                        <p className="text-muted-foreground">Manage your early access entries</p>
                     </div>
                     <div className="flex gap-4">
-                        <Button onClick={exportToCSV} variant="outline">
+                        <Button onClick={exportToCSV} variant="outline" size="sm">
                             <Download className="mr-2 h-4 w-4" />
                             Export CSV
                         </Button>
-                        <Link href="/dashboard">
-                            <Button variant="outline">Back to Dashboard</Button>
-                        </Link>
                     </div>
                 </div>
 
@@ -175,7 +182,7 @@ export default function AdminWaitlistPage() {
                         </div>
                     </CardContent>
                 </Card>
-            </div>
-        </div>
+            </main>
+        </div >
     )
 }

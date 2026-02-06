@@ -1,4 +1,4 @@
-import { initializeApp, getApps } from "firebase/app"
+import { initializeApp, getApps, getApp } from "firebase/app"
 import { getAuth } from "firebase/auth"
 import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
@@ -18,33 +18,33 @@ import type { Auth } from "firebase/auth"
 import type { Firestore } from "firebase/firestore"
 import type { FirebaseStorage } from "firebase/storage"
 
-// Initialize Firebase
-let firebaseApp: FirebaseApp
-let firebaseAuth: Auth
-let firebaseDb: Firestore
-let firebaseStorage: FirebaseStorage
+let firebaseApp: FirebaseApp | undefined
+let firebaseAuth: Auth | undefined
+let firebaseDb: Firestore | undefined
+let firebaseStorage: FirebaseStorage | undefined
 
-if (!getApps().length) {
-  firebaseApp = initializeApp(firebaseConfig)
-} else {
-  firebaseApp = getApps()[0]
-}
+if (typeof window !== "undefined") {
+  if (!getApps().length) {
+    firebaseApp = initializeApp(firebaseConfig)
+  } else {
+    firebaseApp = getApp()
+  }
 
-firebaseAuth = getAuth(firebaseApp)
-firebaseDb = getFirestore(firebaseApp)
-firebaseStorage = getStorage(firebaseApp)
+  firebaseAuth = getAuth(firebaseApp)
+  firebaseDb = getFirestore(firebaseApp)
+  firebaseStorage = getStorage(firebaseApp)
 
-// Enable offline persistence ONLY on the client side
-if (typeof window !== "undefined" && firebaseDb) {
-  enableIndexedDbPersistence(firebaseDb).catch((err) => {
-    if (err.code === "failed-precondition") {
-      console.warn("Firestore persistence failed: Multiple tabs open")
-    } else if (err.code === "unimplemented") {
-      console.warn("Firestore persistence is not available in this browser")
-    } else {
-      console.error("Firestore persistence error:", err)
-    }
-  })
+  if (firebaseDb) {
+    enableIndexedDbPersistence(firebaseDb).catch((err) => {
+      if (err.code === "failed-precondition") {
+        console.warn("Firestore persistence failed: Multiple tabs open")
+      } else if (err.code === "unimplemented") {
+        console.warn("Firestore persistence is not available in this browser")
+      } else {
+        console.error("Firestore persistence error:", err)
+      }
+    })
+  }
 }
 
 export { firebaseApp, firebaseAuth, firebaseDb, firebaseStorage }

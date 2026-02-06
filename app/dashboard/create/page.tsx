@@ -284,12 +284,12 @@ export default function CreatePostPage() {
                     <Smile className="h-5 w-5" />
                   </Button>
 
-                  {templates.length > 0 && (
+                  {(templates.length > 0 || hashtagGroups.length > 0) && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="gap-2 px-3 text-primary hover:text-primary hover:bg-primary/5 transition-colors">
                           <FileText className="h-4 w-4" />
-                          <span className="text-xs font-medium">Templates</span>
+                          <span className="text-xs font-medium">Library</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-[240px] p-2">

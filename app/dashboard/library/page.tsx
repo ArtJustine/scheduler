@@ -7,14 +7,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { MediaGrid } from "@/components/dashboard/media-grid"
+import { HashtagManager } from "@/components/dashboard/hashtag-manager"
 import { CaptionLibrary } from "@/components/dashboard/caption-library"
 import {
   getMediaLibrary,
+  getHashtagGroups,
   getCaptionTemplates,
   createCaption,
-  deleteCaption
+  deleteCaption,
+  createHashtag,
+  deleteHashtag
 } from "@/lib/data-service"
 import type { MediaItem } from "@/types/media"
+import type { HashtagGroup } from "@/types/hashtag"
 import type { CaptionTemplate } from "@/types/caption"
 
 export default function LibraryPage() {
@@ -27,6 +32,7 @@ export default function LibraryPage() {
 
 function LibraryContent() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
+  const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([])
   const [captionTemplates, setCaptionTemplates] = useState<CaptionTemplate[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const searchParams = useSearchParams()
@@ -36,11 +42,13 @@ function LibraryContent() {
   const loadLibraryData = async () => {
     try {
       setIsLoading(true)
-      const [media, captions] = await Promise.all([
+      const [media, hashtags, captions] = await Promise.all([
         getMediaLibrary(),
+        getHashtagGroups(),
         getCaptionTemplates(),
       ])
       setMediaItems(media)
+      setHashtagGroups(hashtags)
       setCaptionTemplates(captions)
     } catch (error) {
       console.error("Error loading library data:", error)
@@ -67,6 +75,24 @@ function LibraryContent() {
     }
   }
 
+  const handleAddHashtags = async (data: any) => {
+    try {
+      await createHashtag(data.name, data.hashtags)
+      await loadLibraryData()
+    } catch (error) {
+      console.error("Error adding hashtags:", error)
+    }
+  }
+
+  const handleDeleteHashtags = async (id: string) => {
+    try {
+      await deleteHashtag(id)
+      setHashtagGroups(prev => prev.filter(g => g.id !== id))
+    } catch (error) {
+      console.error("Error deleting hashtags:", error)
+    }
+  }
+
   useEffect(() => {
     if (tabParam) {
       setActiveTab(tabParam)
@@ -79,31 +105,33 @@ function LibraryContent() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Content Library</h1>
-        <p className="text-muted-foreground">Manage your media and description templates</p>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-3xl font-bold tracking-tight">Content Library</h1>
+        <p className="text-muted-foreground">Manage your media, hashtags, and description templates</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="media">Media</TabsTrigger>
-          <TabsTrigger value="descriptions">Descriptions</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="bg-muted/50 p-1 border">
+          <TabsTrigger value="media" className="px-6">Media</TabsTrigger>
+          <TabsTrigger value="hashtags" className="px-6">Hashtags</TabsTrigger>
+          <TabsTrigger value="descriptions" className="px-6">Descriptions</TabsTrigger>
         </TabsList>
-        <TabsContent value="media" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+
+        <TabsContent value="media" className="mt-0 outline-none">
+          <Card className="border-none shadow-none bg-transparent">
+            <CardHeader className="px-0 pt-0 flex flex-row items-center justify-between space-y-0 pb-4">
               <div>
-                <CardTitle>Media Library</CardTitle>
+                <CardTitle className="text-xl">Media Library</CardTitle>
                 <CardDescription>Manage your images and videos</CardDescription>
               </div>
-              <Button size="sm">
+              <Button size="sm" className="shadow-sm">
                 <Plus className="mr-2 h-4 w-4" />
                 Upload Media
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-0">
               {isLoading ? (
-                <div className="flex justify-center p-8">
+                <div className="flex justify-center p-12">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
                 </div>
               ) : (
@@ -112,28 +140,33 @@ function LibraryContent() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="descriptions" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle>Description Templates</CardTitle>
-                <CardDescription>Save and reuse your best descriptions and hashtags</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center p-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                </div>
-              ) : (
-                <CaptionLibrary
-                  templates={captionTemplates}
-                  onAdd={handleAddDescription}
-                  onDelete={handleDeleteDescription}
-                />
-              )}
-            </CardContent>
-          </Card>
+
+        <TabsContent value="hashtags" className="mt-0 outline-none">
+          {isLoading ? (
+            <div className="flex justify-center p-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            </div>
+          ) : (
+            <HashtagManager
+              groups={hashtagGroups}
+              onAdd={handleAddHashtags}
+              onDelete={handleDeleteHashtags}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="descriptions" className="mt-0 outline-none">
+          {isLoading ? (
+            <div className="flex justify-center p-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            </div>
+          ) : (
+            <CaptionLibrary
+              templates={captionTemplates}
+              onAdd={handleAddDescription}
+              onDelete={handleDeleteDescription}
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>

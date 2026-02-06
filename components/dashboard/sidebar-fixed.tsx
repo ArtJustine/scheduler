@@ -68,6 +68,7 @@ const sidebarItems = [
     href: "/dashboard/library",
     items: [
       { title: "Media", href: "/dashboard/library?tab=media" },
+      { title: "Hashtags", href: "/dashboard/library?tab=hashtags" },
       { title: "Descriptions", href: "/dashboard/library?tab=descriptions" },
     ]
   },

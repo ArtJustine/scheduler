@@ -24,15 +24,34 @@ export async function uploadMediaToLibrary({ file, title, type }: UploadMediaPar
   // Get download URL
   const url = await getDownloadURL(storageRef)
 
-  // Create media document in Firestore
-  const mediaData = {
-    userId: user.uid,
+  return await registerMediaMetadata({
+    url,
     title,
     type,
-    url,
     fileName: file.name,
     fileSize: file.size,
     storagePath: storageRef.fullPath,
+  })
+}
+
+export async function registerMediaMetadata(data: {
+  url: string
+  title: string
+  type: "image" | "video"
+  fileName: string
+  fileSize: number
+  storagePath: string
+}) {
+  if (!auth || !db) throw new Error("Firebase not initialized")
+  const user = auth.currentUser
+
+  if (!user) {
+    throw new Error("User not authenticated")
+  }
+
+  const mediaData = {
+    userId: user.uid,
+    ...data,
     createdAt: Timestamp.now(),
   }
 

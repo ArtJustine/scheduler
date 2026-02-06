@@ -63,8 +63,8 @@ export function HashtagManager({ groups, onAdd, onDelete }: HashtagManagerProps)
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Hashtag Manager</CardTitle>
-          <CardDescription>Organize and reuse hashtag groups</CardDescription>
+          <CardTitle>Hashtag Library</CardTitle>
+          <CardDescription>Save and reuse your best hashtag groups</CardDescription>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>

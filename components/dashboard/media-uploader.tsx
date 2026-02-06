@@ -9,6 +9,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
 import { useToast } from "@/components/ui/use-toast"
 import { firebaseAuth, firebaseStorage } from "@/lib/firebase-client"
 import { Progress } from "@/components/ui/progress"
+import { registerMediaMetadata } from "@/lib/firebase/media"
 
 interface MediaUploaderProps {
   onUpload: (url: string) => void
@@ -124,10 +125,26 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
               // Get download URL
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
               console.log("Download URL obtained:", downloadURL)
+
+              // Register in library
+              try {
+                await registerMediaMetadata({
+                  url: downloadURL,
+                  title: file.name,
+                  type: file.type.startsWith("video/") ? "video" : "image",
+                  fileName: file.name,
+                  fileSize: file.size,
+                  storagePath: storageRef.fullPath,
+                })
+              } catch (regError) {
+                console.error("Failed to register media in library:", regError)
+                // We still call onUpload even if library registration fails
+              }
+
               onUpload(downloadURL)
               toast({
                 title: "Upload successful",
-                description: "Media uploaded successfully",
+                description: "Media uploaded and saved to library",
               })
               resolve()
             } catch (err) {

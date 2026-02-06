@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useTheme } from "next-themes"
 import {
   BarChart3,
@@ -39,7 +39,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { signOut } from "@/lib/firebase/auth"
-import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-provider"
 
 const sidebarItems = [
@@ -121,9 +120,14 @@ const settingsItems = [
 export function DashboardSidebar() {
   const { user: authUser, loading: authLoading } = useAuth()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const { theme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+
+  // Determine current active path with query params for accurate highlighting
+  const currentTab = searchParams.get('tab')
+  const currentPathWithTab = currentTab ? `${pathname}?tab=${currentTab}` : pathname
 
   useEffect(() => {
     setMounted(true)
@@ -192,12 +196,12 @@ export function DashboardSidebar() {
               <img
                 src="/logo-light.png"
                 alt="Chiyu"
-                className="h-8 w-8 object-contain dark:hidden"
+                className="h-10 w-10 object-contain dark:hidden"
               />
               <img
                 src="/logo-dark.png"
                 alt="Chiyu"
-                className="h-8 w-8 object-contain hidden dark:block"
+                className="h-10 w-10 object-contain hidden dark:block"
               />
             </>
           ) : (
@@ -210,9 +214,12 @@ export function DashboardSidebar() {
           {sidebarItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               {item.items ? (
-                <Collapsible defaultOpen className="group/collapsible">
+                <Collapsible defaultOpen={pathname === item.href || currentPathWithTab.startsWith(item.href)} className="group/collapsible">
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title} isActive={pathname?.startsWith(item.href)}>
+                    <SidebarMenuButton
+                      tooltip={item.title}
+                      isActive={pathname === item.href && !currentTab}
+                    >
                       <item.icon className="mr-2 h-5 w-5" />
                       <span>{item.title}</span>
                       <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -222,7 +229,7 @@ export function DashboardSidebar() {
                     <SidebarMenuSub>
                       {item.items.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.href}>
-                          <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
+                          <SidebarMenuSubButton asChild isActive={currentPathWithTab === subItem.href}>
                             <Link href={subItem.href}>{subItem.title}</Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>

@@ -181,13 +181,13 @@ export default function AnalyticsPage() {
                     <PlatformEngagementCard
                       key={platform}
                       platform={platform.charAt(0).toUpperCase() + platform.slice(1)}
-                      stats={analytics[platform] || { likes: 0, comments: 0, views: 0, followers: 0 }}
+                      stats={analytics.platforms[platform] || { likes: 0, comments: 0, views: 0, followers: 0 }}
                     />
                   ))
                 ) : (
                   <PlatformEngagementCard
                     platform={selectedPlatform.charAt(0).toUpperCase() + selectedPlatform.slice(1)}
-                    stats={analytics[selectedPlatform] || { likes: 0, comments: 0, views: 0, followers: 0 }}
+                    stats={analytics.platforms[selectedPlatform] || { likes: 0, comments: 0, views: 0, followers: 0 }}
                   />
                 )}
               </div>

@@ -13,7 +13,7 @@ export default function Home() {
       <SiteHeader />
 
       {/* Hero Section - Minimalist Apple-style */}
-      <section className="relative w-full min-h-[90vh] flex items-center justify-center overflow-hidden bg-white dark:bg-black transition-colors duration-500">
+      <section className="relative w-full min-h-[85vh] flex items-center justify-center overflow-hidden bg-white dark:bg-black transition-colors duration-500">
         {/* Floating Social Platform Icons - Desktop */}
         <div className="absolute inset-0 pointer-events-none hidden md:block">
           {/* Top Row */}
@@ -79,21 +79,21 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="container relative z-10 px-6 pt-32 pb-20">
-          <div className="max-w-5xl mx-auto text-center space-y-12">
-            <h1 className="text-5xl md:text-8xl lg:text-[110px] font-extrabold font-heading tracking-tight text-slate-900 dark:text-white leading-[0.85] animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <div className="container relative z-10 px-6 pt-24 md:pt-32 pb-12">
+          <div className="max-w-5xl mx-auto text-center space-y-8 md:space-y-10">
+            <h1 className="text-4xl md:text-7xl lg:text-[100px] font-extrabold font-heading tracking-tight text-slate-900 dark:text-white leading-[0.9] md:leading-[0.85] animate-in fade-in slide-in-from-bottom-8 duration-1000">
               Manage <span className="text-primary italic">All</span> Your <br className="hidden lg:block" />
               Social Media <br className="hidden lg:block" />
               in One Place
             </h1>
 
-            <p className="text-lg md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
+            <p className="text-base md:text-xl lg:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
               The ultimate social media scheduler and manager tool for teams and creators. Powerful social media posting tools to plan, schedule, and auto-publish content across 12+ platforms.
             </p>
 
-            <div className="flex justify-center pt-8 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
+            <div className="flex justify-center pt-4 md:pt-6 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
               <Link href="/waitlist">
-                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-xl px-12 py-8 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
+                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-lg md:text-xl px-8 md:px-12 py-6 md:py-8 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
                   Try Chiyu for free
                 </Button>
               </Link>

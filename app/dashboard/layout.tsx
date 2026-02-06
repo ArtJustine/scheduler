@@ -2,13 +2,14 @@ import type React from "react"
 import type { Metadata } from "next"
 import { DashboardSidebar } from "@/components/dashboard/sidebar-fixed"
 import { AuthProvider } from "@/lib/auth-provider"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: "Dashboard | Social Media Chiyu",
   description: "Manage and schedule your social media posts",
 }
-
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
 export default function DashboardLayout({
   children,
@@ -28,7 +29,6 @@ export default function DashboardLayout({
                 <span className="text-sm font-medium text-muted-foreground">Dashboard</span>
               </div>
             </header>
-
             <div className="flex-1 overflow-y-auto">
               <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-8 w-full">
                 {children}

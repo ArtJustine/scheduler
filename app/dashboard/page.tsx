@@ -1,7 +1,5 @@
 "use client"
 
-export const dynamic = 'force-dynamic'
-
 import { useEffect, useState } from "react"
 import AnalyticsPage from "./analytics/page"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,6 +16,24 @@ import type { PostType } from "@/types/post"
 import type { SocialAccounts } from "@/types/social"
 
 export default function DashboardPage() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    )
+  }
+
+  return <DashboardContent />
+}
+
+function DashboardContent() {
   const [posts, setPosts] = useState<PostType[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
@@ -26,7 +42,6 @@ export default function DashboardPage() {
   const loadData = async () => {
     try {
       setIsLoading(true)
-      // Use Promise.all to fetch data in parallel
       const [fetchedPosts, fetchedAccounts] = await Promise.all([getScheduledPosts(), getSocialAccounts()])
 
       setPosts(fetchedPosts || [])
@@ -41,19 +56,16 @@ export default function DashboardPage() {
   useEffect(() => {
     loadData()
 
-    // Listen for updates
     const handleRefresh = () => loadData()
     window.addEventListener('social-accounts-updated', handleRefresh)
     return () => window.removeEventListener('social-accounts-updated', handleRefresh)
   }, [])
 
-  // Safely count posts by platform
   const getPostCount = (platform: string) => {
     if (!posts || !Array.isArray(posts)) return 0
     return posts.filter((p) => p?.platform?.toLowerCase() === platform.toLowerCase()).length
   }
 
-  // Determine which platforms to show
   const getConnectedPlatformsList = () => {
     const connected = Object.keys(socialAccounts).filter(
       (key) => socialAccounts[key as keyof SocialAccounts]?.connected
@@ -75,7 +87,6 @@ export default function DashboardPage() {
           Create Post
         </Button>
       </div>
-
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-border/50 h-auto">

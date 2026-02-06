@@ -2,7 +2,15 @@ import { collection, query, where, getCountFromServer, doc, getDoc } from "fireb
 import { db, auth } from "./config"
 
 export async function getUserStats(timeframe: string = "month") {
-  if (!auth || !db) throw new Error("Firebase not initialized")
+  if (!auth || !db) {
+    return {
+      overview: { totalPosts: 0, totalEngagement: 0, totalImpressions: 0, scheduledPosts: 0 },
+      engagement: [],
+      followers: [],
+      impressions: [],
+      platforms: { instagram: {}, youtube: {}, tiktok: {} }
+    }
+  }
   const user = auth.currentUser
 
   if (!user) {

@@ -1,7 +1,5 @@
 "use client"
 
-export const dynamic = 'force-dynamic'
-
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -15,6 +13,24 @@ import { getSocialAccounts } from "@/lib/firebase/social-accounts"
 import { Eye, Users, Heart, Share2, TrendingUp, BarChart3 } from "lucide-react"
 
 export default function AnalyticsPage() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    )
+  }
+
+  return <AnalyticsContent />
+}
+
+function AnalyticsContent() {
   const { user, loading: authLoading } = useAuth()
   const [analytics, setAnalytics] = useState<any>(null)
   const [accounts, setAccounts] = useState<any>({})

@@ -9,9 +9,17 @@ export function SiteFooter() {
             <div className="container px-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex flex-col items-center md:items-start space-y-4">
-                        <Link href="/" className="flex items-center space-x-2">
-                            <Calendar className="h-6 w-6 text-primary" />
-                            <span className="text-xl font-bold font-heading tracking-tight text-foreground">Chiyu</span>
+                        <Link href="/" className="flex items-center">
+                            <img
+                                src="/logo-light.png"
+                                alt="Chiyu"
+                                className="h-8 w-8 object-contain dark:hidden"
+                            />
+                            <img
+                                src="/logo-dark.png"
+                                alt="Chiyu"
+                                className="h-8 w-8 object-contain hidden dark:block"
+                            />
                         </Link>
                         <p className="text-sm text-muted-foreground text-center md:text-left max-w-xs">
                             The truly limitless social media scheduling tool for modern creators.

@@ -31,18 +31,22 @@ export function SiteHeader() {
                         <Link href="/" className="flex items-center space-x-3 group animate-in fade-in slide-in-from-left-4 duration-700">
                             <div className="w-10 h-10 bg-transparent flex items-center justify-center group-hover:scale-105 transition-transform">
                                 {mounted ? (
-                                    <img
-                                        src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo-light.png'}
-                                        alt="Chiyu"
-                                        className="h-10 w-10 object-contain"
-                                    />
+                                    <>
+                                        <img
+                                            src="/logo-light.png"
+                                            alt="Chiyu"
+                                            className="h-10 w-10 object-contain dark:hidden"
+                                        />
+                                        <img
+                                            src="/logo-dark.png"
+                                            alt="Chiyu"
+                                            className="h-10 w-10 object-contain hidden dark:block"
+                                        />
+                                    </>
                                 ) : (
                                     <div className="h-10 w-10 bg-muted animate-pulse rounded" />
                                 )}
                             </div>
-                            <span className="text-2xl font-bold font-heading tracking-tighter text-slate-900 dark:text-white drop-shadow-sm">
-                                Chiyu<span className="text-xs align-top ml-0.5">™</span>
-                            </span>
                         </Link>
                     </div>
 
@@ -69,15 +73,21 @@ export function SiteHeader() {
                                     <SheetHeader className="text-left">
                                         <SheetTitle className="flex items-center space-x-2">
                                             {mounted ? (
-                                                <img
-                                                    src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo-light.png'}
-                                                    alt="Chiyu"
-                                                    className="h-8 w-8 object-contain"
-                                                />
+                                                <>
+                                                    <img
+                                                        src="/logo-light.png"
+                                                        alt="Chiyu"
+                                                        className="h-8 w-8 object-contain dark:hidden"
+                                                    />
+                                                    <img
+                                                        src="/logo-dark.png"
+                                                        alt="Chiyu"
+                                                        className="h-8 w-8 object-contain hidden dark:block"
+                                                    />
+                                                </>
                                             ) : (
                                                 <div className="h-8 w-8 bg-muted animate-pulse rounded" />
                                             )}
-                                            <span className="text-xl font-bold">Chiyu</span>
                                         </SheetTitle>
                                     </SheetHeader>
                                     <div className="flex flex-col space-y-4 mt-8">
@@ -103,9 +113,23 @@ export function SiteHeader() {
             <div className="container flex h-16 items-center px-6">
                 {/* Logo - Start */}
                 <div className="flex-1 flex justify-start">
-                    <Link href="/" className="flex items-center space-x-2">
-                        <Calendar className="h-6 w-6 text-primary" />
-                        <span className="text-xl font-bold font-heading tracking-tight text-foreground">Chiyu</span>
+                    <Link href="/" className="flex items-center">
+                        {mounted ? (
+                            <>
+                                <img
+                                    src="/logo-light.png"
+                                    alt="Chiyu"
+                                    className="h-8 w-8 object-contain dark:hidden"
+                                />
+                                <img
+                                    src="/logo-dark.png"
+                                    alt="Chiyu"
+                                    className="h-8 w-8 object-contain hidden dark:block"
+                                />
+                            </>
+                        ) : (
+                            <div className="h-8 w-8 bg-muted animate-pulse rounded" />
+                        )}
                     </Link>
                 </div>
 
@@ -166,11 +190,23 @@ export function SiteHeader() {
                                 <div className="flex flex-col h-full">
                                     <div className="p-8 pb-4">
                                         <SheetHeader className="text-left">
-                                            <SheetTitle className="flex items-center space-x-3">
-                                                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-lg">
-                                                    <Calendar className="h-6 w-6 text-white" />
-                                                </div>
-                                                <span className="text-2xl font-bold font-heading tracking-tighter">Chiyu</span>
+                                            <SheetTitle className="flex items-center">
+                                                {mounted ? (
+                                                    <>
+                                                        <img
+                                                            src="/logo-light.png"
+                                                            alt="Chiyu"
+                                                            className="h-10 w-10 object-contain dark:hidden"
+                                                        />
+                                                        <img
+                                                            src="/logo-dark.png"
+                                                            alt="Chiyu"
+                                                            className="h-10 w-10 object-contain hidden dark:block"
+                                                        />
+                                                    </>
+                                                ) : (
+                                                    <div className="h-10 w-10 bg-muted animate-pulse rounded" />
+                                                )}
                                             </SheetTitle>
                                         </SheetHeader>
                                     </div>

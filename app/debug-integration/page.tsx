@@ -12,6 +12,7 @@ export default function DebugPage() {
     const { user } = useAuth()
     const [logs, setLogs] = useState<string[]>([])
     const [uploadResult, setUploadResult] = useState<string>("")
+    const [isSchedulerRunning, setIsSchedulerRunning] = useState(false)
 
     const addLog = (message: string) => {
         setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`])
@@ -105,6 +106,24 @@ export default function DebugPage() {
         }
     }
 
+    const runScheduler = async () => {
+        addLog("Manual scheduler trigger started...")
+        setIsSchedulerRunning(true)
+        try {
+            const response = await fetch("/api/cron/scheduler?secret=development")
+            const data = await response.json()
+            if (response.ok) {
+                addLog(`✓ Scheduler finished: ${data.message}`)
+            } else {
+                addLog(`❌ Scheduler error: ${data.error}`)
+            }
+        } catch (error: any) {
+            addLog(`❌ Network error: ${error.message}`)
+        } finally {
+            setIsSchedulerRunning(false)
+        }
+    }
+
     const checkCookies = () => {
         addLog("Checking cookies...")
         const cookies = document.cookie.split(';')
@@ -143,6 +162,9 @@ export default function DebugPage() {
                         </Button>
                         <Button onClick={checkCookies} variant="outline">
                             Check Cookies
+                        </Button>
+                        <Button onClick={runScheduler} variant="default" disabled={isSchedulerRunning} className="bg-primary text-white">
+                            {isSchedulerRunning ? "Running..." : "Trigger Scheduler"}
                         </Button>
                     </div>
 

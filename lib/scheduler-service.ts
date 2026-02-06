@@ -1,5 +1,6 @@
 import { firebaseDb } from "./firebase-client"
 import { collection, getDocs, getDoc, updateDoc, doc, query, where } from "firebase/firestore"
+import { config } from "./config"
 
 // Function to check for scheduled posts that need to be published
 export async function checkScheduledPosts() {
@@ -43,42 +44,55 @@ async function publishPost(userId: string, postId: string, post: any) {
       updatedAt: new Date().toISOString()
     })
 
-    // Determine which platform to publish to
-    let publishResult
+    // Determine which platforms to publish to (it's an array now)
+    const platforms = post.platforms || [post.platform]
+    const results: Record<string, any> = {}
+    let allSuccessful = true
 
-    switch (post.platform) {
-      case "instagram":
-        publishResult = await publishToInstagram(userId, post)
-        break
-      case "youtube":
-        publishResult = await publishToYouTube(userId, post)
-        break
-      case "tiktok":
-        publishResult = {
-          success: false,
-          error: "TikTok integration is currently disabled for publishing",
-        }
-        break
-      default:
-        throw new Error(`Unsupported platform: ${post.platform}`)
+    for (const platform of platforms) {
+      let publishResult
+
+      switch (platform) {
+        case "instagram":
+          publishResult = await publishToInstagram(userId, post)
+          break
+        case "youtube":
+          publishResult = await publishToYouTube(userId, post)
+          break
+        case "tiktok":
+          publishResult = {
+            success: false,
+            error: "TikTok integration is currently disabled for publishing",
+          }
+          break
+        default:
+          publishResult = {
+            success: false,
+            error: `Unsupported platform: ${platform}`,
+          }
+      }
+
+      results[platform] = publishResult
+      if (!publishResult.success) allSuccessful = false
     }
 
-    // If publishing was successful, update the post status to "published"
-    if (publishResult.success) {
+    // Update the post with individual platform status and overall status
+    if (allSuccessful) {
       await updateDoc(postRef, {
         status: "published",
         publishedAt: new Date().toISOString(),
-        [`${post.platform}PostId`]: publishResult.platformId,
+        platformResults: results,
         error: null
       })
-      console.log(`Successfully published post ${postId} to ${post.platform}`)
+      console.log(`Successfully published post ${postId} to all platforms`)
     } else {
-      // If publishing failed, update the post status to "failed"
+      // If any platform failed, mark as failed overall but store details
       await updateDoc(postRef, {
         status: "failed",
-        error: publishResult.error,
+        platformResults: results,
+        error: "One or more platforms failed to publish",
       })
-      console.error(`Failed to publish post ${postId} to ${post.platform}: ${publishResult.error}`)
+      console.error(`Failed to publish post ${postId} to some platforms`)
     }
   } catch (error: any) {
     console.error(`Error publishing post ${postId}:`, error)
@@ -92,6 +106,46 @@ async function publishPost(userId: string, postId: string, post: any) {
   }
 }
 
+// Function to refresh YouTube token
+async function refreshYouTubeToken(userId: string, refreshToken: string) {
+  try {
+    const response = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: config.youtube.clientId,
+        client_secret: config.youtube.clientSecret,
+        refresh_token: refreshToken,
+        grant_type: "refresh_token",
+      }),
+    })
+
+    const data = await response.json()
+    if (data.error) throw new Error(data.error_description || data.error)
+
+    // Update user doc with new access token
+    if (firebaseDb) {
+      const userDocRef = doc(firebaseDb, "users", userId)
+      const userDoc = await getDoc(userDocRef)
+      if (userDoc.exists()) {
+        const userData = userDoc.data()
+        await updateDoc(userDocRef, {
+          youtube: {
+            ...userData.youtube,
+            accessToken: data.access_token,
+            updatedAt: new Date().toISOString()
+          }
+        })
+      }
+    }
+
+    return data.access_token
+  } catch (error) {
+    console.error("Error refreshing YouTube token:", error)
+    throw error
+  }
+}
+
 // Function to publish a post to Instagram
 async function publishToInstagram(userId: string, post: any) {
   try {
@@ -99,33 +153,29 @@ async function publishToInstagram(userId: string, post: any) {
     const userDocRef = doc(firebaseDb, "users", userId)
     const userDoc = await getDoc(userDocRef)
 
-    if (!userDoc.exists()) {
-      throw new Error("User settings not found")
-    }
+    if (!userDoc.exists()) throw new Error("User settings not found")
 
     const userData = userDoc.data()
     const instagram = userData.instagram
 
-    if (!instagram || !instagram.accessToken) {
-      throw new Error("Instagram account not connected or access token missing")
-    }
+    if (!instagram || !instagram.accessToken) throw new Error("Instagram account not connected")
 
-    // Simplified IG Business API flow (requires Media Container -> Media Publish)
-    // Note: This often requires a Facebook Page ID and IG User ID
     const igUserId = instagram.id || instagram.username
     const accessToken = instagram.accessToken
 
     // 1. Create Media Container
     const containerUrl = `https://graph.facebook.com/v18.0/${igUserId}/media`
     const containerParams: any = {
-      image_url: post.mediaUrl,
-      caption: post.description,
+      caption: post.content || post.description || "",
       access_token: accessToken,
     }
 
-    if (post.contentType === "video") {
+    const isVideo = post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i) || post.contentType === "video"
+    if (isVideo) {
       containerParams.video_url = post.mediaUrl
       containerParams.media_type = "VIDEO"
+    } else {
+      containerParams.image_url = post.mediaUrl
     }
 
     const containerResponse = await fetch(containerUrl, {
@@ -138,13 +188,9 @@ async function publishToInstagram(userId: string, post: any) {
     if (containerData.error) throw new Error(containerData.error.message)
 
     const creationId = containerData.id
+    if (isVideo) await new Promise(resolve => setTimeout(resolve, 30000))
 
-    // 2. Wait for processing (for videos) - simplified for now
-    if (post.contentType === "video") {
-      await new Promise(resolve => setTimeout(resolve, 10000))
-    }
-
-    // 3. Publish Media
+    // 2. Publish Media
     const publishUrl = `https://graph.facebook.com/v18.0/${igUserId}/media_publish`
     const publishResponse = await fetch(publishUrl, {
       method: "POST",
@@ -158,10 +204,7 @@ async function publishToInstagram(userId: string, post: any) {
     const publishData = await publishResponse.json()
     if (publishData.error) throw new Error(publishData.error.message)
 
-    return {
-      success: true,
-      platformId: publishData.id,
-    }
+    return { success: true, platformId: publishData.id }
   } catch (error: any) {
     console.error("Error publishing to Instagram:", error)
     return { success: false, error: error.message }
@@ -170,69 +213,95 @@ async function publishToInstagram(userId: string, post: any) {
 
 // Function to publish a post to YouTube
 async function publishToYouTube(userId: string, post: any) {
+  let accessToken: string | null = null
+  let refreshToken: string | null = null
+
   try {
     if (!firebaseDb) throw new Error("Database not initialized")
     const userDocRef = doc(firebaseDb, "users", userId)
     const userDoc = await getDoc(userDocRef)
 
-    if (!userDoc.exists()) {
-      throw new Error("User settings not found")
-    }
+    if (!userDoc.exists()) throw new Error("User settings not found")
 
     const userData = userDoc.data()
     const youtube = userData.youtube
 
-    if (!youtube || !youtube.accessToken) {
-      throw new Error("YouTube account not connected")
+    if (!youtube || !youtube.accessToken) throw new Error("YouTube account not connected")
+
+    accessToken = youtube.accessToken
+    refreshToken = youtube.refreshToken
+
+    async function attemptUpload(token: string) {
+      // Step 1: Initialize Resumable Upload
+      const initResponse = await fetch("https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json; charset=UTF-8",
+          "X-Upload-Content-Type": "video/*",
+        },
+        body: JSON.stringify({
+          snippet: {
+            title: post.title || post.content?.substring(0, 100) || "Scheduled Post",
+            description: post.content || "",
+            categoryId: "22",
+          },
+          status: {
+            privacyStatus: "public",
+            selfDeclaredMadeForKids: false
+          },
+        }),
+      })
+
+      if (initResponse.status === 401 && refreshToken) {
+        return { retry: true }
+      }
+
+      if (!initResponse.ok) {
+        const err = await initResponse.json().catch(() => ({}))
+        throw new Error(`YouTube API Error (Init): ${err.error?.message || initResponse.statusText}`)
+      }
+
+      const uploadUrl = initResponse.headers.get("Location")
+      if (!uploadUrl) throw new Error("Failed to get YouTube upload URL")
+
+      // Step 2: Upload Video binary
+      if (!post.mediaUrl) throw new Error("No media file provided for YouTube upload")
+
+      const mediaResponse = await fetch(post.mediaUrl)
+      if (!mediaResponse.ok) throw new Error("Failed to fetch media file from storage")
+
+      const mediaBlob = await mediaResponse.blob()
+      const uploadResponse = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "video/*" },
+        body: mediaBlob
+      })
+
+      if (!uploadResponse.ok) {
+        const err = await uploadResponse.json().catch(() => ({}))
+        throw new Error(`YouTube API Error (Upload): ${err.error?.message || "Upload failed"}`)
+      }
+
+      return await uploadResponse.json()
     }
 
-    const accessToken = youtube.accessToken
+    if (!accessToken) throw new Error("YouTube access token missing")
+    let result = await attemptUpload(accessToken)
 
-    // YouTube Video Upload involves 2-3 steps:
-    // 1. Initialize upload (metadata)
-    // 2. Upload binary
-
-    // For simplicity in this env, we try a basic metadata create, 
-    // but actual video publishing requires the file stream.
-    // If the post has a mediaUrl, we theoretically need to pipe that to Google.
-
-    const response = await fetch("https://www.googleapis.com/youtube/v3/videos?part=snippet,status", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        snippet: {
-          title: post.title || post.description.substring(0, 100),
-          description: post.description,
-          categoryId: "22",
-        },
-        status: {
-          privacyStatus: "public",
-          selfDeclaredMadeForKids: false
-        },
-      }),
-    })
-
-    const data = await response.json()
-
-    if (data.error) {
-      // If token expired, we'd need to refresh it here
-      throw new Error(`YouTube API Error: ${data.error.message}`)
+    // If unauthorized, try refreshing token once
+    if (result.retry && refreshToken) {
+      console.log("YouTube token expired, refreshing...")
+      accessToken = await refreshYouTubeToken(userId, refreshToken)
+      if (!accessToken) throw new Error("Failed to refresh YouTube access token")
+      result = await attemptUpload(accessToken)
     }
-
-    // REAL implementation would need following for the video content:
-    /*
-    const uploadUrl = response.headers.get("Location");
-    const videoStream = await fetch(post.mediaUrl).then(res => res.body);
-    await fetch(uploadUrl, { method: "PUT", body: videoStream });
-    */
 
     return {
       success: true,
-      platformId: data.id,
+      platformId: result.id,
     }
+
   } catch (error: any) {
     console.error("Error publishing to YouTube:", error)
     return { success: false, error: error.message }

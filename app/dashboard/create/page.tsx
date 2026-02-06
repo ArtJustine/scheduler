@@ -16,11 +16,15 @@ import { cn } from "@/lib/utils"
 import { MediaUploader } from "@/components/dashboard/media-uploader"
 import { createPost } from "@/lib/firebase/posts"
 import { getSocialAccounts } from "@/lib/firebase/social-accounts"
+import { getCaptionTemplates, getHashtagGroups } from "@/lib/data-service"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, FileText, Hash } from "lucide-react"
 import { useEffect } from "react"
 import { useAuth } from "@/lib/auth-provider"
+import type { CaptionTemplate } from "@/types/caption"
+import type { HashtagGroup } from "@/types/hashtag"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
@@ -45,23 +49,33 @@ export default function CreatePostPage() {
   const [previewPlatform, setPreviewPlatform] = useState<string>("tiktok")
   const [previewView, setPreviewView] = useState<string>("mobile")
   const [youtubeAspectRatio, setYoutubeAspectRatio] = useState<"9:16" | "16:9">("16:9")
+  const [templates, setTemplates] = useState<CaptionTemplate[]>([])
+  const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([])
 
   useEffect(() => {
     async function loadPlatforms() {
       if (!user) return
       try {
-        const accounts = await getSocialAccounts()
+        const [accounts, templateData, hashtagData] = await Promise.all([
+          getSocialAccounts(),
+          getCaptionTemplates(),
+          getHashtagGroups()
+        ])
+
         const platforms = Object.entries(accounts)
           .filter(([_, data]) => data !== null)
           .map(([platform]) => platform)
 
         setConnectedPlatforms(platforms)
+        setTemplates(templateData || [])
+        setHashtagGroups(hashtagData || [])
+
         if (platforms.length > 0) {
           setSelectedPlatforms([platforms[0]])
           setPreviewPlatform(platforms[0])
         }
       } catch (err) {
-        console.error("Error loading platforms:", err)
+        console.error("Error loading initial data:", err)
       } finally {
         setIsLoading(false)
       }
@@ -269,6 +283,47 @@ export default function CreatePostPage() {
                   <Button variant="ghost" size="icon" title="Add emoji">
                     <Smile className="h-5 w-5" />
                   </Button>
+
+                  {templates.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="gap-2 px-3 text-primary hover:text-primary hover:bg-primary/5 transition-colors">
+                          <FileText className="h-4 w-4" />
+                          <span className="text-xs font-medium">Templates</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-[240px] p-2">
+                        <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider pb-1">Descriptions</DropdownMenuLabel>
+                        {templates.map((template) => (
+                          <DropdownMenuItem
+                            key={template.id}
+                            className="text-xs py-2 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md"
+                            onClick={() => setContent(prev => prev + (prev ? "\n\n" : "") + template.content)}
+                          >
+                            <FileText className="mr-2 h-3.5 w-3.5" />
+                            <span className="truncate">{template.title}</span>
+                          </DropdownMenuItem>
+                        ))}
+
+                        {hashtagGroups.length > 0 && (
+                          <>
+                            <DropdownMenuSeparator className="my-2" />
+                            <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider pb-1">Hashtag Groups</DropdownMenuLabel>
+                            {hashtagGroups.map((group) => (
+                              <DropdownMenuItem
+                                key={group.id}
+                                className="text-xs py-2 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md"
+                                onClick={() => setContent(prev => prev + (prev ? "\n" : "") + group.hashtags.map(h => `#${h}`).join(" "))}
+                              >
+                                <Hash className="mr-2 h-3.5 w-3.5" />
+                                <span className="truncate">{group.name}</span>
+                              </DropdownMenuItem>
+                            ))}
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
 
                 {/* YouTube Aspect Ratio Selection */}

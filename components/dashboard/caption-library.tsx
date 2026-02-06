@@ -53,8 +53,8 @@ export function CaptionLibrary({ templates, onAdd, onDelete }: CaptionLibraryPro
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text)
     toast({
-      title: "Caption copied",
-      description: "The caption has been copied to your clipboard.",
+      title: "Description copied",
+      description: "The description has been copied to your clipboard.",
     })
   }
 
@@ -62,21 +62,21 @@ export function CaptionLibrary({ templates, onAdd, onDelete }: CaptionLibraryPro
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Caption Library</CardTitle>
-          <CardDescription>Save and reuse your best captions</CardDescription>
+          <CardTitle>Description Library</CardTitle>
+          <CardDescription>Save and reuse your best descriptions and hashtags</CardDescription>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />
-              Add Caption
+              Add Description
             </Button>
           </DialogTrigger>
           <DialogContent>
             <form onSubmit={handleSubmit}>
               <DialogHeader>
-                <DialogTitle>Add New Caption</DialogTitle>
-                <DialogDescription>Create a new caption template for your posts.</DialogDescription>
+                <DialogTitle>Add New Description</DialogTitle>
+                <DialogDescription>Create a new description template for your posts.</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
@@ -90,12 +90,12 @@ export function CaptionLibrary({ templates, onAdd, onDelete }: CaptionLibraryPro
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="content">Caption</Label>
+                  <Label htmlFor="content">Description</Label>
                   <Textarea
                     id="content"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    placeholder="Write your caption here..."
+                    placeholder="Write your description here..."
                     required
                   />
                 </div>
@@ -110,7 +110,7 @@ export function CaptionLibrary({ templates, onAdd, onDelete }: CaptionLibraryPro
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">Save Caption</Button>
+                <Button type="submit">Save Description</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -120,9 +120,9 @@ export function CaptionLibrary({ templates, onAdd, onDelete }: CaptionLibraryPro
         <div className="space-y-4">
           {templates.length === 0 ? (
             <div className="flex h-32 flex-col items-center justify-center rounded-md border border-dashed">
-              <p className="text-sm text-muted-foreground">No captions saved yet</p>
+              <p className="text-sm text-muted-foreground">No descriptions saved yet</p>
               <Button variant="link" size="sm" onClick={() => setOpen(true)}>
-                Add your first caption
+                Add your first description
               </Button>
             </div>
           ) : (

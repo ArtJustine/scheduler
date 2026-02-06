@@ -8,11 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PlatformEngagementCard } from "@/components/dashboard/platform-engagement-card"
 import { getAnalytics } from "@/lib/data-service"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
 
 import { useAuth } from "@/lib/auth-provider"
 import { getSocialAccounts } from "@/lib/firebase/social-accounts"
-import { Eye, Users, Heart, Share2, TrendingUp, BarChart3 } from "lucide-react"
+import { Eye, Users, Heart, BarChart3 } from "lucide-react"
 
 export default function AnalyticsPage() {
   const [mounted, setMounted] = useState(false)

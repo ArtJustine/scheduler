@@ -1,9 +1,10 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BarChart, LineChart } from "@/components/dashboard/analytics-chart"
 import { PlatformEngagementCard } from "@/components/dashboard/platform-engagement-card"
 import { getAnalytics } from "@/lib/data-service"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -181,13 +182,13 @@ export default function AnalyticsPage() {
                     <PlatformEngagementCard
                       key={platform}
                       platform={platform.charAt(0).toUpperCase() + platform.slice(1)}
-                      stats={analytics.platforms[platform] || { likes: 0, comments: 0, views: 0, followers: 0 }}
+                      stats={analytics?.platforms?.[platform] || { likes: 0, comments: 0, views: 0, followers: 0 }}
                     />
                   ))
                 ) : (
                   <PlatformEngagementCard
                     platform={selectedPlatform.charAt(0).toUpperCase() + selectedPlatform.slice(1)}
-                    stats={analytics.platforms[selectedPlatform] || { likes: 0, comments: 0, views: 0, followers: 0 }}
+                    stats={analytics?.platforms?.[selectedPlatform] || { likes: 0, comments: 0, views: 0, followers: 0 }}
                   />
                 )}
               </div>

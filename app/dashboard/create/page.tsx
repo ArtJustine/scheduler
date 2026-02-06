@@ -1,13 +1,39 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
+import {
+  CalendarIcon,
+  ImageIcon,
+  Plus,
+  Video,
+  Youtube,
+  Smile,
+  FileImage,
+  Smartphone,
+  Monitor,
+  Heart,
+  MessageCircle,
+  Share2,
+  Repeat2,
+  Send,
+  Info,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Twitter,
+  Music2,
+  X,
+  ChevronDown,
+  FileText,
+  Hash,
+  Image as ImageIconLucide
+} from "lucide-react"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { CalendarIcon, ImageIcon, Plus, Video, Youtube, Smile, FileImage, Smartphone, Monitor, Heart, MessageCircle, Share2, Repeat2, Send, Info } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -19,8 +45,6 @@ import { getSocialAccounts } from "@/lib/firebase/social-accounts"
 import { getCaptionTemplates, getHashtagGroups } from "@/lib/data-service"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { ChevronDown, FileText, Hash } from "lucide-react"
-import { useEffect } from "react"
 import { useAuth } from "@/lib/auth-provider"
 import type { CaptionTemplate } from "@/types/caption"
 import type { HashtagGroup } from "@/types/hashtag"
@@ -32,6 +56,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { registerMediaMetadata } from "@/lib/firebase/media"
+import { firebaseStorage } from "@/lib/firebase-client"
+import { ref, getDownloadURL, uploadString, uploadBytes } from "firebase/storage"
 
 export default function CreatePostPage() {
   const router = useRouter()
@@ -51,24 +78,31 @@ export default function CreatePostPage() {
   const [youtubeAspectRatio, setYoutubeAspectRatio] = useState<"9:16" | "16:9">("16:9")
   const [templates, setTemplates] = useState<CaptionTemplate[]>([])
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([])
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>("")
+  const [isCapturing, setIsCapturing] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     async function loadPlatforms() {
       if (!user) return
       try {
-        const [accounts, templateData, hashtagData] = await Promise.all([
+        const [accounts, templateData, hashtagData] = await Promise.allSettled([
           getSocialAccounts(),
           getCaptionTemplates(),
           getHashtagGroups()
         ])
 
-        const platforms = Object.entries(accounts)
+        const accountsResult = accounts.status === 'fulfilled' ? accounts.value : {}
+        const templatesResult = templateData.status === 'fulfilled' ? templateData.value : []
+        const hashtagResult = hashtagData.status === 'fulfilled' ? hashtagData.value : []
+
+        const platforms = Object.entries(accountsResult)
           .filter(([_, data]) => data !== null)
           .map(([platform]) => platform)
 
         setConnectedPlatforms(platforms)
-        setTemplates(templateData || [])
-        setHashtagGroups(hashtagData || [])
+        setTemplates(templatesResult || [])
+        setHashtagGroups(hashtagResult || [])
 
         if (platforms.length > 0) {
           setSelectedPlatforms([platforms[0]])
@@ -87,9 +121,7 @@ export default function CreatePostPage() {
     setSelectedPlatforms(prev => {
       if (prev.includes(platform)) {
         const newPlatforms = prev.filter(p => p !== platform)
-        // Ensure at least one platform is selected
         if (newPlatforms.length === 0) return prev
-        // Update preview platform if current one was removed
         if (previewPlatform === platform && newPlatforms.length > 0) {
           setPreviewPlatform(newPlatforms[0])
         }
@@ -100,61 +132,121 @@ export default function CreatePostPage() {
     })
   }
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    setError(null)
+  const handleMediaUpload = (url: string) => {
+    setMediaUrl(url)
+  }
 
-    if (!content || selectedPlatforms.length === 0) {
-      setError("Please add content and select at least one platform")
-      return
-    }
-
+  const captureFrame = async () => {
+    if (!videoRef.current || !user || !firebaseStorage) return
+    setIsCapturing(true)
     try {
-      setIsSubmitting(true)
+      const video = videoRef.current
+      const canvas = document.createElement("canvas")
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const ctx = canvas.getContext("2d")
+      if (!ctx) throw new Error("Could not get canvas context")
 
-      // Combine date and time
-      const scheduledDateTime = scheduledDate ? new Date(scheduledDate) : new Date()
-      if (scheduledTime) {
-        const [hours, minutes] = scheduledTime.split(":")
-        scheduledDateTime.setHours(parseInt(hours), parseInt(minutes))
-      }
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.8)
 
-      // Create posts for each selected platform
-      for (const platform of selectedPlatforms) {
-        await createPost({
-          title: content.substring(0, 50), // Use first 50 chars as title
-          description: content,
-          platform,
-          contentType: mediaUrl ? "media" : "text",
-          mediaUrl,
-          scheduledFor: scheduledDateTime.toISOString(),
-          status: "scheduled",
-          aspectRatio: platform === "youtube" ? youtubeAspectRatio : undefined,
-        })
-      }
+      const timestamp = Date.now()
+      const storageRef = ref(firebaseStorage, `thumbnails/${user.uid}/${timestamp}_frame.jpg`)
+      await uploadString(storageRef, dataUrl, 'data_url')
+      const downloadURL = await getDownloadURL(storageRef)
 
-      // Redirect to the dashboard
-      router.push("/dashboard")
+      setThumbnailUrl(downloadURL)
+
+      await registerMediaMetadata({
+        url: downloadURL,
+        title: "Video Frame Thumbnail",
+        type: "image",
+        fileName: "frame.jpg",
+        fileSize: Math.round(dataUrl.length * 0.75),
+        storagePath: storageRef.fullPath,
+      })
     } catch (error) {
-      console.error("Error creating post:", error)
-      setError("Failed to create post. Please try again.")
+      console.error("Error capturing frame:", error)
     } finally {
-      setIsSubmitting(false)
+      setIsCapturing(false)
     }
   }
 
-  const handleMediaUpload = (url: string) => {
-    setMediaUrl(url)
+  const handleThumbnailUpload = async (file: File) => {
+    if (!user || !firebaseStorage) return
+    try {
+      const timestamp = Date.now()
+      const fileName = `thumb_${timestamp}_${file.name}`
+      const storageRef = ref(firebaseStorage, `thumbnails/${user.uid}/${fileName}`)
+
+      await uploadBytes(storageRef, file)
+      const downloadURL = await getDownloadURL(storageRef)
+
+      setThumbnailUrl(downloadURL)
+
+      await registerMediaMetadata({
+        url: downloadURL,
+        title: `Thumbnail: ${file.name}`,
+        type: "image",
+        fileName: file.name,
+        fileSize: file.size,
+        storagePath: storageRef.fullPath,
+      })
+    } catch (error) {
+      console.error("Error uploading thumbnail:", error)
+    }
   }
 
   const getPlatformIcon = (plat: string) => {
     switch (plat.toLowerCase()) {
       case "tiktok":
-        return <Video className="h-5 w-5" />
+        return <Music2 className="h-5 w-5" />
       case "youtube":
-        return <Youtube className="h-5 w-5" />
+        return <Youtube className="h-5 w-5 text-red-600" />
+      case "instagram":
+        return <Instagram className="h-5 w-5 text-pink-600" />
+      case "facebook":
+        return <Facebook className="h-5 w-5 text-blue-600" />
+      case "linkedin":
+        return <Linkedin className="h-5 w-5 text-blue-700" />
+      case "twitter":
+        return <Twitter className="h-5 w-5 text-sky-500" />
       default:
-        return null
+        return <Share2 className="h-5 w-5" />
+    }
+  }
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    if (!user) return
+
+    setIsSubmitting(true)
+    setError(null)
+
+    try {
+      const postData = {
+        content,
+        platforms: selectedPlatforms,
+        mediaUrl,
+        thumbnailUrl,
+        scheduledFor: scheduledDate ? new Date(
+          scheduledDate.getFullYear(),
+          scheduledDate.getMonth(),
+          scheduledDate.getDate(),
+          parseInt(scheduledTime.split(":")[0]),
+          parseInt(scheduledTime.split(":")[1])
+        ).toISOString() : new Date().toISOString(),
+        status: "scheduled" as const,
+        youtubeAspectRatio: selectedPlatforms.includes("youtube") ? youtubeAspectRatio : undefined
+      }
+
+      await createPost(postData as any)
+      router.push("/dashboard/calendar")
+    } catch (err: any) {
+      console.error("Error creating post:", err)
+      setError(err.message || "Failed to create post")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -187,7 +279,7 @@ export default function CreatePostPage() {
                   variant={isPlatformSelected(platform) ? "default" : "outline"}
                   size="icon"
                   className={cn(
-                    "rounded-full h-12 w-12 transition-all",
+                    "rounded-full h-12 w-12 transition-all shadow-sm",
                     isPlatformSelected(platform) && "ring-2 ring-primary ring-offset-2 ring-offset-background"
                   )}
                   onClick={() => togglePlatform(platform)}
@@ -205,18 +297,18 @@ export default function CreatePostPage() {
               </div>
             ))}
             <Button
-              variant="outline"
+              variant="default"
               size="icon"
-              className="rounded-full h-12 w-12"
+              className="rounded-full h-12 w-12 bg-primary text-white shadow-md hover:scale-105 transition-transform"
               title="Add platform"
               onClick={() => router.push("/dashboard/connections")}
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-6 w-6" />
             </Button>
           </div>
 
           {/* Main Content Card */}
-          <Card>
+          <Card className="shadow-sm border-muted/20">
             <CardContent className="p-0">
               {/* Content Area */}
               <div className="relative">
@@ -224,19 +316,19 @@ export default function CreatePostPage() {
                   placeholder="What's on your mind?"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[300px] border-0 resize-none text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="min-h-[300px] border-0 resize-none text-base focus-visible:ring-0 focus-visible:ring-offset-0 px-6 py-6"
                 />
 
                 {/* Character count */}
-                <div className="absolute bottom-4 right-4 text-xs text-muted-foreground">
+                <div className="absolute bottom-4 right-6 text-[10px] font-medium text-muted-foreground bg-white/80 px-2 py-1 rounded">
                   {content.length} / 500
                 </div>
               </div>
 
               {/* Media Preview */}
               {mediaUrl && (
-                <div className="px-4 pb-4">
-                  <div className="border rounded-md overflow-hidden relative">
+                <div className="px-6 pb-6">
+                  <div className="border rounded-xl overflow-hidden relative group bg-black/5">
                     {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                       <img
                         src={mediaUrl}
@@ -244,63 +336,122 @@ export default function CreatePostPage() {
                         className="w-full h-auto max-h-[400px] object-contain"
                       />
                     ) : (
-                      <video
-                        src={mediaUrl}
-                        controls
-                        className="w-full h-auto max-h-[400px] object-contain"
-                      />
+                      <div className="relative">
+                        <video
+                          ref={videoRef}
+                          src={mediaUrl}
+                          controls
+                          className="w-full h-auto max-h-[400px] object-contain mx-auto"
+                        />
+                        <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="text-[10px] h-8 gap-2 shadow-lg bg-white/95"
+                            onClick={captureFrame}
+                            disabled={isCapturing}
+                          >
+                            <ImageIconLucide className="h-3.5 w-3.5" />
+                            {isCapturing ? "Capturing..." : "Set Frame as Thumbnail"}
+                          </Button>
+                        </div>
+                      </div>
                     )}
                     <Button
                       variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={() => setMediaUrl("")}
+                      size="icon"
+                      className="absolute top-4 right-4 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity rounded-full shadow-lg"
+                      onClick={() => {
+                        setMediaUrl("")
+                        setThumbnailUrl("")
+                      }}
                     >
-                      Remove
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-              )}
 
-              {/* Media Uploader */}
-              {showMediaUploader && (
-                <div className="px-4 pb-4">
-                  <MediaUploader onUpload={handleMediaUpload} />
+                  {/* Thumbnail Section */}
+                  {(thumbnailUrl || (mediaUrl && !mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i))) && (
+                    <div className="mt-6 p-4 border rounded-xl bg-muted/20 border-muted/30">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider mb-3 block">Video Thumbnail</label>
+                      <div className="flex items-start gap-4">
+                        <div className="relative w-40 aspect-video border rounded-lg bg-black/5 overflow-hidden shadow-inner">
+                          {thumbnailUrl ? (
+                            <>
+                              <img src={thumbnailUrl} className="w-full h-full object-cover" />
+                              <button
+                                className="absolute top-1.5 right-1.5 p-1 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors"
+                                onClick={() => setThumbnailUrl("")}
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </>
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center opacity-40">
+                              <ImageIconLucide className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-2.5">
+                          <Button variant="outline" size="sm" className="h-9 text-xs relative overflow-hidden bg-white shadow-sm border-muted/30 hover:bg-muted/10">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Custom Thumbnail
+                            <input
+                              type="file"
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) handleThumbnailUpload(file)
+                              }}
+                            />
+                          </Button>
+                          {!mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
+                            <p className="text-[10px] text-muted-foreground leading-relaxed">
+                              Upload a custom image or use the <span className="font-semibold">"Set Frame"</span> tool on the video preview.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="border-t px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="border-t px-6 py-4 flex items-center justify-between bg-muted/5">
+                <div className="flex items-center gap-3">
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="h-10 w-10 text-primary hover:bg-primary/5"
                     onClick={() => setShowMediaUploader(!showMediaUploader)}
                     title="Add media"
                   >
                     <FileImage className="h-5 w-5" />
                   </Button>
-                  <Button variant="ghost" size="icon" title="Add emoji">
+                  <Button variant="ghost" size="icon" className="h-10 w-10 text-primary hover:bg-primary/5" title="Add emoji">
                     <Smile className="h-5 w-5" />
                   </Button>
 
                   {(templates.length > 0 || hashtagGroups.length > 0) && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="gap-2 px-3 text-primary hover:text-primary hover:bg-primary/5 transition-colors">
+                        <Button variant="ghost" size="sm" className="gap-2 px-4 h-10 text-primary hover:text-primary hover:bg-primary/5 transition-colors border-transparent hover:border-primary/20">
                           <FileText className="h-4 w-4" />
-                          <span className="text-xs font-medium">Library</span>
+                          <span className="text-xs font-semibold">Library</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-[240px] p-2">
-                        <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider pb-1">Descriptions</DropdownMenuLabel>
+                      <DropdownMenuContent align="start" className="w-[260px] p-2">
+                        <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest px-2 py-2">Descriptions</DropdownMenuLabel>
                         {templates.map((template) => (
                           <DropdownMenuItem
                             key={template.id}
-                            className="text-xs py-2 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md"
+                            className="text-xs py-2.5 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md px-3"
                             onClick={() => setContent(prev => prev + (prev ? "\n\n" : "") + template.content)}
                           >
-                            <FileText className="mr-2 h-3.5 w-3.5" />
+                            <FileText className="mr-2.5 h-3.5 w-3.5" />
                             <span className="truncate">{template.title}</span>
                           </DropdownMenuItem>
                         ))}
@@ -308,14 +459,14 @@ export default function CreatePostPage() {
                         {hashtagGroups.length > 0 && (
                           <>
                             <DropdownMenuSeparator className="my-2" />
-                            <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider pb-1">Hashtag Groups</DropdownMenuLabel>
+                            <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest px-2 py-2">Hashtag Groups</DropdownMenuLabel>
                             {hashtagGroups.map((group) => (
                               <DropdownMenuItem
                                 key={group.id}
-                                className="text-xs py-2 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md"
+                                className="text-xs py-2.5 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md px-3"
                                 onClick={() => setContent(prev => prev + (prev ? "\n" : "") + group.hashtags.map(h => `#${h}`).join(" "))}
                               >
-                                <Hash className="mr-2 h-3.5 w-3.5" />
+                                <Hash className="mr-2.5 h-3.5 w-3.5" />
                                 <span className="truncate">{group.name}</span>
                               </DropdownMenuItem>
                             ))}
@@ -328,18 +479,18 @@ export default function CreatePostPage() {
 
                 {/* YouTube Aspect Ratio Selection */}
                 {selectedPlatforms.includes("youtube") && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold">Format:</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Format:</span>
                     <Select
                       value={youtubeAspectRatio}
                       onValueChange={(val: "9:16" | "16:9") => setYoutubeAspectRatio(val)}
                     >
-                      <SelectTrigger className="h-8 w-[120px] text-[10px] bg-muted/50 border-0">
+                      <SelectTrigger className="h-9 w-[130px] text-[10px] bg-white border-muted/30 shadow-sm font-medium">
                         <SelectValue placeholder="Select ratio" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="9:16" className="text-[10px]">Shorts (9:16)</SelectItem>
-                        <SelectItem value="16:9" className="text-[10px]">Video (16:9)</SelectItem>
+                        <SelectItem value="9:16" className="text-[10px] py-2">Shorts (9:16)</SelectItem>
+                        <SelectItem value="16:9" className="text-[10px] py-2">Video (16:9)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -348,425 +499,169 @@ export default function CreatePostPage() {
             </CardContent>
           </Card>
 
-          {/* Guidelines Section - Dynamically updates based on selected platforms */}
-          <Card className="border-[0.5px]">
-            <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 hover:bg-muted/50 transition-colors">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <span>Guidelines</span>
-                  {selectedPlatforms.length > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      ({selectedPlatforms.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(', ')})
-                    </span>
-                  )}
-                </div>
-                <ChevronDown className="h-4 w-4 transition-transform duration-200" />
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent className="pt-2 pb-3 space-y-4">
-                  {/* General Guidelines */}
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold">Content Guidelines</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                      <li>Keep your content engaging and authentic</li>
-                      <li>Use relevant hashtags to increase visibility</li>
-                      <li>Post consistently to grow your audience</li>
-                      <li>Engage with comments and build community</li>
-                      <li>Optimize posting times for your audience</li>
-                    </ul>
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold">Best Practices</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                      <li>Use high-quality images and videos</li>
-                      <li>Write compelling captions that tell a story</li>
-                      <li>Include a clear call-to-action</li>
-                      <li>Stay on-brand with your messaging</li>
-                    </ul>
-                  </div>
-
-                  {/* Platform-specific guidelines */}
-                  {selectedPlatforms.includes("tiktok") && (
-                    <>
-                      <div className="border-t pt-3 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Video className="h-4 w-4" />
-                          <h4 className="text-sm font-semibold">TikTok Guidelines</h4>
-                        </div>
-                        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                          <li>Optimal video length: 15-60 seconds</li>
-                          <li>Use trending sounds and hashtags</li>
-                          <li>Hook viewers in the first 3 seconds</li>
-                          <li>Add captions for accessibility</li>
-                          <li>Post 1-4 times per day for best engagement</li>
-                        </ul>
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-semibold">TikTok Video Requirements</h4>
-                        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                          <li>Aspect ratio: 9:16 (vertical)</li>
-                          <li>Resolution: 1080x1920 minimum</li>
-                          <li>Format: MP4 or MOV</li>
-                          <li>Max file size: 287.6 MB</li>
-                        </ul>
-                      </div>
-                    </>
-                  )}
-
-                  {selectedPlatforms.includes("youtube") && (
-                    <>
-                      <div className="border-t pt-3 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Youtube className="h-4 w-4" />
-                          <h4 className="text-sm font-semibold">YouTube Guidelines</h4>
-                        </div>
-                        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                          <li>Create attention-grabbing titles (max 100 chars)</li>
-                          <li>Use custom thumbnails for better CTR</li>
-                          <li>Add video chapters for longer content</li>
-                          <li>Optimize description with keywords</li>
-                          <li>Include end screens and cards</li>
-                        </ul>
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-semibold">YouTube Video Requirements</h4>
-                        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                          <li>Aspect ratio: 16:9 for regular videos</li>
-                          <li>Resolution: 1080p or higher recommended</li>
-                          <li>Format: MP4, MOV, AVI, FLV, WMV</li>
-                          <li>Max file size: 256 GB</li>
-                        </ul>
-                      </div>
-                    </>
-                  )}
+          {/* Media Uploader Section */}
+          <Collapsible open={showMediaUploader} onOpenChange={setShowMediaUploader}>
+            <CollapsibleContent className="space-y-4">
+              <Card className="shadow-sm border-dashed">
+                <CardContent className="p-6">
+                  <MediaUploader onUpload={handleMediaUpload} />
                 </CardContent>
-              </CollapsibleContent>
-            </Collapsible>
-          </Card>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
 
-          {/* Error Message */}
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Footer Actions */}
-          <div className="flex items-center justify-between py-4">
-            <Button
-              variant="ghost"
-              onClick={() => router.push("/dashboard")}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-
-            <div className="flex items-center gap-3">
-              {/* Date Time Picker */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {scheduledDate ? format(scheduledDate, "MMM dd, yyyy") : "Select date"} {scheduledTime}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    mode="single"
-                    selected={scheduledDate}
-                    onSelect={setScheduledDate}
-                    initialFocus
-                  />
-                  <div className="p-3 border-t">
-                    <label className="text-sm font-medium mb-2 block">Time</label>
-                    <input
-                      type="time"
-                      value={scheduledTime}
-                      onChange={(e) => setScheduledTime(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md"
-                    />
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              {/* Schedule Button */}
-              <Button
-                onClick={() => handleSubmit()}
-                disabled={isSubmitting || !content}
-              >
-                {isSubmitting ? "Scheduling..." : "Schedule"}
+          {/* Guidelines Section */}
+          <Collapsible className="w-full">
+            <CollapsibleTrigger asChild>
+              <Button variant="default" className="w-full h-12 justify-between px-6 bg-primary text-white hover:bg-primary/90 rounded-xl shadow-sm">
+                <span className="font-semibold tracking-tight">Guidelines</span>
+                <ChevronDown className="h-5 w-5" />
               </Button>
-            </div>
-          </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-2 px-1">
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                      <Music2 className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm">TikTok Best Practices</h4>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Keep videos between 15-60 seconds and use trending hashtags for better reach.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <div className="bg-red-50 p-2 rounded-lg text-red-600">
+                      <Youtube className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm">YouTube Shorts</h4>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Ensure content is vertical (9:16) and under 60 seconds to be categorized as a Short.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
-        {/* End Left Column */}
 
-        {/* Right Column - Preview Section */}
-        <div className="hidden lg:block space-y-4">
-          <div className="sticky top-6">
-            {/* Preview Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Preview</h2>
-              {selectedPlatforms.length > 0 && (
-                <div className="flex items-center gap-2">
-                  {selectedPlatforms.map((platform) => (
-                    <div key={platform} className="relative">
-                      <Button
-                        variant={previewPlatform === platform ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => setPreviewPlatform(platform)}
-                        className={cn(
-                          "text-xs transition-all",
-                          previewPlatform === platform && "ring-2 ring-primary/20"
-                        )}
-                      >
-                        {getPlatformIcon(platform)}
-                        <span className="ml-1 capitalize">{platform}</span>
-                      </Button>
-                      {previewPlatform === platform && (
-                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 bg-primary rounded-full"></div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Preview Tabs */}
-            <Tabs defaultValue="mobile" value={previewView} onValueChange={setPreviewView} className="w-full">
-              <div className="flex items-center justify-center mb-4">
-                <div className="inline-flex items-center gap-2 p-0.5">
-                  <button
-                    onClick={() => setPreviewView("mobile")}
-                    className={cn(
-                      "relative inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium transition-all border",
-                      previewView === "mobile"
-                        ? "border-primary bg-primary/10 text-foreground shadow-sm"
-                        : "border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
-                    )}
-                  >
-                    <Smartphone className="h-3.5 w-3.5 mr-1.5" />
-                    Mobile
-                    {previewView === "mobile" && (
-                      <div className="absolute -bottom-[1px] left-1/2 -translate-x-1/2 h-[2px] w-12 bg-primary rounded-full"></div>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setPreviewView("desktop")}
-                    className={cn(
-                      "relative inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium transition-all border",
-                      previewView === "desktop"
-                        ? "border-primary bg-primary/10 text-foreground shadow-sm"
-                        : "border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
-                    )}
-                  >
-                    <Monitor className="h-3.5 w-3.5 mr-1.5" />
-                    Desktop
-                    {previewView === "desktop" && (
-                      <div className="absolute -bottom-[1px] left-1/2 -translate-x-1/2 h-[2px] w-12 bg-primary rounded-full"></div>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Mobile Preview */}
-              <TabsContent value="mobile" className="mt-0">
-                <Card className="overflow-hidden">
-                  <CardContent className="p-0">
-                    {/* Mobile Device Frame */}
-                    <div className="bg-muted/30 p-4">
-                      <div className="bg-background border-4 border-muted rounded-[2rem] shadow-xl mx-auto max-w-[280px] overflow-hidden">
-                        {/* Status Bar */}
-                        <div className="bg-background px-4 py-2 flex items-center justify-between text-xs border-b">
-                          <span>9:41</span>
-                          <span className="text-[10px] font-medium capitalize">
-                            {selectedPlatforms.length > 1 ? previewPlatform : selectedPlatforms[0]}
-                          </span>
-                          <div className="flex gap-1 items-center">
-                            <div className="text-xs">●●●●</div>
-                          </div>
-                        </div>
-
-                        {/* Post Preview */}
-                        <div className="bg-background">
-                          {/* User Header */}
-                          <div className="px-3 py-2 flex items-center gap-2 border-b">
-                            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                              <span className="text-xs font-medium">You</span>
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-xs font-semibold">Your Account</p>
-                              <p className="text-[10px] text-muted-foreground">Just now</p>
-                            </div>
-                          </div>
-
-                          {/* Media Preview */}
-                          {mediaUrl ? (
-                            <div className={cn(
-                              "bg-muted flex items-center justify-center overflow-hidden transition-all duration-300",
-                              (previewPlatform === "youtube" && youtubeAspectRatio === "16:9") ? "aspect-video" : "aspect-[9/16]"
-                            )}>
-                              {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                <img
-                                  src={mediaUrl}
-                                  alt="Preview"
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <video
-                                  src={mediaUrl}
-                                  className="w-full h-full object-cover"
-                                />
-                              )}
-                            </div>
-                          ) : (
-                            <div className={cn(
-                              "bg-muted flex items-center justify-center transition-all duration-300",
-                              (previewPlatform === "youtube" && youtubeAspectRatio === "16:9") ? "aspect-video" : "aspect-[9/16]"
-                            )}>
-                              <div className="text-center text-muted-foreground">
-                                <FileImage className="h-8 w-8 mx-auto mb-2" />
-                                <p className="text-xs">No media</p>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Content */}
-                          {content && (
-                            <div className="px-3 py-2 border-t">
-                              <p className="text-xs line-clamp-3">{content}</p>
-                            </div>
-                          )}
-
-                          {/* Actions */}
-                          <div className="px-3 py-2 flex items-center justify-between border-t">
-                            <div className="flex items-center gap-4">
-                              <Heart className="h-4 w-4 text-foreground/70" />
-                              <MessageCircle className="h-4 w-4 text-foreground/70" />
-                              <Share2 className="h-4 w-4 text-foreground/70" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Info Alert */}
-                <Alert className="mt-4">
-                  <Info className="h-4 w-4" />
-                  <AlertDescription className="text-xs">
-                    Previews are an approximation of how your post will look when published. The final post may look slightly different.
-                  </AlertDescription>
-                </Alert>
-              </TabsContent>
-
-              {/* Desktop Preview */}
-              <TabsContent value="desktop" className="mt-0">
-                <Card className="overflow-hidden">
-                  <CardContent className="p-4">
-                    {/* Desktop Browser Frame */}
-                    <div className="border rounded-lg overflow-hidden shadow-lg">
-                      {/* Browser Bar */}
-                      <div className="bg-muted px-3 py-2 flex items-center gap-2 border-b">
-                        <div className="flex gap-1.5">
-                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                          <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        </div>
-                        <div className="flex-1 text-center">
-                          <div className="text-[10px] text-muted-foreground">
-                            {selectedPlatforms.length > 1 ? previewPlatform : selectedPlatforms[0]}.com
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Post Content */}
-                      <div className="bg-background">
-                        {/* User Header */}
-                        <div className="px-4 py-3 flex items-center gap-3 border-b">
-                          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                            <span className="text-sm font-medium">You</span>
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-semibold">Your Account</p>
-                            <p className="text-xs text-muted-foreground">Just now</p>
-                          </div>
-                        </div>
-
-                        {/* Media Preview */}
-                        {mediaUrl ? (
-                          <div className={cn(
-                            "bg-muted flex items-center justify-center overflow-hidden transition-all duration-300",
-                            (previewPlatform === "youtube" && youtubeAspectRatio === "9:16") ? "aspect-[9/16] max-h-[500px]" : "aspect-video"
-                          )}>
-                            {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                              <img
-                                src={mediaUrl}
-                                alt="Preview"
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <video
-                                src={mediaUrl}
-                                className="w-full h-full object-cover"
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          <div className={cn(
-                            "bg-muted flex items-center justify-center transition-all duration-300",
-                            (previewPlatform === "youtube" && youtubeAspectRatio === "9:16") ? "aspect-[9/16] max-h-[500px]" : "aspect-video"
-                          )}>
-                            <div className="text-center text-muted-foreground">
-                              <FileImage className="h-12 w-12 mx-auto mb-2" />
-                              <p className="text-sm">No media uploaded</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Content */}
-                        {content && (
-                          <div className="px-4 py-3 border-t">
-                            <p className="text-sm">{content}</p>
-                          </div>
-                        )}
-
-                        {/* Actions */}
-                        <div className="px-4 py-3 flex items-center gap-6 border-t">
-                          <div className="flex items-center gap-2 text-sm text-foreground/70">
-                            <Heart className="h-5 w-5" />
-                            <span>Like</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-foreground/70">
-                            <MessageCircle className="h-5 w-5" />
-                            <span>Comment</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-foreground/70">
-                            <Share2 className="h-5 w-5" />
-                            <span>Share</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Info Alert */}
-                <Alert className="mt-4">
-                  <Info className="h-4 w-4" />
-                  <AlertDescription className="text-xs">
-                    Previews are an approximation of how your post will look when published. The final post may look slightly different.
-                  </AlertDescription>
-                </Alert>
-              </TabsContent>
+        {/* Right Column - Preview */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold tracking-tight">Preview</h2>
+            <Tabs value={previewView} onValueChange={setPreviewView} className="w-auto">
+              <TabsList className="bg-muted/50">
+                <TabsTrigger value="mobile" className="gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+                  <Smartphone className="h-4 w-4" />
+                  <span className="text-xs">Mobile</span>
+                </TabsTrigger>
+                <TabsTrigger value="desktop" className="gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+                  <Monitor className="h-4 w-4" />
+                  <span className="text-xs">Desktop</span>
+                </TabsTrigger>
+              </TabsList>
             </Tabs>
           </div>
+
+          <Tabs value={previewPlatform} onValueChange={setPreviewPlatform} className="w-full">
+            <TabsContent value="tiktok" className="mt-0">
+              <div className={cn(
+                "relative mx-auto border-[8px] border-gray-900 rounded-[3rem] overflow-hidden shadow-2xl transition-all duration-300",
+                previewView === "mobile" ? "w-[320px] h-[640px]" : "w-full h-[500px] border-none rounded-xl"
+              )}>
+                <div className="absolute inset-0 bg-black">
+                  {mediaUrl && !mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                    <video src={mediaUrl} className="w-full h-full object-cover opacity-50" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                      <Music2 className="h-12 w-12 text-gray-800" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Mobile UI Overlay */}
+                {previewView === "mobile" && (
+                  <div className="absolute inset-0 p-6 flex flex-col justify-end text-white pb-12">
+                    <div className="space-y-2 mb-4">
+                      <p className="font-bold">@youraccount</p>
+                      <p className="text-sm line-clamp-3">{content || "What's on your mind?"}</p>
+                    </div>
+                    <div className="absolute right-4 bottom-24 flex flex-col items-center gap-6">
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="bg-white/20 p-2 rounded-full backdrop-blur-md"><Heart className="h-6 w-6" /></div>
+                        <span className="text-xs">0</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="bg-white/20 p-2 rounded-full backdrop-blur-md"><MessageCircle className="h-6 w-6" /></div>
+                        <span className="text-xs">0</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="bg-white/20 p-2 rounded-full backdrop-blur-md"><Share2 className="h-6 w-6" /></div>
+                        <span className="text-xs">0</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="youtube" className="mt-0">
+              <div className={cn(
+                "mx-auto border rounded-xl overflow-hidden shadow-lg bg-white",
+                previewView === "mobile" ? "w-[320px]" : "w-full"
+              )}>
+                <div className={cn(
+                  "bg-black relative",
+                  youtubeAspectRatio === "9:16" ? "aspect-[9/16]" : "aspect-video"
+                )}>
+                  {thumbnailUrl ? (
+                    <img src={thumbnailUrl} className="w-full h-full object-cover" />
+                  ) : mediaUrl ? (
+                    mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ?
+                      <img src={mediaUrl} className="w-full h-full object-contain" /> :
+                      <video src={mediaUrl} className="w-full h-full object-cover opacity-50" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Youtube className="h-12 w-12 text-red-600 opacity-20" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-100 rounded w-3/4 animate-pulse"></div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gray-100"></div>
+                    <div className="space-y-1">
+                      <div className="h-3 bg-gray-100 rounded w-24"></div>
+                      <div className="h-2 bg-gray-50 rounded w-16"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <Button
+            className="w-full h-14 text-lg font-bold shadow-lg rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => handleSubmit()}
+            disabled={isSubmitting || !content || selectedPlatforms.length === 0}
+          >
+            {isSubmitting ? (
+              <>
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
+                Scheduling...
+              </>
+            ) : (
+              "Schedule Post"
+            )}
+          </Button>
+
+          {error && (
+            <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
+              <Info className="h-4 w-4" />
+              <AlertDescription className="text-xs font-medium ml-2">{error}</AlertDescription>
+            </Alert>
+          )}
         </div>
-        {/* End Right Column */}
       </div>
     </div>
   )

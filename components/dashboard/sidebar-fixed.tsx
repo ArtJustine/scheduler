@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTheme } from "next-themes"
 import {
   BarChart3,
   Calendar,
@@ -121,6 +122,12 @@ export function DashboardSidebar() {
   const { user: authUser, loading: authLoading } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   const [connectedAccounts, setConnectedAccounts] = useState<any>({})
 
   useEffect(() => {
@@ -180,7 +187,15 @@ export function DashboardSidebar() {
     <Sidebar>
       <SidebarHeader className="flex items-center px-6 pt-10 pb-8">
         <Link href="/dashboard" className="flex items-center space-x-3">
-          <Calendar className="h-7 w-7 text-primary" />
+          {mounted ? (
+            <img
+              src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo-light.png'}
+              alt="Chiyu Logo"
+              className="h-8 w-8 object-contain"
+            />
+          ) : (
+            <div className="h-8 w-8 bg-muted animate-pulse rounded" />
+          )}
           <span className="text-2xl font-bold font-heading tracking-tight">Chiyu</span>
         </Link>
       </SidebarHeader>

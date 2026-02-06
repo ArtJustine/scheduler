@@ -7,13 +7,20 @@ import { ModeToggle } from "@/components/mode-toggle"
 import { useAuth } from "@/lib/auth-provider"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useTheme } from "next-themes"
 
 export function SiteHeader() {
     const { user } = useAuth()
     const pathname = usePathname()
     const isLandingPage = pathname === "/" || pathname === "/features" || pathname === "/about" || pathname === "/blog" || pathname === "/waitlist" || pathname === "/login" || pathname === "/signup"
     const isDashboard = pathname?.startsWith("/dashboard")
+    const { resolvedTheme } = useTheme()
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     if (isLandingPage && !isDashboard) {
         return (
@@ -22,8 +29,16 @@ export function SiteHeader() {
                     {/* Logo - Top Left */}
                     <div className="pointer-events-auto">
                         <Link href="/" className="flex items-center space-x-3 group animate-in fade-in slide-in-from-left-4 duration-700">
-                            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                                <Calendar className="h-6 w-6 text-white" />
+                            <div className="w-10 h-10 bg-transparent flex items-center justify-center group-hover:scale-105 transition-transform">
+                                {mounted ? (
+                                    <img
+                                        src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo-light.png'}
+                                        alt="Chiyu"
+                                        className="h-10 w-10 object-contain"
+                                    />
+                                ) : (
+                                    <div className="h-10 w-10 bg-muted animate-pulse rounded" />
+                                )}
                             </div>
                             <span className="text-2xl font-bold font-heading tracking-tighter text-slate-900 dark:text-white drop-shadow-sm">
                                 Chiyu<span className="text-xs align-top ml-0.5">™</span>
@@ -53,7 +68,15 @@ export function SiteHeader() {
                                 <SheetContent side="right" className="w-[300px]">
                                     <SheetHeader className="text-left">
                                         <SheetTitle className="flex items-center space-x-2">
-                                            <Calendar className="h-6 w-6 text-primary" />
+                                            {mounted ? (
+                                                <img
+                                                    src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo-light.png'}
+                                                    alt="Chiyu"
+                                                    className="h-8 w-8 object-contain"
+                                                />
+                                            ) : (
+                                                <div className="h-8 w-8 bg-muted animate-pulse rounded" />
+                                            )}
                                             <span className="text-xl font-bold">Chiyu</span>
                                         </SheetTitle>
                                     </SheetHeader>

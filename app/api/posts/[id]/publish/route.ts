@@ -5,10 +5,10 @@ import { checkScheduledPosts } from "@/lib/scheduler-service"
 
 export async function POST(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const postId = params.id
+        const { id: postId } = await params
         if (!firebaseDb) throw new Error("Database not initialized")
 
         // For simplicity, we trigger the scheduler which will pick up this post if it's due

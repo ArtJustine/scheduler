@@ -48,6 +48,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useAuth } from "@/lib/auth-provider"
 import type { CaptionTemplate } from "@/types/caption"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { HashtagGroup } from "@/types/hashtag"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
@@ -86,6 +89,14 @@ export default function CreatePostPage() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [showMediaLibrary, setShowMediaLibrary] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+
+  // YouTube Specific Options
+  const [youtubePlaylist, setYoutubePlaylist] = useState<string>("")
+  const [youtubeMadeForKids, setYoutubeMadeForKids] = useState<boolean>(false)
+  const [youtubeAgeRestriction, setYoutubeAgeRestriction] = useState<boolean>(false)
+  const [youtubeAlteredContent, setYoutubeAlteredContent] = useState<boolean>(false)
+  const [youtubeCategory, setYoutubeCategory] = useState<string>("22") // 22 is People & Blogs default
+  const [youtubeTags, setYoutubeTags] = useState<string>("")
 
   useEffect(() => {
     async function loadPlatforms() {
@@ -676,6 +687,143 @@ export default function CreatePostPage() {
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* Scheduling Section */}
+          <Card className="shadow-sm">
+            <CardContent className="p-6">
+              <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4 text-primary" />
+                Schedule Post
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium">Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !scheduledDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {scheduledDate ? format(scheduledDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={scheduledDate}
+                        onSelect={setScheduledDate}
+                        initialFocus
+                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium">Time</label>
+                  <Input
+                    type="time"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* YouTube Specific Options */}
+          {selectedPlatforms.includes("youtube") && (
+            <Card className="shadow-sm border-l-4 border-l-red-600">
+              <CardContent className="p-6 space-y-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Youtube className="h-5 w-5 text-red-600" />
+                  <h3 className="font-semibold text-sm">YouTube Settings</h3>
+                </div>
+
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Category</Label>
+                    <Select value={youtubeCategory} onValueChange={setYoutubeCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="22">People & Blogs</SelectItem>
+                        <SelectItem value="10">Music</SelectItem>
+                        <SelectItem value="23">Comedy</SelectItem>
+                        <SelectItem value="24">Entertainment</SelectItem>
+                        <SelectItem value="20">Gaming</SelectItem>
+                        <SelectItem value="1">Film & Animation</SelectItem>
+                        <SelectItem value="2">Autos & Vehicles</SelectItem>
+                        <SelectItem value="15">Pets & Animals</SelectItem>
+                        <SelectItem value="17">Sports</SelectItem>
+                        <SelectItem value="19">Travel & Events</SelectItem>
+                        <SelectItem value="25">News & Politics</SelectItem>
+                        <SelectItem value="26">Howto & Style</SelectItem>
+                        <SelectItem value="27">Education</SelectItem>
+                        <SelectItem value="28">Science & Technology</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Playlist</Label>
+                    <Input
+                      placeholder="Enter playlist name or ID"
+                      value={youtubePlaylist}
+                      onChange={(e) => setYoutubePlaylist(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Tags (comma separated)</Label>
+                    <Input
+                      placeholder="vlog, tutorial, funny"
+                      value={youtubeTags}
+                      onChange={(e) => setYoutubeTags(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div className="flex items-center justify-between space-x-2 border rounded-lg p-3">
+                      <Label htmlFor="kids" className="text-xs font-medium cursor-pointer">Made for Kids</Label>
+                      <Switch
+                        id="kids"
+                        checked={youtubeMadeForKids}
+                        onCheckedChange={setYoutubeMadeForKids}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between space-x-2 border rounded-lg p-3">
+                      <Label htmlFor="age" className="text-xs font-medium cursor-pointer">Age Restriction</Label>
+                      <Switch
+                        id="age"
+                        checked={youtubeAgeRestriction}
+                        onCheckedChange={setYoutubeAgeRestriction}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between space-x-2 border rounded-lg p-3 col-span-full">
+                      <Label htmlFor="altered" className="text-xs font-medium cursor-pointer flex flex-col gap-1">
+                        <span>Altered Content</span>
+                        <span className="text-[10px] text-muted-foreground font-normal">Content is AI-generated or synthetically altered.</span>
+                      </Label>
+                      <Switch
+                        id="altered"
+                        checked={youtubeAlteredContent}
+                        onCheckedChange={setYoutubeAlteredContent}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
 
           {/* Guidelines Section */}
           <Collapsible className="w-full">

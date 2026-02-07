@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-provider"
+import { deletePost } from "@/lib/firebase/posts"
+import { useToast } from "@/components/ui/use-toast"
+import { cn, getPlatformColor } from "@/lib/utils"
 
 export default function CalendarPage() {
   const [posts, setPosts] = useState<PostType[]>([])
@@ -20,29 +23,55 @@ export default function CalendarPage() {
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const { toast } = useToast()
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  useEffect(() => {
-    const loadPosts = async () => {
-      if (!user) return
-      try {
-        setIsLoading(true)
-        const fetchedPosts = await getScheduledPosts(user.uid)
-        setPosts(fetchedPosts)
-      } catch (error) {
-        console.error("Error fetching posts:", error)
-      } finally {
-        setIsLoading(false)
-      }
+  const loadPosts = async () => {
+    if (!user) return
+    try {
+      setIsLoading(true)
+      const fetchedPosts = await getScheduledPosts(user.uid)
+      setPosts(fetchedPosts)
+    } catch (error) {
+      console.error("Error fetching posts:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load posts. Please try again later.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
+  }
 
+  useEffect(() => {
     if (!authLoading) {
       loadPosts()
     }
   }, [user, authLoading])
+
+  const handleDeletePost = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return
+
+    try {
+      await deletePost(id)
+      toast({
+        title: "Post deleted",
+        description: "Your post has been removed from the schedule.",
+      })
+      loadPosts()
+    } catch (error) {
+      console.error("Error deleting post:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete post. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
 
   if (!mounted) return null
 
@@ -77,13 +106,31 @@ export default function CalendarPage() {
   // Custom day content rendering for the calendar to show indicators
   const CustomDayContent = ({ date: day }: { date: Date }) => {
     const postsOnDay = getPostsForDate(day)
+    const isToday = format(new Date(), "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
 
     return (
-      <div className="relative w-full h-full flex items-center justify-center">
-        <span>{format(day, "d")}</span>
+      <div className="relative flex flex-col items-center justify-center w-full h-full pt-1">
+        <span className={cn(
+          "text-sm font-medium z-10",
+          isToday && "text-primary font-bold"
+        )}>
+          {format(day, "d")}
+        </span>
         {postsOnDay.length > 0 && (
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex justify-center">
-            <div className="h-1 w-1 rounded-full bg-red-600"></div>
+          <div className="flex gap-0.5 mt-0.5 z-10 justify-center flex-wrap max-w-[80%]">
+            {postsOnDay.slice(0, 4).map((post, i) => {
+              const colors = getPlatformColor(post.platform)
+              return (
+                <div
+                  key={post.id + i}
+                  className="h-1 w-1 rounded-full"
+                  style={{ backgroundColor: colors.text }}
+                />
+              )
+            })}
+            {postsOnDay.length > 4 && (
+              <div className="h-1 w-1 rounded-full bg-muted-foreground/50" />
+            )}
           </div>
         )}
       </div>
@@ -175,8 +222,10 @@ export default function CalendarPage() {
                 date={selectedDate || new Date()}
                 posts={postsOnSelectedDate.map((post) => ({
                   ...post,
-                  content: post.description || post.title || "",
+                  content: post.content || post.description || post.title || "",
                 }))}
+                onEdit={(id) => router.push(`/dashboard/post/${id}/edit`)}
+                onDelete={handleDeletePost}
               />
             ) : (
               <div className="text-center py-8">

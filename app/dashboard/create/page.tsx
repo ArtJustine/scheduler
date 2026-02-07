@@ -28,7 +28,8 @@ import {
   ChevronDown,
   FileText,
   Hash,
-  Image as ImageIconLucide
+  Image as ImageIconLucide,
+  Upload
 } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -47,6 +48,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useAuth } from "@/lib/auth-provider"
 import type { CaptionTemplate } from "@/types/caption"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { HashtagGroup } from "@/types/hashtag"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import {
@@ -483,15 +485,38 @@ export default function CreatePostPage() {
               {/* Action Buttons */}
               <div className="border-t px-6 py-4 flex items-center justify-between bg-muted/5">
                 <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-10 w-10 text-primary hover:bg-primary/5"
-                    onClick={() => setShowMediaUploader(!showMediaUploader)}
-                    title="Add media"
-                  >
-                    <FileImage className="h-5 w-5" />
-                  </Button>
+                  {/* Media Button - More Prominent */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 px-4 h-10 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border-primary"
+                      >
+                        <FileImage className="h-4 w-4" />
+                        <span className="text-xs font-semibold">Add Media</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-[200px] p-2" onCloseAutoFocus={(e) => e.preventDefault()}>
+                      <DropdownMenuItem
+                        className="text-xs py-2.5 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md px-3"
+                        onClick={() => setShowMediaUploader(true)}
+                      >
+                        <Upload className="mr-2.5 h-3.5 w-3.5" />
+                        <span>Upload New</span>
+                      </DropdownMenuItem>
+                      {mediaItems.length > 0 && (
+                        <DropdownMenuItem
+                          className="text-xs py-2.5 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md px-3"
+                          onClick={() => setShowMediaLibrary(true)}
+                        >
+                          <ImageIcon className="mr-2.5 h-3.5 w-3.5" />
+                          <span>From Library ({mediaItems.length})</span>
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                   <Button variant="ghost" size="icon" className="h-10 w-10 text-primary hover:bg-primary/5" title="Add emoji">
                     <Smile className="h-5 w-5" />
                   </Button>
@@ -501,21 +526,25 @@ export default function CreatePostPage() {
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="gap-2 px-4 h-10 text-primary hover:text-primary hover:bg-primary/5 transition-colors border-transparent hover:border-primary/20 bg-background/50">
                           <FileText className="h-4 w-4" />
-                          <span className="text-xs font-semibold">Library</span>
+                          <span className="text-xs font-semibold">Content Library</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-[260px] p-2">
-                        <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest px-2 py-2">Descriptions</DropdownMenuLabel>
-                        {templates.map((template) => (
-                          <DropdownMenuItem
-                            key={template.id}
-                            className="text-xs py-2.5 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md px-3"
-                            onClick={() => setContent(prev => prev + (prev ? "\n\n" : "") + template.content)}
-                          >
-                            <FileText className="mr-2.5 h-3.5 w-3.5" />
-                            <span className="truncate">{template.title}</span>
-                          </DropdownMenuItem>
-                        ))}
+                      <DropdownMenuContent align="start" className="w-[260px] p-2" onCloseAutoFocus={(e) => e.preventDefault()}>
+                        {templates.length > 0 && (
+                          <>
+                            <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest px-2 py-2">Descriptions</DropdownMenuLabel>
+                            {templates.map((template) => (
+                              <DropdownMenuItem
+                                key={template.id}
+                                className="text-xs py-2.5 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md px-3"
+                                onClick={() => setContent(prev => prev + (prev ? "\n\n" : "") + template.content)}
+                              >
+                                <FileText className="mr-2.5 h-3.5 w-3.5" />
+                                <span className="truncate">{template.title}</span>
+                              </DropdownMenuItem>
+                            ))}
+                          </>
+                        )}
 
                         {hashtagGroups.length > 0 && (
                           <>
@@ -571,6 +600,82 @@ export default function CreatePostPage() {
               </Card>
             </CollapsibleContent>
           </Collapsible>
+
+          {/* Media Library Dialog */}
+          <Dialog open={showMediaLibrary} onOpenChange={setShowMediaLibrary}>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Select from Media Library</DialogTitle>
+                <DialogDescription>
+                  Choose an existing media file from your library
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4">
+                {mediaItems.length > 0 ? (
+                  mediaItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setMediaUrl(item.url)
+                        if (item.thumbnailUrl) {
+                          setThumbnailUrl(item.thumbnailUrl)
+                        }
+                        setShowMediaLibrary(false)
+                        // If it's a video, we might want to reset aspect ratio if needed, 
+                        // but let's keep it simple for now.
+                      }}
+                      className="group relative aspect-square overflow-hidden rounded-lg border-2 border-transparent hover:border-primary transition-all focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      {item.type === "video" ? (
+                        <div className="relative w-full h-full bg-muted">
+                          {item.thumbnailUrl ? (
+                            <img
+                              src={item.thumbnailUrl}
+                              alt={item.title || "Video"}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-muted">
+                              <Video className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                            <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                              <Video className="h-5 w-5 text-white" />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <img
+                          src={item.url}
+                          alt={item.title || "Media"}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <p className="text-xs text-white font-medium truncate">{item.title || "Untitled"}</p>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12">
+                    <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-3 opacity-20" />
+                    <p className="text-sm text-muted-foreground">No media in your library yet</p>
+                    <Button
+                      variant="link"
+                      className="mt-2"
+                      onClick={() => {
+                        setShowMediaLibrary(false)
+                        setShowMediaUploader(true)
+                      }}
+                    >
+                      Upload your first media
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Guidelines Section */}
           <Collapsible className="w-full">

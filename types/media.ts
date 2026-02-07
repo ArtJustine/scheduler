@@ -8,4 +8,5 @@ export interface MediaItem {
   fileSize: number
   storagePath: string
   createdAt: string
+  thumbnailUrl?: string
 }

@@ -190,7 +190,7 @@ export function DashboardSidebar() {
     }
   }
 
-  const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({ opacity: 0, transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)" })
+  const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({ opacity: 0, transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)" })
   const [hoverStyle, setHoverStyle] = useState<React.CSSProperties>({ opacity: 0, transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" })
   const contentRef = useRef<HTMLDivElement>(null)
 
@@ -212,14 +212,14 @@ export function DashboardSidebar() {
             width: "calc(100% - 1rem)",
             left: "0.5rem",
             zIndex: 0,
-            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           })
         } else {
           setIndicatorStyle(prev => ({ ...prev, opacity: 0 }))
         }
       }
       // Small delay to ensure DOM is ready and sub-menus are expanded
-      const timer = setTimeout(updateIndicator, 150)
+      const timer = setTimeout(updateIndicator, 50)
       return () => clearTimeout(timer)
     }
   }, [mounted, pathname, currentTab, Object.keys(connectedAccounts).length])

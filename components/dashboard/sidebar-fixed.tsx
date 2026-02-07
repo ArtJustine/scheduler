@@ -188,15 +188,20 @@ export function DashboardSidebar() {
   }
 
   const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({ opacity: 0, transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)" })
+  const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (mounted) {
+    if (mounted && contentRef.current) {
       const updateIndicator = () => {
         const activeItem = document.querySelector('[data-active="true"]') as HTMLElement
-        if (activeItem) {
+        const container = contentRef.current
+        if (activeItem && container) {
+          const itemRect = activeItem.getBoundingClientRect()
+          const containerRect = container.getBoundingClientRect()
+
           setIndicatorStyle({
-            top: activeItem.offsetTop,
-            height: activeItem.offsetHeight,
+            top: itemRect.top - containerRect.top + container.scrollTop,
+            height: itemRect.height,
             opacity: 1,
             backgroundColor: "hsl(var(--primary))",
             borderRadius: "0.5rem",
@@ -215,22 +220,32 @@ export function DashboardSidebar() {
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
     const target = e.currentTarget
-    setIndicatorStyle(prev => ({
-      ...prev,
-      top: target.offsetTop,
-      height: target.offsetHeight,
-      opacity: 1,
-      backgroundColor: resolvedTheme === 'dark' ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
-    }))
+    const container = contentRef.current
+    if (container) {
+      const itemRect = target.getBoundingClientRect()
+      const containerRect = container.getBoundingClientRect()
+
+      setIndicatorStyle(prev => ({
+        ...prev,
+        top: itemRect.top - containerRect.top + container.scrollTop,
+        height: itemRect.height,
+        opacity: 1,
+        backgroundColor: resolvedTheme === 'dark' ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+      }))
+    }
   }
 
   const handleMouseLeave = () => {
     const activeItem = document.querySelector('[data-active="true"]') as HTMLElement
-    if (activeItem) {
+    const container = contentRef.current
+    if (activeItem && container) {
+      const itemRect = activeItem.getBoundingClientRect()
+      const containerRect = container.getBoundingClientRect()
+
       setIndicatorStyle(prev => ({
         ...prev,
-        top: activeItem.offsetTop,
-        height: activeItem.offsetHeight,
+        top: itemRect.top - containerRect.top + container.scrollTop,
+        height: itemRect.height,
         backgroundColor: "hsl(var(--primary))",
       }))
     } else {
@@ -260,7 +275,11 @@ export function DashboardSidebar() {
           )}
         </Link>
       </SidebarHeader>
-      <SidebarContent className="px-2 pt-4 relative" onMouseLeave={handleMouseLeave}>
+      <SidebarContent
+        ref={contentRef}
+        className="px-2 pt-4 relative scrollbar-thin scrollbar-thumb-primary/10 hover:scrollbar-thumb-primary/20 transition-colors"
+        onMouseLeave={handleMouseLeave}
+      >
         {/* Sliding Highlight Indicator */}
         <div
           className="absolute z-0 pointer-events-none"

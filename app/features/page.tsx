@@ -12,26 +12,26 @@ export default function FeaturesPage() {
             <SiteHeader />
 
             {/* Hero Section */}
-            <section className="relative w-full py-12 md:py-24 lg:py-32 pt-24 lg:pt-40 overflow-hidden bg-white dark:bg-black transition-colors duration-500">
+            <section className="relative w-full py-6 md:py-12 lg:py-16 pt-16 lg:pt-24 overflow-hidden bg-white dark:bg-black transition-colors duration-500">
                 <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute top-0 right-[-10%] w-[1000px] h-[1000px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[140px] opacity-20 animate-pulse" />
                 </div>
 
                 <div className="container relative z-10 px-6">
-                    <div className="max-w-5xl mx-auto text-center space-y-10">
-                        <div className="inline-flex items-center space-x-2 bg-primary/10 border border-primary/20 px-4 py-2 rounded-full text-primary text-sm font-bold animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="max-w-5xl mx-auto text-center space-y-6">
+                        <div className="inline-flex items-center space-x-2 bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full text-primary text-[10px] font-bold animate-in fade-in slide-in-from-bottom-4 duration-700">
                             PLATFORM CAPABILITIES
                         </div>
-                        <h1 className="text-6xl md:text-8xl lg:text-9xl font-black font-heading tracking-tighter text-slate-900 dark:text-white leading-[0.85] animate-in fade-in slide-in-from-bottom-6 duration-700">
+                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black font-heading tracking-tighter text-slate-900 dark:text-white leading-[1.1] animate-in fade-in slide-in-from-bottom-6 duration-700">
                             The Engine <br />
                             of <span className="text-primary italic">Distribution.</span>
                         </h1>
-                        <p className="text-xl md:text-3xl text-slate-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+                        <p className="text-base md:text-xl text-slate-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed font-medium animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
                             We&apos;ve engineered the world&apos;s most precise social media distribution engine. Master your presence across 12+ platforms from a single, high-performance command center.
                         </p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-200">
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-200">
                             <Link href="/signup">
-                                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-xl px-12 py-8 h-auto rounded-full shadow-2xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 border-0 font-bold">
+                                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-6 h-auto rounded-full shadow-2xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 border-0 font-bold">
                                     Get Started for Free
                                 </Button>
                             </Link>

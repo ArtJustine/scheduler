@@ -1,6 +1,6 @@
-import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, Timestamp } from "firebase/firestore"
+import { collection, addDoc, getDocs, query, where, deleteDoc, doc, Timestamp } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage"
-import { db, storage, auth } from "./config"
+import { firebaseDb as db, firebaseStorage as storage, firebaseAuth as auth } from "@/lib/firebase-client"
 import type { MediaItem } from "@/types/media"
 
 interface UploadMediaParams {
@@ -72,15 +72,27 @@ export async function getMediaLibrary() {
     throw new Error("User not authenticated")
   }
 
-  const mediaQuery = query(collection(db, "media"), where("userId", "==", user.uid), orderBy("createdAt", "desc"))
+  try {
+    const mediaQuery = query(collection(db, "media"), where("userId", "==", user.uid))
+    const snapshot = await getDocs(mediaQuery)
 
-  const snapshot = await getDocs(mediaQuery)
+    const items = snapshot.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt instanceof Timestamp
+          ? data.createdAt.toDate().toISOString()
+          : new Date().toISOString()
+      }
+    }) as MediaItem[]
 
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt.toDate().toISOString(),
-  })) as MediaItem[]
+    // Sort by createdAt desc in memory
+    return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  } catch (error) {
+    console.error("Error fetching media library:", error)
+    return []
+  }
 }
 
 export async function deleteMediaFromLibrary(mediaId: string) {
@@ -92,14 +104,14 @@ export async function deleteMediaFromLibrary(mediaId: string) {
   }
 
   // Get the media document to find the storage path
-  const mediaDoc = await doc(db, "media", mediaId)
-  const mediaSnapshot = await getDocs(query(collection(db, "media"), where("__name__", "==", mediaId)))
+  const mediaRef = doc(db, "media", mediaId)
+  const mediaDoc = await getDocs(query(collection(db, "media"), where("__name__", "==", mediaId)))
 
-  if (mediaSnapshot.empty) {
+  if (mediaDoc.empty) {
     throw new Error("Media not found")
   }
 
-  const mediaData = mediaSnapshot.docs[0].data()
+  const mediaData = mediaDoc.docs[0].data()
 
   // Verify ownership
   if (mediaData.userId !== user.uid) {
@@ -109,7 +121,9 @@ export async function deleteMediaFromLibrary(mediaId: string) {
   // Delete from storage if path exists
   if (mediaData.storagePath) {
     const storageRef = ref(storage, mediaData.storagePath)
-    await deleteObject(storageRef)
+    await deleteObject(storageRef).catch(err => {
+      console.warn("Storage item already deleted or inaccessible:", err)
+    })
   }
 
   // Delete from Firestore

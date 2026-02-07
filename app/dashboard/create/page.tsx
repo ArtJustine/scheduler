@@ -313,10 +313,15 @@ export default function CreatePostPage() {
 
             const d = new Date(scheduledDate)
             d.setHours(hours, minutes, 0, 0)
+
+            // Validate future date
+            if (d < new Date()) {
+              throw new Error("Please select a date and time in the future.")
+            }
+
             return d.toISOString()
-          } catch (e) {
-            console.error("Error formatting date:", e)
-            return new Date().toISOString()
+          } catch (e: any) {
+            throw e
           }
         })(),
         status: "scheduled" as const,
@@ -526,29 +531,39 @@ export default function CreatePostPage() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        variant="outline"
+                        variant="default"
                         size="sm"
-                        className="gap-2 px-4 h-10 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border-primary"
+                        className="gap-2 px-5 h-11 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md border-none rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                       >
-                        <FileImage className="h-4 w-4" />
-                        <span className="text-xs font-semibold">Add Media</span>
+                        <Plus className="h-5 w-5" />
+                        <span className="text-sm font-bold">Add Media</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[200px] p-2" onCloseAutoFocus={(e) => e.preventDefault()}>
+                    <DropdownMenuContent align="start" className="w-[220px] p-2 shadow-2xl border-muted/20 rounded-2xl bg-popover/95 backdrop-blur-xl">
                       <DropdownMenuItem
-                        className="text-xs py-2.5 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md px-3"
+                        className="text-sm py-3 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-xl px-4 flex items-center gap-3 font-semibold transition-colors"
                         onClick={() => setShowMediaUploader(true)}
                       >
-                        <Upload className="mr-2.5 h-3.5 w-3.5" />
-                        <span>Upload New</span>
+                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                          <Upload className="h-4 w-4" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span>Upload New</span>
+                          <span className="text-[10px] text-muted-foreground font-normal">From your device</span>
+                        </div>
                       </DropdownMenuItem>
                       {mediaItems.length > 0 && (
                         <DropdownMenuItem
-                          className="text-xs py-2.5 cursor-pointer focus:bg-primary/5 focus:text-primary rounded-md px-3"
+                          className="text-sm py-3 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-xl px-4 flex items-center gap-3 font-semibold mt-1 transition-colors"
                           onClick={() => setShowMediaLibrary(true)}
                         >
-                          <ImageIcon className="mr-2.5 h-3.5 w-3.5" />
-                          <span>From Library ({mediaItems.length})</span>
+                          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                            <ImageIcon className="h-4 w-4" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span>Media Library</span>
+                            <span className="text-[10px] text-muted-foreground font-normal">{mediaItems.length} items available</span>
+                          </div>
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>
@@ -824,7 +839,7 @@ export default function CreatePostPage() {
 
           {/* YouTube Specific Options */}
           {selectedPlatforms.includes("youtube") && (
-            <Card className="shadow-sm border-l-4 border-l-red-600">
+            <Card className="shadow-sm border-muted/20">
               <CardContent className="p-6 space-y-6">
                 <div className="flex items-center gap-2 mb-2">
                   <Youtube className="h-5 w-5 text-red-600" />

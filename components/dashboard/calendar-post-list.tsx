@@ -21,6 +21,7 @@ interface Post {
   platform: string
   scheduledFor: string
   mediaUrl?: string | null
+  thumbnailUrl?: string | null
   status?: "scheduled" | "published" | "failed" | "publishing"
 }
 
@@ -61,35 +62,37 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
         {posts.map((post) => {
           const colors = getPlatformColor(post.platform)
           const postDate = new Date(post.scheduledFor)
+          const isPast = postDate < new Date()
+          const displayStatus = (post.status === "scheduled" && isPast) ? "posted" : (post.status || "scheduled")
 
           return (
             <div key={post.id} className="group relative flex flex-col gap-3 rounded-xl border border-muted/20 bg-card p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+              <div className="flex flex-wrap items-start justify-between gap-y-2">
+                <div className="space-y-1 min-w-0 pr-2">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <div
-                      className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                      className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap"
                       style={{ backgroundColor: colors.bg, color: colors.text }}
                     >
                       {post.platform}
                     </div>
-                    <div className="flex items-center text-[10px] text-muted-foreground font-medium">
+                    <div className="flex items-center text-[10px] text-muted-foreground font-semibold whitespace-nowrap">
                       <Clock className="mr-1 h-3 w-3" />
                       <span>{formatTime(postDate)}</span>
                     </div>
                   </div>
-                  <Link href={`/dashboard/post/${post.id}`} className="block font-semibold text-sm hover:text-primary transition-colors truncate">
+                  <Link href={`/dashboard/post/${post.id}`} className="block font-bold text-sm hover:text-primary transition-colors truncate">
                     {post.title || "Untitled Post"}
                   </Link>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0 ml-auto">
                   <div className={cn(
-                    "px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest",
-                    post.status === "published" ? "bg-green-100 text-green-600" :
-                      post.status === "failed" ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"
+                    "px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest whitespace-nowrap",
+                    displayStatus === "published" || displayStatus === "posted" ? "bg-green-100 text-green-700" :
+                      displayStatus === "failed" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
                   )}>
-                    {post.status || "scheduled"}
+                    {displayStatus}
                   </div>
 
                   <DropdownMenu>
@@ -157,13 +160,31 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
               )}
 
               {post.mediaUrl && (
-                <div className="mt-1 rounded-lg overflow-hidden border border-muted/10 aspect-video bg-muted/5">
-                  {post.mediaUrl.match(/\.(mp4|mov|webm)$/i) ? (
-                    <div className="w-full h-full flex items-center justify-center bg-black/5">
-                      <Clock className="h-4 w-4 text-muted-foreground opacity-20" />
-                    </div>
+                <div className="mt-1 rounded-lg overflow-hidden border border-muted/10 aspect-video bg-muted/10 relative group-hover:border-primary/20 transition-colors">
+                  {post.thumbnailUrl ? (
+                    <img src={post.thumbnailUrl} className="w-full h-full object-cover" alt="Post thumbnail" />
+                  ) : post.mediaUrl.match(/\.(mp4|mov|webm)$/i) ? (
+                    <video
+                      src={post.mediaUrl}
+                      className="w-full h-full object-cover"
+                      preload="metadata"
+                      onMouseOver={(e) => e.currentTarget.play()}
+                      onMouseOut={(e) => {
+                        e.currentTarget.pause()
+                        e.currentTarget.currentTime = 0
+                      }}
+                      muted
+                      loop
+                    />
                   ) : (
-                    <img src={post.mediaUrl} className="w-full h-full object-cover" alt="" />
+                    <img src={post.mediaUrl} className="w-full h-full object-cover" alt="Post media" />
+                  )}
+                  {post.mediaUrl.match(/\.(mp4|mov|webm)$/i) && !post.thumbnailUrl && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
+                      <div className="h-8 w-8 rounded-full bg-black/40 flex items-center justify-center">
+                        <Clock className="h-4 w-4 text-white opacity-80" />
+                      </div>
+                    </div>
                   )}
                 </div>
               )}

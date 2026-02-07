@@ -7,6 +7,7 @@ export interface PostType {
   contentType: string
   scheduledFor: string
   mediaUrl: string | null
+  thumbnailUrl?: string | null
   status: "scheduled" | "published" | "failed"
   createdAt: string
   content?: string

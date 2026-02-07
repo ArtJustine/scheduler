@@ -187,6 +187,53 @@ export function DashboardSidebar() {
     }
   }
 
+  const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({ opacity: 0, transition: "all 0.3s ease" })
+  const [activeRef, setActiveRef] = useState<HTMLElement | null>(null)
+
+  useEffect(() => {
+    if (mounted) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        const activeItem = document.querySelector('[data-active="true"]') as HTMLElement
+        if (activeItem) {
+          setIndicatorStyle({
+            top: activeItem.offsetTop,
+            height: activeItem.offsetHeight,
+            opacity: 1,
+            backgroundColor: "hsl(var(--primary))",
+            borderRadius: "0.5rem",
+            width: "calc(100% - 1rem)",
+            left: "0.5rem",
+          })
+        }
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [mounted, pathname, currentTab])
+
+  const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
+    const target = e.currentTarget
+    setIndicatorStyle(prev => ({
+      ...prev,
+      top: target.offsetTop,
+      height: target.offsetHeight,
+      opacity: 1,
+    }))
+  }
+
+  const handleMouseLeave = () => {
+    const activeItem = document.querySelector('[data-active="true"]') as HTMLElement
+    if (activeItem) {
+      setIndicatorStyle(prev => ({
+        ...prev,
+        top: activeItem.offsetTop,
+        height: activeItem.offsetHeight,
+      }))
+    } else {
+      setIndicatorStyle(prev => ({ ...prev, opacity: 0 }))
+    }
+  }
+
   return (
     <Sidebar>
       <SidebarHeader className="flex items-center px-6 pt-10 pb-8">
@@ -209,10 +256,20 @@ export function DashboardSidebar() {
           )}
         </Link>
       </SidebarHeader>
-      <SidebarContent className="px-2 pt-4">
-        <SidebarMenu className="gap-2">
+      <SidebarContent className="px-2 pt-4 relative" onMouseLeave={handleMouseLeave}>
+        {/* Sliding Highlight Indicator */}
+        <div
+          className="absolute z-0 pointer-events-none"
+          style={{
+            ...indicatorStyle,
+            position: "absolute",
+            zIndex: 0,
+          }}
+        />
+
+        <SidebarMenu className="gap-2 z-10">
           {sidebarItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
+            <SidebarMenuItem key={item.href} onMouseEnter={handleMouseEnter}>
               {item.items ? (
                 <Collapsible defaultOpen={pathname === item.href || currentPathWithTab.startsWith(item.href)} className="group/collapsible">
                   <CollapsibleTrigger asChild>
@@ -228,7 +285,10 @@ export function DashboardSidebar() {
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.href}>
+                        <SidebarMenuSubItem key={subItem.href} onMouseEnter={(e) => {
+                          e.stopPropagation();
+                          handleMouseEnter(e);
+                        }}>
                           <SidebarMenuSubButton asChild isActive={currentPathWithTab === subItem.href}>
                             <Link href={subItem.href}>{subItem.title}</Link>
                           </SidebarMenuSubButton>
@@ -249,7 +309,7 @@ export function DashboardSidebar() {
           ))}
         </SidebarMenu>
 
-        <div className="px-3 py-4">
+        <div className="px-3 py-4 relative z-10">
           <h2 className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
             Social Channels
           </h2>
@@ -260,7 +320,7 @@ export function DashboardSidebar() {
                 .map((channel) => {
                   const display = getChannelDisplay(channel)
                   return (
-                    <SidebarMenuItem key={channel.href}>
+                    <SidebarMenuItem key={channel.href} onMouseEnter={handleMouseEnter}>
                       <SidebarMenuButton asChild isActive={pathname === channel.href} tooltip={display.title}>
                         <Link href={channel.href} className={cn("flex items-center")}>
                           {display.image ? (
@@ -282,9 +342,9 @@ export function DashboardSidebar() {
           </SidebarMenu>
         </div>
 
-        <SidebarMenu>
+        <SidebarMenu className="relative z-10">
           {settingsItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
+            <SidebarMenuItem key={item.href} onMouseEnter={handleMouseEnter}>
               <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
                 <Link href={item.href} className={cn("flex items-center")}>
                   <item.icon className="mr-2 h-5 w-5" />

@@ -75,7 +75,7 @@ export default function CreatePostPage() {
   const [showMediaUploader, setShowMediaUploader] = useState(false)
   const [previewPlatform, setPreviewPlatform] = useState<string>("tiktok")
   const [previewView, setPreviewView] = useState<string>("mobile")
-  const [youtubeAspectRatio, setYoutubeAspectRatio] = useState<"9:16" | "16:9">("16:9")
+  const [youtubeAspectRatio, setYoutubeAspectRatio] = useState<"9:16" | "16:9" | "community">("16:9")
   const [templates, setTemplates] = useState<CaptionTemplate[]>([])
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([])
   const [thumbnailUrl, setThumbnailUrl] = useState<string>("")
@@ -237,7 +237,8 @@ export default function CreatePostPage() {
           parseInt(scheduledTime.split(":")[1])
         ).toISOString() : new Date().toISOString(),
         status: "scheduled" as const,
-        youtubeAspectRatio: selectedPlatforms.includes("youtube") ? youtubeAspectRatio : undefined
+        youtubeAspectRatio: selectedPlatforms.includes("youtube") ? youtubeAspectRatio : undefined,
+        youtubePostType: selectedPlatforms.includes("youtube") ? (youtubeAspectRatio === "community" ? "community" : (mediaUrl ? "video" : "community")) : undefined
       }
 
       await createPost(postData as any)
@@ -316,11 +317,11 @@ export default function CreatePostPage() {
                   placeholder="What's on your mind?"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[300px] border-0 resize-none text-base focus-visible:ring-0 focus-visible:ring-offset-0 px-6 py-6"
+                  className="min-h-[300px] border border-muted/30 rounded-xl resize-none text-base focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 px-6 py-6 bg-transparent"
                 />
 
                 {/* Character count */}
-                <div className="absolute bottom-4 right-6 text-[10px] font-medium text-muted-foreground bg-white/80 px-2 py-1 rounded">
+                <div className="absolute bottom-4 right-6 text-[10px] font-medium text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded border border-border/50">
                   {content.length} / 500
                 </div>
               </div>
@@ -394,7 +395,7 @@ export default function CreatePostPage() {
                         </div>
 
                         <div className="flex flex-col gap-2.5">
-                          <Button variant="outline" size="sm" className="h-9 text-xs relative overflow-hidden bg-white shadow-sm border-muted/30 hover:bg-muted/10">
+                          <Button variant="outline" size="sm" className="h-9 text-xs relative overflow-hidden bg-background shadow-sm border-muted/30 hover:bg-muted/10">
                             <Plus className="mr-2 h-4 w-4" />
                             Custom Thumbnail
                             <input
@@ -438,7 +439,7 @@ export default function CreatePostPage() {
                   {(templates.length > 0 || hashtagGroups.length > 0) && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="gap-2 px-4 h-10 text-primary hover:text-primary hover:bg-primary/5 transition-colors border-transparent hover:border-primary/20">
+                        <Button variant="ghost" size="sm" className="gap-2 px-4 h-10 text-primary hover:text-primary hover:bg-primary/5 transition-colors border-transparent hover:border-primary/20 bg-background/50">
                           <FileText className="h-4 w-4" />
                           <span className="text-xs font-semibold">Library</span>
                         </Button>
@@ -485,12 +486,13 @@ export default function CreatePostPage() {
                       value={youtubeAspectRatio}
                       onValueChange={(val: "9:16" | "16:9") => setYoutubeAspectRatio(val)}
                     >
-                      <SelectTrigger className="h-9 w-[130px] text-[10px] bg-white border-muted/30 shadow-sm font-medium">
+                      <SelectTrigger className="h-9 w-[130px] text-[10px] bg-background border-muted/30 shadow-sm font-medium">
                         <SelectValue placeholder="Select ratio" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="9:16" className="text-[10px] py-2">Shorts (9:16)</SelectItem>
                         <SelectItem value="16:9" className="text-[10px] py-2">Video (16:9)</SelectItem>
+                        <SelectItem value="community" className="text-[10px] py-2">Community Post</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -607,7 +609,7 @@ export default function CreatePostPage() {
 
             <TabsContent value="youtube" className="mt-0">
               <div className={cn(
-                "mx-auto border rounded-xl overflow-hidden shadow-lg bg-white",
+                "mx-auto border rounded-xl overflow-hidden shadow-lg bg-card",
                 previewView === "mobile" ? "w-[320px]" : "w-full"
               )}>
                 <div className={cn(

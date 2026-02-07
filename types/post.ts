@@ -17,5 +17,6 @@ export interface PostType {
     shares: number
     impressions: number
   }
-  aspectRatio?: "9:16" | "16:9"
+  aspectRatio?: "9:16" | "16:9" | "community"
+  youtubePostType?: "video" | "short" | "community"
 }

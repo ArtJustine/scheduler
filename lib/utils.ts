@@ -17,11 +17,16 @@ export function formatDate(date: Date | string): string {
 
 export function formatTime(date: Date | string): string {
   const d = new Date(date)
-  return d.toLocaleTimeString("en-US", {
+  const time = d.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
   })
+
+  const offset = -d.getTimezoneOffset() / 60
+  const offsetStr = `GMT${offset >= 0 ? "+" : ""}${offset}`
+
+  return `${time} ${offsetStr}`
 }
 
 export function formatDateTime(date: Date | string): string {

@@ -97,6 +97,18 @@ export default function CreatePostPage() {
   const [youtubeAlteredContent, setYoutubeAlteredContent] = useState<boolean>(false)
   const [youtubeCategory, setYoutubeCategory] = useState<string>("22") // 22 is People & Blogs default
   const [youtubeTags, setYoutubeTags] = useState<string>("")
+  const [success, setSuccess] = useState(false)
+  const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
+
+  const timezoneOffset = (() => {
+    try {
+      const now = new Date()
+      const offset = -now.getTimezoneOffset() / 60
+      return `GMT${offset >= 0 ? "+" : ""}${offset}`
+    } catch (e) {
+      return "GMT+0"
+    }
+  })()
 
   useEffect(() => {
     async function loadPlatforms() {
@@ -308,14 +320,28 @@ export default function CreatePostPage() {
           }
         })(),
         status: "scheduled" as const,
-        youtubeAspectRatio: selectedPlatforms.includes("youtube") ? youtubeAspectRatio : undefined,
-        youtubePostType: selectedPlatforms.includes("youtube") ? (youtubeAspectRatio === "community" ? "community" : (mediaUrl ? "video" : "community")) : undefined
+        aspectRatio: youtubeAspectRatio,
+        youtubePostType: selectedPlatforms.includes("youtube") ? (youtubeAspectRatio === "community" ? "community" : (mediaUrl ? "video" : "community")) : undefined,
+        youtubeOptions: selectedPlatforms.includes("youtube") ? {
+          playlist: youtubePlaylist,
+          madeForKids: youtubeMadeForKids,
+          ageRestriction: youtubeAgeRestriction,
+          alteredContent: youtubeAlteredContent,
+          tags: youtubeTags.split(",").map(t => t.trim()).filter(t => t),
+          category: youtubeCategory
+        } : undefined,
+        timezone
       }
 
       console.log("Submitting post data:", postData)
-      const postId = await createPost(postData as any)
-      console.log("Post created successfully with ID:", postId)
-      router.push("/dashboard/calendar")
+      await createPost(postData as any)
+      setSuccess(true)
+      window.scrollTo({ top: 0, behavior: "smooth" })
+
+      // Auto-redirect after 3 seconds
+      setTimeout(() => {
+        router.push("/dashboard/calendar")
+      }, 3000)
     } catch (err: any) {
       console.error("Error creating post:", err)
       setError(err.message || "Failed to create post")
@@ -688,13 +714,73 @@ export default function CreatePostPage() {
             </DialogContent>
           </Dialog>
 
+          {/* Success Alert */}
+          {success && (
+            <Alert className="mb-6 border-green-200 bg-green-50 text-green-800 animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center">
+                  <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <AlertTitle className="text-green-900 font-bold">Post Scheduled Successfully!</AlertTitle>
+                  <AlertDescription className="text-green-700">
+                    Your post has been added to the calendar. Redirecting to calendar...
+                  </AlertDescription>
+                </div>
+              </div>
+            </Alert>
+          )}
+
+          {/* Platform Selection */}
+          <div className="flex flex-wrap gap-4 mb-8">
+            {connectedPlatforms.map((platform) => (
+              <div key={platform} className="relative group">
+                <Button
+                  variant={isPlatformSelected(platform) ? "default" : "outline"}
+                  size="icon"
+                  className={cn(
+                    "rounded-full h-12 w-12 transition-all shadow-sm",
+                    isPlatformSelected(platform) && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                  )}
+                  onClick={() => togglePlatform(platform)}
+                  title={platform.charAt(0).toUpperCase() + platform.slice(1)}
+                >
+                  {getPlatformIcon(platform)}
+                </Button>
+                {isPlatformSelected(platform) && (
+                  <div className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-background flex items-center justify-center">
+                    <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            ))}
+            <Button
+              variant="default"
+              size="icon"
+              className="rounded-full h-12 w-12 bg-primary text-white shadow-md hover:scale-105 transition-transform"
+              title="Add platform"
+              onClick={() => router.push("/dashboard/connections")}
+            >
+              <Plus className="h-6 w-6" />
+            </Button>
+          </div>
+
           {/* Scheduling Section */}
           <Card className="shadow-sm">
             <CardContent className="p-6">
-              <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-primary" />
-                Schedule Post
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-primary" />
+                  Schedule Post
+                </h3>
+                <div className="px-2 py-0.5 rounded bg-muted text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  {timezoneOffset} ({timezone})
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-medium">Date</label>
@@ -723,13 +809,14 @@ export default function CreatePostPage() {
                   </Popover>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-medium">Time</label>
+                  <label className="text-xs font-medium text-destructive">Post at</label>
                   <Input
                     type="time"
                     value={scheduledTime}
                     onChange={(e) => setScheduledTime(e.target.value)}
                     className="w-full"
                   />
+                  <p className="text-[10px] text-muted-foreground">Times follow your local location ({timezone})</p>
                 </div>
               </div>
             </CardContent>

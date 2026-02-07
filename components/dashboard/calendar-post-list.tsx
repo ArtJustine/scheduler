@@ -1,11 +1,18 @@
 "use client"
 
 import Link from "next/link"
-import { Clock, MoreHorizontal } from "lucide-react"
+import { Clock, MoreHorizontal, Send } from "lucide-react"
 
-import { formatTime, getPlatformColor, truncateText } from "@/lib/utils"
+import { cn, formatTime, getPlatformColor, truncateText } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu"
 
 interface Post {
   id: string
@@ -14,6 +21,7 @@ interface Post {
   platform: string
   scheduledFor: string
   mediaUrl?: string | null
+  status?: "scheduled" | "published" | "failed" | "publishing"
 }
 
 interface CalendarPostListProps {
@@ -75,33 +83,78 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
                   </Link>
                 </div>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Open menu</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuItem
-                      className="cursor-pointer font-medium text-xs"
-                      onClick={() => onEdit?.(post.id)}
-                    >
-                      Edit Post
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="cursor-pointer font-medium text-xs text-destructive focus:text-destructive"
-                      onClick={() => onDelete?.(post.id)}
-                    >
-                      Delete Post
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center gap-2">
+                  <div className={cn(
+                    "px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest",
+                    post.status === "published" ? "bg-green-100 text-green-600" :
+                      post.status === "failed" ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"
+                  )}>
+                    {post.status || "scheduled"}
+                  </div>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted opacity-100 transition-opacity">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Open menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 p-1.5 shadow-xl border-muted/30 rounded-xl bg-popover/95 backdrop-blur-md">
+                      <DropdownMenuLabel className="text-[10px] font-bold uppercase text-muted-foreground px-2 py-1.5">Actions</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="opacity-50" />
+
+                      {post.status !== "published" && (
+                        <DropdownMenuItem
+                          className="cursor-pointer font-semibold text-xs py-2 rounded-lg px-2 hover:bg-primary/10 focus:bg-primary/10 transition-colors flex items-center gap-2"
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/api/posts/${post.id}/publish`, { method: "POST" })
+                              const data = await res.json()
+                              if (data.success) {
+                                alert(data.message)
+                                window.location.reload()
+                              } else {
+                                alert(data.error || "Failed to publish")
+                              }
+                            } catch (e) {
+                              alert("An error occurred while publishing")
+                            }
+                          }}
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                          Publish Now
+                        </DropdownMenuItem>
+                      )}
+
+                      <DropdownMenuItem
+                        className="cursor-pointer font-semibold text-xs py-2 rounded-lg px-2 hover:bg-primary/10 focus:bg-primary/10 transition-colors"
+                        onClick={() => onEdit?.(post.id)}
+                      >
+                        Edit Post
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator className="opacity-50" />
+
+                      <DropdownMenuItem
+                        className="cursor-pointer font-semibold text-xs text-destructive py-2 rounded-lg px-2 hover:bg-destructive/10 focus:bg-destructive/10 transition-colors focus:text-destructive"
+                        onClick={() => onDelete?.(post.id)}
+                      >
+                        Delete Post
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
 
-              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mt-1">
                 {truncateText(post.content || "", 120)}
               </p>
+
+              {post.status === "failed" && (
+                <div className="mt-2 text-[10px] font-medium text-destructive bg-destructive/5 p-2 rounded-lg border border-destructive/10 animate-pulse">
+                  Error: One or more platforms failed to publish. Check account connections.
+                </div>
+              )}
 
               {post.mediaUrl && (
                 <div className="mt-1 rounded-lg overflow-hidden border border-muted/10 aspect-video bg-muted/5">

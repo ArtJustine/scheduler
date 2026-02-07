@@ -244,11 +244,12 @@ async function publishToYouTube(userId: string, post: any) {
           snippet: {
             title: post.title || post.content?.substring(0, 100) || "Scheduled Post",
             description: post.content || "",
-            categoryId: "22",
+            categoryId: post.youtubeOptions?.category || "22",
+            tags: post.youtubeOptions?.tags || [],
           },
           status: {
             privacyStatus: "public",
-            selfDeclaredMadeForKids: false
+            selfDeclaredMadeForKids: post.youtubeOptions?.madeForKids || false
           },
         }),
       })

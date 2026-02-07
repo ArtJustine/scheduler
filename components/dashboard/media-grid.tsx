@@ -45,18 +45,31 @@ export function MediaGrid({ items, onDelete }: MediaGridProps) {
         {items.map((item) => (
           <div
             key={item.id}
-            className="group relative aspect-square cursor-pointer overflow-hidden rounded-md border bg-background"
+            className="group relative aspect-square cursor-pointer overflow-hidden rounded-md border bg-muted/20"
             onClick={() => setSelectedItem(item)}
           >
-            <img
-              src={item.url || "/placeholder.svg"}
-              alt={item.fileName}
-              className="h-full w-full object-cover transition-all group-hover:scale-105"
-            />
+            {item.type === "video" ? (
+              <div className="flex h-full w-full items-center justify-center bg-slate-900">
+                <video src={item.url} className="h-full w-full object-cover opacity-60" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="rounded-full bg-black/40 p-2 backdrop-blur-sm">
+                    <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <img
+                src={item.url || "/placeholder.svg"}
+                alt={item.fileName}
+                className="h-full w-full object-cover transition-all group-hover:scale-105"
+              />
+            )}
             <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-              <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-white/20">
-                <Download className="h-4 w-4" />
-                <span className="sr-only">Download</span>
+              <Button variant="outline" size="icon" className="h-8 w-8 rounded-full border-none bg-white/20 hover:bg-white/40">
+                <Download className="h-4 w-4 text-white" />
+                <span className="sr-only">View</span>
               </Button>
             </div>
           </div>
@@ -71,12 +84,20 @@ export function MediaGrid({ items, onDelete }: MediaGridProps) {
               {selectedItem?.type} • {formatFileSize(selectedItem?.fileSize || 0)}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center justify-center overflow-hidden rounded-md border">
-            <img
-              src={selectedItem?.url || "/placeholder.svg"}
-              alt={selectedItem?.fileName}
-              className="max-h-[60vh] w-auto object-contain"
-            />
+          <div className="flex items-center justify-center overflow-hidden rounded-md border bg-muted/10">
+            {selectedItem?.type === "video" ? (
+              <video
+                src={selectedItem.url}
+                controls
+                className="max-h-[60vh] w-full"
+              />
+            ) : (
+              <img
+                src={selectedItem?.url || "/placeholder.svg"}
+                alt={selectedItem?.fileName}
+                className="max-h-[60vh] w-auto object-contain"
+              />
+            )}
           </div>
           <DialogFooter className="flex flex-row items-center justify-between sm:justify-between">
             <Button variant="outline" size="sm" onClick={handleClose}>

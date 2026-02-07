@@ -30,15 +30,26 @@ export async function getScheduledPosts() {
 
     const posts: PostType[] = []
     querySnapshot.forEach((doc) => {
+      const data = doc.data()
       posts.push({
         id: doc.id,
-        ...doc.data(),
+        ...data,
+        scheduledFor: data.scheduledFor && typeof data.scheduledFor === 'object' && 'toDate' in data.scheduledFor
+          ? data.scheduledFor.toDate().toISOString()
+          : data.scheduledFor || new Date().toISOString(),
+        createdAt: data.createdAt && typeof data.createdAt === 'object' && 'toDate' in data.createdAt
+          ? data.createdAt.toDate().toISOString()
+          : data.createdAt || new Date().toISOString(),
       } as PostType)
     })
 
     // Sort by scheduled date
     return posts.sort((a, b) => {
-      return new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime()
+      try {
+        return new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime()
+      } catch (e) {
+        return 0
+      }
     })
   } catch (error: any) {
     console.error("Error getting scheduled posts:", error)

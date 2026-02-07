@@ -187,13 +187,14 @@ export function DashboardSidebar() {
     }
   }
 
-  const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({ opacity: 0, transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)" })
+  const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({ opacity: 0, transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)" })
+  const [hoverStyle, setHoverStyle] = useState<React.CSSProperties>({ opacity: 0, transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" })
   const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (mounted && contentRef.current) {
       const updateIndicator = () => {
-        const activeItem = document.querySelector('[data-active="true"]') as HTMLElement
+        const activeItem = contentRef.current?.querySelector('[data-active="true"]') as HTMLElement
         const container = contentRef.current
         if (activeItem && container) {
           const itemRect = activeItem.getBoundingClientRect()
@@ -208,15 +209,17 @@ export function DashboardSidebar() {
             width: "calc(100% - 1rem)",
             left: "0.5rem",
             zIndex: 0,
-            transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
           })
+        } else {
+          setIndicatorStyle(prev => ({ ...prev, opacity: 0 }))
         }
       }
-      // Small delay to ensure DOM is ready
-      const timer = setTimeout(updateIndicator, 100)
+      // Small delay to ensure DOM is ready and sub-menus are expanded
+      const timer = setTimeout(updateIndicator, 150)
       return () => clearTimeout(timer)
     }
-  }, [mounted, pathname, currentTab])
+  }, [mounted, pathname, currentTab, Object.keys(connectedAccounts).length])
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
     const target = e.currentTarget
@@ -225,32 +228,23 @@ export function DashboardSidebar() {
       const itemRect = target.getBoundingClientRect()
       const containerRect = container.getBoundingClientRect()
 
-      setIndicatorStyle(prev => ({
-        ...prev,
+      setHoverStyle({
         top: itemRect.top - containerRect.top + container.scrollTop,
         height: itemRect.height,
         opacity: 1,
-        backgroundColor: resolvedTheme === 'dark' ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
-      }))
+        backgroundColor: resolvedTheme === 'dark' ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)",
+        borderRadius: "0.5rem",
+        width: "calc(100% - 1rem)",
+        left: "0.5rem",
+        zIndex: 0,
+        pointerEvents: "none",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+      })
     }
   }
 
   const handleMouseLeave = () => {
-    const activeItem = document.querySelector('[data-active="true"]') as HTMLElement
-    const container = contentRef.current
-    if (activeItem && container) {
-      const itemRect = activeItem.getBoundingClientRect()
-      const containerRect = container.getBoundingClientRect()
-
-      setIndicatorStyle(prev => ({
-        ...prev,
-        top: itemRect.top - containerRect.top + container.scrollTop,
-        height: itemRect.height,
-        backgroundColor: "hsl(var(--primary))",
-      }))
-    } else {
-      setIndicatorStyle(prev => ({ ...prev, opacity: 0 }))
-    }
+    setHoverStyle(prev => ({ ...prev, opacity: 0 }))
   }
 
   return (
@@ -280,13 +274,21 @@ export function DashboardSidebar() {
         className="px-2 pt-4 relative scrollbar-thin scrollbar-thumb-primary/10 hover:scrollbar-thumb-primary/20 transition-colors"
         onMouseLeave={handleMouseLeave}
       >
-        {/* Sliding Highlight Indicator */}
+        {/* Sliding Highlight Indicator (Active) */}
         <div
           className="absolute z-0 pointer-events-none"
           style={{
             ...indicatorStyle,
             position: "absolute",
-            zIndex: 0,
+          }}
+        />
+
+        {/* Sliding Highlight Indicator (Hover) */}
+        <div
+          className="absolute z-0 pointer-events-none"
+          style={{
+            ...hoverStyle,
+            position: "absolute",
           }}
         />
 

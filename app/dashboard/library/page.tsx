@@ -17,8 +17,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { useAuth } from "@/lib/auth-provider"
 import {
   getMediaLibrary,
+  deleteMedia,
   getHashtagGroups,
   getCaptionTemplates,
   createCaption,
@@ -43,12 +45,14 @@ function LibraryContent() {
   const [hashtagGroups, setHashtagGroups] = useState<HashtagGroup[]>([])
   const [captionTemplates, setCaptionTemplates] = useState<CaptionTemplate[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuth()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get("tab") || "media"
   const [activeTab, setActiveTab] = useState(tabParam)
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
 
   const loadLibraryData = async () => {
+    if (!user) return
     try {
       setIsLoading(true)
       const [media, hashtags, captions] = await Promise.all([
@@ -109,8 +113,19 @@ function LibraryContent() {
   }, [tabParam])
 
   useEffect(() => {
-    loadLibraryData()
-  }, [])
+    if (user) {
+      loadLibraryData()
+    }
+  }, [user])
+
+  const handleDeleteMedia = async (id: string) => {
+    try {
+      await deleteMedia(id)
+      setMediaItems(prev => prev.filter(item => item.id !== id))
+    } catch (error) {
+      console.error("Error deleting media:", error)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -144,7 +159,7 @@ function LibraryContent() {
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
                 </div>
               ) : mediaItems.length > 0 ? (
-                <MediaGrid items={mediaItems} />
+                <MediaGrid items={mediaItems} onDelete={handleDeleteMedia} />
               ) : (
                 <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-xl bg-muted/5">
                   <Plus className="h-8 w-8 text-muted-foreground mb-4 opacity-50" />

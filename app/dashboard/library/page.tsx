@@ -59,8 +59,8 @@ function LibraryContent() {
       console.log("Library: Loading data for user", userId)
       const [media, hashtags, captions] = await Promise.all([
         getMediaLibrary(userId),
-        getHashtagGroups(),
-        getCaptionTemplates(),
+        getHashtagGroups(userId),
+        getCaptionTemplates(userId),
       ])
       setMediaItems(media || [])
       setHashtagGroups(hashtags || [])

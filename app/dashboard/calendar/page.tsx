@@ -10,18 +10,27 @@ import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-provider"
 
 export default function CalendarPage() {
   const [posts, setPosts] = useState<PostType[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [date, setDate] = useState<Date>(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const loadPosts = async () => {
+      if (!user) return
       try {
-        const fetchedPosts = await getScheduledPosts()
+        setIsLoading(true)
+        const fetchedPosts = await getScheduledPosts(user.uid)
         setPosts(fetchedPosts)
       } catch (error) {
         console.error("Error fetching posts:", error)
@@ -30,8 +39,12 @@ export default function CalendarPage() {
       }
     }
 
-    loadPosts()
-  }, [])
+    if (!authLoading) {
+      loadPosts()
+    }
+  }, [user, authLoading])
+
+  if (!mounted) return null
 
   const postsOnSelectedDate = selectedDate
     ? posts.filter((post) => {
@@ -47,15 +60,16 @@ export default function CalendarPage() {
     : []
 
   // Function to get posts for a specific date (used for calendar day rendering)
-  const getPostsForDate = (date: Date) => {
+  const getPostsForDate = (day: Date) => {
+    if (!day || !posts) return []
     return posts.filter((post) => {
       if (!post.scheduledFor) return false;
       const postDate = new Date(post.scheduledFor)
-      if (isNaN(postDate.getTime()) || !date) return false;
+      if (isNaN(postDate.getTime())) return false;
       return (
-        postDate.getDate() === date.getDate() &&
-        postDate.getMonth() === date.getMonth() &&
-        postDate.getFullYear() === date.getFullYear()
+        postDate.getDate() === day.getDate() &&
+        postDate.getMonth() === day.getMonth() &&
+        postDate.getFullYear() === day.getFullYear()
       )
     })
   }

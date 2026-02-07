@@ -155,8 +155,8 @@ export const deleteMedia = async (id: string) => {
 }
 
 // Hashtag functions
-export const getHashtagGroups = async (): Promise<HashtagGroup[]> => {
-  return await firebaseGetHashtagGroups()
+export const getHashtagGroups = async (userId?: string): Promise<HashtagGroup[]> => {
+  return await firebaseGetHashtagGroups(userId)
 }
 
 export const createHashtag = async (name: string, hashtags: string[]) => {
@@ -168,8 +168,8 @@ export const deleteHashtag = async (id: string) => {
 }
 
 // Caption functions
-export const getCaptionTemplates = async (): Promise<CaptionTemplate[]> => {
-  return await firebaseGetCaptionTemplates()
+export const getCaptionTemplates = async (userId?: string): Promise<CaptionTemplate[]> => {
+  return await firebaseGetCaptionTemplates(userId)
 }
 
 export const createCaption = async (title: string, content: string) => {

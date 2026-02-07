@@ -77,8 +77,7 @@ export async function getMediaLibrary(userId?: string) {
     console.log("getMediaLibrary: Fetching for user", uid)
     const mediaQuery = query(
       collection(db, "media"),
-      where("userId", "==", uid),
-      orderBy("createdAt", "desc")
+      where("userId", "==", uid)
     )
 
     console.log("getMediaLibrary: Executing query...")
@@ -90,10 +89,14 @@ export async function getMediaLibrary(userId?: string) {
       return {
         id: doc.id,
         ...data,
+        createdAt: data.createdAt || new Date(0).toISOString(),
       } as MediaItem
     })
 
-    return items
+    // Sort in memory to avoid index requirements
+    return items.sort((a, b) =>
+      new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+    )
   } catch (error) {
     console.error("Error fetching media library:", error)
     return []

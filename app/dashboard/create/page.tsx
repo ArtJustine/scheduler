@@ -87,9 +87,9 @@ export default function CreatePostPage() {
       if (!user) return
       try {
         const [accounts, templateData, hashtagData] = await Promise.allSettled([
-          getSocialAccounts(),
-          getCaptionTemplates(),
-          getHashtagGroups()
+          getSocialAccounts(user.uid),
+          getCaptionTemplates(user.uid),
+          getHashtagGroups(user.uid)
         ])
 
         const accountsResult = accounts.status === 'fulfilled' ? accounts.value : {}
@@ -274,13 +274,20 @@ export default function CreatePostPage() {
         contentType: mediaUrl ? (mediaUrl.match(/\.(mp4|mov|webm)$/i) ? "video" : "image") : "text",
         mediaUrl,
         thumbnailUrl,
-        scheduledFor: scheduledDate ? new Date(
-          scheduledDate.getFullYear(),
-          scheduledDate.getMonth(),
-          scheduledDate.getDate(),
-          parseInt(scheduledTime.split(":")[0]),
-          parseInt(scheduledTime.split(":")[1])
-        ).toISOString() : new Date().toISOString(),
+        scheduledFor: (() => {
+          try {
+            if (!scheduledDate) return new Date().toISOString()
+            const [hours, minutes] = (scheduledTime || "09:00").split(":").map(Number)
+            if (isNaN(hours) || isNaN(minutes)) return new Date().toISOString()
+
+            const d = new Date(scheduledDate)
+            d.setHours(hours, minutes, 0, 0)
+            return d.toISOString()
+          } catch (e) {
+            console.error("Error formatting date:", e)
+            return new Date().toISOString()
+          }
+        })(),
         status: "scheduled" as const,
         youtubeAspectRatio: selectedPlatforms.includes("youtube") ? youtubeAspectRatio : undefined,
         youtubePostType: selectedPlatforms.includes("youtube") ? (youtubeAspectRatio === "community" ? "community" : (mediaUrl ? "video" : "community")) : undefined

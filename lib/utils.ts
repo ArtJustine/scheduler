@@ -30,6 +30,13 @@ export function formatDateTime(date: Date | string): string {
 }
 
 export function getPlatformColor(platform: string) {
+  if (!platform) {
+    return {
+      bg: "rgba(113, 113, 122, 0.1)",
+      text: "#71717A",
+    }
+  }
+
   switch (platform.toLowerCase()) {
     case "instagram":
       return {

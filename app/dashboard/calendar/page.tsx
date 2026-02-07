@@ -48,7 +48,7 @@ export default function CalendarPage() {
 
   const postsOnSelectedDate = selectedDate
     ? posts.filter((post) => {
-      if (!post.scheduledFor) return false;
+      if (!post.scheduledFor || !post.platform) return false;
       const postDate = new Date(post.scheduledFor)
       if (isNaN(postDate.getTime()) || !selectedDate) return false;
       return (
@@ -63,7 +63,7 @@ export default function CalendarPage() {
   const getPostsForDate = (day: Date) => {
     if (!day || !posts) return []
     return posts.filter((post) => {
-      if (!post.scheduledFor) return false;
+      if (!post.scheduledFor || !post.platform) return false;
       const postDate = new Date(post.scheduledFor)
       if (isNaN(postDate.getTime())) return false;
       return (

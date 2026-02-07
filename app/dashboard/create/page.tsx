@@ -197,23 +197,64 @@ export default function CreatePostPage() {
     }
   }
 
-  const getPlatformIcon = (plat: string) => {
+  const getPlatformIcon = (plat: string, className?: string) => {
     switch (plat.toLowerCase()) {
       case "tiktok":
-        return <Music2 className="h-5 w-5" />
+        return <Music2 className={cn("h-5 w-5", className)} />
       case "youtube":
-        return <Youtube className="h-5 w-5 text-red-600" />
+        return <Youtube className={cn("h-5 w-5 text-red-600", className)} />
       case "instagram":
-        return <Instagram className="h-5 w-5 text-pink-600" />
+        return <Instagram className={cn("h-5 w-5 text-pink-600", className)} />
       case "facebook":
-        return <Facebook className="h-5 w-5 text-blue-600" />
+        return <Facebook className={cn("h-5 w-5 text-blue-600", className)} />
       case "linkedin":
-        return <Linkedin className="h-5 w-5 text-blue-700" />
+        return <Linkedin className={cn("h-5 w-5 text-blue-700", className)} />
       case "twitter":
-        return <Twitter className="h-5 w-5 text-sky-500" />
+        return <Twitter className={cn("h-5 w-5 text-sky-500", className)} />
       default:
-        return <Share2 className="h-5 w-5" />
+        return <Share2 className={cn("h-5 w-5", className)} />
     }
+  }
+
+  const getGuidelines = () => {
+    const guidelines = []
+    if (selectedPlatforms.includes("tiktok")) {
+      guidelines.push({
+        id: "tiktok",
+        title: "TikTok Best Practices",
+        content: "Keep videos between 15-60 seconds and use trending hashtags for better reach.",
+        icon: <Music2 className="h-5 w-5" />,
+        color: "bg-primary/10 text-primary"
+      })
+    }
+    if (selectedPlatforms.includes("youtube")) {
+      if (youtubeAspectRatio === "9:16") {
+        guidelines.push({
+          id: "youtube-shorts",
+          title: "YouTube Shorts",
+          content: "Ensure content is vertical (9:16) and under 60 seconds to be categorized as a Short.",
+          icon: <Youtube className="h-5 w-5" />,
+          color: "bg-red-50 text-red-600"
+        })
+      } else if (youtubeAspectRatio === "community") {
+        guidelines.push({
+          id: "youtube-community",
+          title: "YouTube Community Post",
+          content: "Use engaging text or images. Community posts are great for interacting with your audience without video.",
+          icon: <Youtube className="h-5 w-5" />,
+          color: "bg-red-100 text-red-600"
+        })
+      } else {
+        guidelines.push({
+          id: "youtube-long",
+          title: "YouTube Long-form",
+          content: "High-quality 16:9 4K videos perform best. Add a compelling thumbnail and description.",
+          icon: <Youtube className="h-5 w-5" />,
+          color: "bg-red-50 text-red-600"
+        })
+      }
+    }
+    return guidelines
   }
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -523,24 +564,21 @@ export default function CreatePostPage() {
             <CollapsibleContent className="pt-2 px-1">
               <Card>
                 <CardContent className="p-6 space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="bg-primary/10 p-2 rounded-lg text-primary">
-                      <Music2 className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm">TikTok Best Practices</h4>
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Keep videos between 15-60 seconds and use trending hashtags for better reach.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <div className="bg-red-50 p-2 rounded-lg text-red-600">
-                      <Youtube className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm">YouTube Shorts</h4>
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Ensure content is vertical (9:16) and under 60 seconds to be categorized as a Short.</p>
-                    </div>
-                  </div>
+                  {getGuidelines().length > 0 ? (
+                    getGuidelines().map((guide) => (
+                      <div key={guide.id} className="flex items-start gap-4">
+                        <div className={cn("p-2 rounded-lg", guide.color)}>
+                          {guide.icon}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm">{guide.title}</h4>
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{guide.content}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-2">Select a platform to see guidelines.</p>
+                  )}
                 </CardContent>
               </Card>
             </CollapsibleContent>
@@ -571,12 +609,23 @@ export default function CreatePostPage() {
                 "relative mx-auto border-[8px] border-gray-900 rounded-[3rem] overflow-hidden shadow-2xl transition-all duration-300",
                 previewView === "mobile" ? "w-[320px] h-[640px]" : "w-full h-[500px] border-none rounded-xl"
               )}>
-                <div className="absolute inset-0 bg-black">
+                <div className="absolute inset-0 bg-black flex items-center justify-center">
                   {mediaUrl && !mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                    <video src={mediaUrl} className="w-full h-full object-cover opacity-50" />
+                    <>
+                      <video src={mediaUrl} className="w-full h-full object-cover opacity-50" />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="bg-black/20 backdrop-blur-sm p-4 rounded-full border border-white/10 group-hover:scale-110 transition-transform">
+                          {getPlatformIcon(previewPlatform, "h-12 w-12 text-white/70")}
+                        </div>
+                      </div>
+                    </>
+                  ) : mediaUrl ? (
+                    <img src={mediaUrl} className="w-full h-full object-cover opacity-50" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-900">
-                      <Music2 className="h-12 w-12 text-gray-800" />
+                    <div className="flex items-center justify-center">
+                      <div className="bg-gray-800/50 p-6 rounded-full border border-white/5">
+                        {getPlatformIcon(previewPlatform, "h-16 w-16 text-gray-700")}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -624,9 +673,14 @@ export default function CreatePostPage() {
                       <video src={mediaUrl} className="w-full h-full object-cover opacity-50" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Youtube className="h-12 w-12 text-red-600 opacity-20" />
+                      {getPlatformIcon("youtube", "h-12 w-12 text-red-600 opacity-20")}
                     </div>
                   )}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/10 backdrop-blur-sm p-4 rounded-full">
+                      <Youtube className="h-12 w-12 text-white/50" />
+                    </div>
+                  </div>
                 </div>
                 <div className="p-4 space-y-3">
                   <div className="h-4 bg-gray-100 rounded w-3/4 animate-pulse"></div>
@@ -643,7 +697,7 @@ export default function CreatePostPage() {
           </Tabs>
 
           <Button
-            className="w-full h-14 text-lg font-bold shadow-lg rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full h-14 text-lg font-bold shadow-lg rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] gap-3"
             onClick={() => handleSubmit()}
             disabled={isSubmitting || !content || selectedPlatforms.length === 0}
           >
@@ -653,7 +707,16 @@ export default function CreatePostPage() {
                 Scheduling...
               </>
             ) : (
-              "Schedule Post"
+              <>
+                <div className="flex -space-x-2 mr-2">
+                  {selectedPlatforms.slice(0, 3).map((plat) => (
+                    <div key={plat} className="p-1.5 bg-white/10 rounded-full border border-white/20 backdrop-blur-sm">
+                      {getPlatformIcon(plat, "h-4 w-4 text-white")}
+                    </div>
+                  ))}
+                </div>
+                Schedule Post
+              </>
             )}
           </Button>
 

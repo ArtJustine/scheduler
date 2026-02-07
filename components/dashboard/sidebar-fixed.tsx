@@ -187,13 +187,11 @@ export function DashboardSidebar() {
     }
   }
 
-  const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({ opacity: 0, transition: "all 0.3s ease" })
-  const [activeRef, setActiveRef] = useState<HTMLElement | null>(null)
+  const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({ opacity: 0, transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)" })
 
   useEffect(() => {
     if (mounted) {
-      // Small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
+      const updateIndicator = () => {
         const activeItem = document.querySelector('[data-active="true"]') as HTMLElement
         if (activeItem) {
           setIndicatorStyle({
@@ -204,9 +202,13 @@ export function DashboardSidebar() {
             borderRadius: "0.5rem",
             width: "calc(100% - 1rem)",
             left: "0.5rem",
+            zIndex: 0,
+            transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
           })
         }
-      }, 100)
+      }
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(updateIndicator, 100)
       return () => clearTimeout(timer)
     }
   }, [mounted, pathname, currentTab])
@@ -218,6 +220,7 @@ export function DashboardSidebar() {
       top: target.offsetTop,
       height: target.offsetHeight,
       opacity: 1,
+      backgroundColor: resolvedTheme === 'dark' ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
     }))
   }
 
@@ -228,6 +231,7 @@ export function DashboardSidebar() {
         ...prev,
         top: activeItem.offsetTop,
         height: activeItem.offsetHeight,
+        backgroundColor: "hsl(var(--primary))",
       }))
     } else {
       setIndicatorStyle(prev => ({ ...prev, opacity: 0 }))

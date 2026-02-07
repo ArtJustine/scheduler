@@ -533,36 +533,36 @@ export default function CreatePostPage() {
                       <Button
                         variant="default"
                         size="sm"
-                        className="gap-2 px-5 h-11 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md border-none rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="gap-2 px-8 h-12 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl border-none rounded-full transition-all hover:scale-[1.05] active:scale-[0.95] font-bold"
                       >
                         <Plus className="h-5 w-5" />
-                        <span className="text-sm font-bold">Add Media</span>
+                        <span>Add Media</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[220px] p-2 shadow-2xl border-muted/20 rounded-2xl bg-popover/95 backdrop-blur-xl">
+                    <DropdownMenuContent align="start" className="w-[280px] p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-white/20 rounded-[2.5rem] bg-white/80 dark:bg-black/80 backdrop-blur-2xl animate-in zoom-in-95 fade-in duration-300">
                       <DropdownMenuItem
-                        className="text-sm py-3 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-xl px-4 flex items-center gap-3 font-semibold transition-colors"
+                        className="text-xs py-4 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-[1.8rem] px-5 flex items-center gap-4 font-bold transition-all group active:scale-95"
                         onClick={() => setShowMediaUploader(true)}
                       >
-                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                          <Upload className="h-4 w-4" />
+                        <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm">
+                          <Upload className="h-5 w-5" />
                         </div>
-                        <div className="flex flex-col">
-                          <span>Upload New</span>
-                          <span className="text-[10px] text-muted-foreground font-normal">From your device</span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[14px]">Upload New</span>
+                          <span className="text-[10px] text-muted-foreground/80 font-medium group-hover:text-primary/70">From your device storage</span>
                         </div>
                       </DropdownMenuItem>
                       {mediaItems.length > 0 && (
                         <DropdownMenuItem
-                          className="text-sm py-3 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-xl px-4 flex items-center gap-3 font-semibold mt-1 transition-colors"
+                          className="text-xs py-4 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-[1.8rem] px-5 flex items-center gap-4 font-bold mt-1.5 transition-all group active:scale-95"
                           onClick={() => setShowMediaLibrary(true)}
                         >
-                          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                            <ImageIcon className="h-4 w-4" />
+                          <div className="h-11 w-11 rounded-2xl bg-secondary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm">
+                            <ImageIcon className="h-5 w-5" />
                           </div>
-                          <div className="flex flex-col">
+                          <div className="flex flex-col gap-0.5">
                             <span>Media Library</span>
-                            <span className="text-[10px] text-muted-foreground font-normal">{mediaItems.length} items available</span>
+                            <span className="text-[10px] text-muted-foreground/80 font-medium group-hover:text-primary/70">{mediaItems.length} items available</span>
                           </div>
                         </DropdownMenuItem>
                       )}
@@ -824,14 +824,35 @@ export default function CreatePostPage() {
                   </Popover>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-destructive">Post at</label>
-                  <Input
-                    type="time"
-                    value={scheduledTime}
-                    onChange={(e) => setScheduledTime(e.target.value)}
-                    className="w-full"
-                  />
-                  <p className="text-[10px] text-muted-foreground">Times follow your local location ({timezone})</p>
+                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200">Post at</label>
+                  <div className="relative">
+                    <Input
+                      type="time"
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      className={cn(
+                        "w-full h-11 rounded-xl border-muted/20 focus:ring-primary/20",
+                        (() => {
+                          if (!scheduledDate) return ""
+                          const [h, m] = (scheduledTime || "00:00").split(":").map(Number)
+                          const d = new Date(scheduledDate)
+                          d.setHours(h, m, 0, 0)
+                          return d < new Date() ? "border-destructive text-destructive bg-destructive/5" : ""
+                        })()
+                      )}
+                    />
+                    {(() => {
+                      if (!scheduledDate) return null
+                      const [h, m] = (scheduledTime || "00:00").split(":").map(Number)
+                      const d = new Date(scheduledDate)
+                      d.setHours(h, m, 0, 0)
+                      if (d < new Date()) {
+                        return <p className="text-[10px] text-destructive font-bold mt-1 animate-in fade-in slide-in-from-top-1">⚠️ Cannot schedule in the past</p>
+                      }
+                      return null
+                    })()}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-medium">Times follow your local location ({timezone})</p>
                 </div>
               </div>
             </CardContent>
@@ -839,85 +860,89 @@ export default function CreatePostPage() {
 
           {/* YouTube Specific Options */}
           {selectedPlatforms.includes("youtube") && (
-            <Card className="shadow-sm border-muted/20">
-              <CardContent className="p-6 space-y-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Youtube className="h-5 w-5 text-red-600" />
-                  <h3 className="font-semibold text-sm">YouTube Settings</h3>
+            <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+              <CardContent className="p-8 space-y-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-600">
+                      <Youtube className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm">YouTube Settings</h3>
+                      <p className="text-[10px] text-muted-foreground font-medium">Fine-tune your video publication</p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium">Category</Label>
-                    <Select value={youtubeCategory} onValueChange={setYoutubeCategory}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="22">People & Blogs</SelectItem>
-                        <SelectItem value="10">Music</SelectItem>
-                        <SelectItem value="23">Comedy</SelectItem>
-                        <SelectItem value="24">Entertainment</SelectItem>
-                        <SelectItem value="20">Gaming</SelectItem>
-                        <SelectItem value="1">Film & Animation</SelectItem>
-                        <SelectItem value="2">Autos & Vehicles</SelectItem>
-                        <SelectItem value="15">Pets & Animals</SelectItem>
-                        <SelectItem value="17">Sports</SelectItem>
-                        <SelectItem value="19">Travel & Events</SelectItem>
-                        <SelectItem value="25">News & Politics</SelectItem>
-                        <SelectItem value="26">Howto & Style</SelectItem>
-                        <SelectItem value="27">Education</SelectItem>
-                        <SelectItem value="28">Science & Technology</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="grid gap-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Category</Label>
+                      <Select value={youtubeCategory} onValueChange={setYoutubeCategory}>
+                        <SelectTrigger className="rounded-2xl h-11 border-muted/20 focus:ring-primary/20">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-white/20 backdrop-blur-xl">
+                          <SelectItem value="22">People & Blogs</SelectItem>
+                          <SelectItem value="10">Music</SelectItem>
+                          <SelectItem value="23">Comedy</SelectItem>
+                          <SelectItem value="24">Entertainment</SelectItem>
+                          <SelectItem value="20">Gaming</SelectItem>
+                          <SelectItem value="1">Film & Animation</SelectItem>
+                          <SelectItem value="27">Education</SelectItem>
+                          <SelectItem value="28">Science & Tech</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Format</Label>
+                      <Select value={youtubeAspectRatio || "9:16"} onValueChange={(val: any) => setYoutubeAspectRatio(val)}>
+                        <SelectTrigger className="rounded-2xl h-11 border-muted/20 focus:ring-primary/20">
+                          <SelectValue placeholder="Aspect Ratio" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-white/20 backdrop-blur-xl">
+                          <SelectItem value="9:16">Shorts (9:16)</SelectItem>
+                          <SelectItem value="16:9">Wide (16:9)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">Playlist</Label>
+                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Tags</Label>
                     <Input
-                      placeholder="Enter playlist name or ID"
-                      value={youtubePlaylist}
-                      onChange={(e) => setYoutubePlaylist(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium">Tags (comma separated)</Label>
-                    <Input
-                      placeholder="vlog, tutorial, funny"
+                      placeholder="vlog, tutorial, funny (max 500 chars)"
                       value={youtubeTags}
                       onChange={(e) => setYoutubeTags(e.target.value)}
+                      className="rounded-2xl h-11 border-muted/20 focus:ring-primary/20"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <div className="flex items-center justify-between space-x-2 border rounded-lg p-3">
-                      <Label htmlFor="kids" className="text-xs font-medium cursor-pointer">Made for Kids</Label>
+                    <div className="flex items-center justify-between space-x-2 border border-muted/10 rounded-2xl p-4 bg-muted/5 group hover:bg-muted/10 transition-colors">
+                      <div className="flex flex-col gap-0.5">
+                        <Label htmlFor="kids" className="text-xs font-bold cursor-pointer">Made for Kids</Label>
+                        <span className="text-[10px] text-muted-foreground font-medium">Is this content for children?</span>
+                      </div>
                       <Switch
                         id="kids"
                         checked={youtubeMadeForKids}
                         onCheckedChange={setYoutubeMadeForKids}
+                        className="data-[state=checked]:bg-rose-500"
                       />
                     </div>
 
-                    <div className="flex items-center justify-between space-x-2 border rounded-lg p-3">
-                      <Label htmlFor="age" className="text-xs font-medium cursor-pointer">Age Restriction</Label>
+                    <div className="flex items-center justify-between space-x-2 border border-muted/10 rounded-2xl p-4 bg-muted/5 group hover:bg-muted/10 transition-colors">
+                      <div className="flex flex-col gap-0.5">
+                        <Label htmlFor="age" className="text-xs font-bold cursor-pointer">Age Restricted</Label>
+                        <span className="text-[10px] text-muted-foreground font-medium">18+ content only</span>
+                      </div>
                       <Switch
                         id="age"
                         checked={youtubeAgeRestriction}
                         onCheckedChange={setYoutubeAgeRestriction}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between space-x-2 border rounded-lg p-3 col-span-full">
-                      <Label htmlFor="altered" className="text-xs font-medium cursor-pointer flex flex-col gap-1">
-                        <span>Altered Content</span>
-                        <span className="text-[10px] text-muted-foreground font-normal">Content is AI-generated or synthetically altered.</span>
-                      </Label>
-                      <Switch
-                        id="altered"
-                        checked={youtubeAlteredContent}
-                        onCheckedChange={setYoutubeAlteredContent}
+                        className="data-[state=checked]:bg-rose-500"
                       />
                     </div>
                   </div>

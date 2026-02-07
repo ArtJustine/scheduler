@@ -9,6 +9,7 @@ export interface PostType {
   mediaUrl: string | null
   thumbnailUrl?: string | null
   status: "scheduled" | "published" | "failed"
+  error?: string | null
   createdAt: string
   content?: string
   publishedAt?: string

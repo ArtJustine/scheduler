@@ -11,8 +11,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuLabel,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
+import { Edit2, Trash2, ExternalLink, Play, AlertCircle } from "lucide-react"
 
 interface Post {
   id: string
@@ -23,6 +25,7 @@ interface Post {
   mediaUrl?: string | null
   thumbnailUrl?: string | null
   status?: "scheduled" | "published" | "failed" | "publishing"
+  error?: string | null
 }
 
 interface CalendarPostListProps {
@@ -66,49 +69,49 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
           const displayStatus = (post.status === "scheduled" && isPast) ? "posted" : (post.status || "scheduled")
 
           return (
-            <div key={post.id} className="group relative flex flex-col gap-3 rounded-xl border border-muted/20 bg-card p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
-              <div className="flex flex-wrap items-start justify-between gap-y-2">
-                <div className="space-y-1 min-w-0 pr-2">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <div key={post.id} className="group relative flex flex-col gap-4 rounded-3xl border border-muted/20 bg-card p-5 shadow-sm transition-all hover:shadow-xl hover:border-primary/20 hover:-translate-y-1">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1.5 min-w-0 pr-2 flex-1">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <div
-                      className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap"
+                      className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm"
                       style={{ backgroundColor: colors.bg, color: colors.text }}
                     >
                       {post.platform}
                     </div>
-                    <div className="flex items-center text-[10px] text-muted-foreground font-semibold whitespace-nowrap">
-                      <Clock className="mr-1 h-3 w-3" />
+                    <div className="flex items-center text-[10px] text-muted-foreground font-bold whitespace-nowrap bg-muted/30 px-2 py-1 rounded-full">
+                      <Clock className="mr-1.5 h-3 w-3" />
                       <span>{formatTime(postDate)}</span>
                     </div>
                   </div>
-                  <Link href={`/dashboard/post/${post.id}`} className="block font-bold text-sm hover:text-primary transition-colors truncate">
+                  <h4 className="font-extrabold text-sm text-slate-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2">
                     {post.title || "Untitled Post"}
-                  </Link>
+                  </h4>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 ml-auto">
+                <div className="flex flex-col items-end gap-1.5 shrink-0">
                   <div className={cn(
-                    "px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest whitespace-nowrap",
-                    displayStatus === "published" || displayStatus === "posted" ? "bg-green-100 text-green-700" :
-                      displayStatus === "failed" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                    "px-2 py-1 rounded-full text-[8px] font-extrabold uppercase tracking-[0.15em] whitespace-nowrap shadow-sm",
+                    displayStatus === "published" || displayStatus === "posted" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
+                      displayStatus === "failed" ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-blue-50 text-blue-600 border border-blue-100"
                   )}>
                     {displayStatus}
                   </div>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-muted transition-all active:scale-95 shadow-sm bg-muted/10">
                         <MoreHorizontal className="h-4 w-4" />
                         <span className="sr-only">Open menu</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 p-1.5 shadow-xl border-muted/30 rounded-xl bg-popover/95 backdrop-blur-md">
-                      <DropdownMenuLabel className="text-[10px] font-bold uppercase text-muted-foreground px-2 py-1.5">Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator className="opacity-50" />
+                    <DropdownMenuContent align="end" className="w-56 p-2 shadow-2xl border-white/20 rounded-[1.8rem] bg-white/90 dark:bg-black/90 backdrop-blur-2xl animate-in zoom-in-95 duration-200">
+                      <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/30 px-4 py-3">Content Options</DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-muted/10 mx-2" />
 
                       {post.status !== "published" && (
                         <DropdownMenuItem
-                          className="cursor-pointer font-semibold text-xs py-2 rounded-lg px-2 hover:bg-primary/10 focus:bg-primary/10 transition-colors flex items-center gap-2"
+                          className="cursor-pointer font-bold text-xs py-3.5 rounded-2xl px-4 flex items-center gap-3 hover:bg-primary/10 focus:bg-primary/10 transition-all active:scale-95 group/item"
                           onClick={async () => {
                             try {
                               const res = await fetch(`/api/posts/${post.id}/publish`, { method: "POST" })
@@ -124,68 +127,103 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
                             }
                           }}
                         >
-                          <Send className="h-3.5 w-3.5" />
+                          <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-white transition-all">
+                            <Send className="h-4 w-4" />
+                          </div>
                           Publish Now
                         </DropdownMenuItem>
                       )}
 
                       <DropdownMenuItem
-                        className="cursor-pointer font-semibold text-xs py-2 rounded-lg px-2 hover:bg-primary/10 focus:bg-primary/10 transition-colors"
+                        className="cursor-pointer font-bold text-xs py-3.5 rounded-2xl px-4 flex items-center gap-3 hover:bg-primary/10 focus:bg-primary/10 transition-all active:scale-95 mt-1 group/item"
                         onClick={() => onEdit?.(post.id)}
                       >
-                        Edit Post
+                        <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-white transition-all">
+                          <Edit2 className="h-4 w-4" />
+                        </div>
+                        Edit details
                       </DropdownMenuItem>
 
-                      <DropdownMenuSeparator className="opacity-50" />
+                      <DropdownMenuSeparator className="bg-muted/10 mx-2 my-2" />
 
                       <DropdownMenuItem
-                        className="cursor-pointer font-semibold text-xs text-destructive py-2 rounded-lg px-2 hover:bg-destructive/10 focus:bg-destructive/10 transition-colors focus:text-destructive"
+                        className="cursor-pointer font-bold text-xs text-rose-500 py-3.5 rounded-2xl px-4 flex items-center gap-3 hover:bg-rose-500/10 focus:bg-rose-500/10 transition-all active:scale-95 group/item focus:text-rose-500"
                         onClick={() => onDelete?.(post.id)}
                       >
-                        Delete Post
+                        <div className="h-8 w-8 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 group-hover/item:bg-rose-500 group-hover/item:text-white transition-all">
+                          <Trash2 className="h-4 w-4" />
+                        </div>
+                        Discard Post
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
               </div>
 
-              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mt-1">
-                {truncateText(post.content || "", 120)}
+              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mt-1.5 font-medium">
+                {truncateText(post.content || "", 150)}
               </p>
 
-              {post.status === "failed" && (
-                <div className="mt-2 text-[10px] font-medium text-destructive bg-destructive/5 p-2 rounded-lg border border-destructive/10 animate-pulse">
-                  Error: One or more platforms failed to publish. Check account connections.
+              {post.status === "failed" && post.error && (
+                <div className="text-[10px] font-bold text-rose-600 bg-rose-50 p-3 rounded-2xl border border-rose-100 flex items-start gap-2 animate-in slide-in-from-top-1 shadow-sm">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                  <span>{post.error}</span>
                 </div>
               )}
 
               {post.mediaUrl && (
-                <div className="mt-1 rounded-lg overflow-hidden border border-muted/10 aspect-video bg-muted/10 relative group-hover:border-primary/20 transition-colors">
+                <div className="rounded-[1.8rem] overflow-hidden border border-muted/20 aspect-video bg-slate-50 dark:bg-slate-900/50 relative group/media shadow-[inner_0_2px_4px_rgba(0,0,0,0.05)]">
                   {post.thumbnailUrl ? (
-                    <img src={post.thumbnailUrl} className="w-full h-full object-cover" alt="Post thumbnail" />
-                  ) : post.mediaUrl.match(/\.(mp4|mov|webm)$/i) ? (
-                    <video
-                      src={post.mediaUrl}
-                      className="w-full h-full object-cover"
-                      preload="metadata"
-                      onMouseOver={(e) => e.currentTarget.play()}
-                      onMouseOut={(e) => {
-                        e.currentTarget.pause()
-                        e.currentTarget.currentTime = 0
-                      }}
-                      muted
-                      loop
-                    />
-                  ) : (
-                    <img src={post.mediaUrl} className="w-full h-full object-cover" alt="Post media" />
-                  )}
-                  {post.mediaUrl.match(/\.(mp4|mov|webm)$/i) && !post.thumbnailUrl && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
-                      <div className="h-8 w-8 rounded-full bg-black/40 flex items-center justify-center">
-                        <Clock className="h-4 w-4 text-white opacity-80" />
+                    <img src={post.thumbnailUrl} className="w-full h-full object-cover transition-transform group-hover/media:scale-105 duration-700" alt="Post thumbnail" />
+                  ) : (() => {
+                    const baseUrl = post.mediaUrl.split('?')[0];
+                    const isVideo = baseUrl.match(/\.(mp4|mov|webm|avi|wmv)$/i);
+
+                    if (isVideo) {
+                      return (
+                        <video
+                          src={post.mediaUrl}
+                          className="w-full h-full object-cover"
+                          preload="metadata"
+                          onMouseOver={(e) => e.currentTarget.play()}
+                          onMouseOut={(e) => {
+                            e.currentTarget.pause()
+                            e.currentTarget.currentTime = 0
+                          }}
+                          muted
+                          loop
+                        />
+                      )
+                    }
+
+                    return (
+                      <img
+                        src={post.mediaUrl}
+                        className="w-full h-full object-cover transition-transform group-hover/media:scale-105 duration-700"
+                        alt="Post media"
+                        onError={(e) => {
+                          const video = document.createElement('video');
+                          video.src = post.mediaUrl || "";
+                          video.className = "w-full h-full object-cover";
+                          video.muted = true;
+                          video.onloadedmetadata = () => {
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '';
+                              parent.appendChild(video);
+                            }
+                          };
+                        }}
+                      />
+                    )
+                  })()}
+                  <div className="absolute inset-0 bg-black/0 group-hover/media:bg-black/10 transition-all duration-300 pointer-events-none flex items-center justify-center">
+                    {post.mediaUrl.split('?')[0].match(/\.(mp4|mov|webm|avi|wmv)$/i) && (
+                      <div className="h-14 w-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center opacity-0 group-hover/media:opacity-100 transition-all duration-500 scale-75 group-hover/media:scale-100 shadow-2xl">
+                        <Play className="h-6 w-6 text-white fill-white ml-0.5" />
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               )}
             </div>

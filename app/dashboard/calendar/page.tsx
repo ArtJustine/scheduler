@@ -150,7 +150,7 @@ export default function CalendarPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-[1fr_300px]">
+      <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
         <Card>
           <CardHeader className="px-5 pt-5 pb-0">
             <div className="flex items-center justify-between">

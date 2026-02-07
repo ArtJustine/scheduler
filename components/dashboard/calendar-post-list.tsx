@@ -100,61 +100,62 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-muted transition-all active:scale-95 shadow-sm bg-muted/10">
-                        <MoreHorizontal className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-muted transition-all active:scale-90 absolute top-4 right-4 z-10">
+                        <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                         <span className="sr-only">Open menu</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 p-2 shadow-2xl border-white/20 rounded-[1.8rem] bg-white/90 dark:bg-black/90 backdrop-blur-2xl animate-in zoom-in-95 duration-200">
-                      <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/30 px-4 py-3">Content Options</DropdownMenuLabel>
-                      <DropdownMenuSeparator className="bg-muted/10 mx-2" />
+                    <DropdownMenuContent align="end" className="w-48 p-1.5 shadow-xl border-white/20 rounded-2xl bg-white/95 dark:bg-black/95 backdrop-blur-xl animate-in zoom-in-95 duration-200">
+                      <DropdownMenuLabel className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 px-3 py-2">Post Options</DropdownMenuLabel>
 
-                      {post.status !== "published" && (
-                        <DropdownMenuItem
-                          className="cursor-pointer font-bold text-xs py-3.5 rounded-2xl px-4 flex items-center gap-3 hover:bg-primary/10 focus:bg-primary/10 transition-all active:scale-95 group/item"
-                          onClick={async () => {
-                            try {
-                              const res = await fetch(`/api/posts/${post.id}/publish`, { method: "POST" })
-                              const data = await res.json()
-                              if (data.success) {
-                                alert(data.message)
-                                window.location.reload()
-                              } else {
-                                alert(data.error || "Failed to publish")
+                      <div className="space-y-0.5">
+                        {post.status !== "published" && (
+                          <DropdownMenuItem
+                            className="cursor-pointer font-bold text-xs py-2 rounded-xl px-3 flex items-center gap-2.5 hover:bg-primary/5 focus:bg-primary/5 transition-all group/item"
+                            onClick={async () => {
+                              try {
+                                const res = await fetch(`/api/posts/${post.id}/publish`, { method: "POST" })
+                                const data = await res.json()
+                                if (data.success) {
+                                  alert(data.message)
+                                  window.location.reload()
+                                } else {
+                                  alert(data.error || "Failed to publish")
+                                }
+                              } catch (e) {
+                                alert("An error occurred while publishing")
                               }
-                            } catch (e) {
-                              alert("An error occurred while publishing")
-                            }
-                          }}
+                            }}
+                          >
+                            <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-white transition-all">
+                              <Send className="h-3.5 w-3.5" />
+                            </div>
+                            Publish Now
+                          </DropdownMenuItem>
+                        )}
+
+                        <DropdownMenuItem
+                          className="cursor-pointer font-bold text-xs py-2 rounded-xl px-3 flex items-center gap-2.5 hover:bg-primary/5 focus:bg-primary/5 transition-all group/item"
+                          onClick={() => onEdit?.(post.id)}
                         >
-                          <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-white transition-all">
-                            <Send className="h-4 w-4" />
+                          <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-white transition-all">
+                            <Edit2 className="h-3.5 w-3.5" />
                           </div>
-                          Publish Now
+                          Edit Details
                         </DropdownMenuItem>
-                      )}
 
-                      <DropdownMenuItem
-                        className="cursor-pointer font-bold text-xs py-3.5 rounded-2xl px-4 flex items-center gap-3 hover:bg-primary/10 focus:bg-primary/10 transition-all active:scale-95 mt-1 group/item"
-                        onClick={() => onEdit?.(post.id)}
-                      >
-                        <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-white transition-all">
-                          <Edit2 className="h-4 w-4" />
-                        </div>
-                        Edit details
-                      </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-muted/10 mx-1.5 my-1.5" />
 
-                      <DropdownMenuSeparator className="bg-muted/10 mx-2 my-2" />
-
-                      <DropdownMenuItem
-                        className="cursor-pointer font-bold text-xs text-rose-500 py-3.5 rounded-2xl px-4 flex items-center gap-3 hover:bg-rose-500/10 focus:bg-rose-500/10 transition-all active:scale-95 group/item focus:text-rose-500"
-                        onClick={() => onDelete?.(post.id)}
-                      >
-                        <div className="h-8 w-8 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 group-hover/item:bg-rose-500 group-hover/item:text-white transition-all">
-                          <Trash2 className="h-4 w-4" />
-                        </div>
-                        Discard Post
-                      </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer font-bold text-xs text-rose-500 py-2 rounded-xl px-3 flex items-center gap-2.5 hover:bg-rose-500/5 focus:bg-rose-500/5 transition-all group/item focus:text-rose-500"
+                          onClick={() => onDelete?.(post.id)}
+                        >
+                          <div className="h-7 w-7 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500 group-hover/item:bg-rose-500 group-hover/item:text-white transition-all">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </div>
+                          Discard Post
+                        </DropdownMenuItem>
+                      </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

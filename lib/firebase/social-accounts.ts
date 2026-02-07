@@ -4,17 +4,18 @@ import type { SocialAccount, SocialAccountType } from "@/types/social"
 
 // Remove all mock data, preview mode, and offline fallback logic. Only use real Firestore data for all social account functions.
 
-export async function getSocialAccounts() {
-  const user = firebaseAuth?.currentUser
+export async function getSocialAccounts(userId?: string) {
+  const uid = userId || firebaseAuth?.currentUser?.uid
 
-  if (!user) {
-    console.warn("User not authenticated, no social accounts found")
+  if (!uid) {
+    console.log("getSocialAccounts: No userId provided or found on auth")
     return {}
   }
 
   try {
+    console.log("getSocialAccounts: Fetching for user", uid)
     if (!firebaseDb) throw new Error("Database not initialized")
-    const userDocRef = doc(firebaseDb, "users", user.uid)
+    const userDocRef = doc(firebaseDb, "users", uid)
     const userDoc = await getDoc(userDocRef)
 
     if (!userDoc.exists()) {

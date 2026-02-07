@@ -9,23 +9,19 @@ const isFirestoreAvailable = () => {
   return typeof window !== "undefined" && firebaseDb !== undefined
 }
 
-export async function getScheduledPosts() {
-  // Check if we're in the browser and Firestore is available
-  if (!isFirestoreAvailable()) {
-    console.warn("Firestore is not available, cannot get scheduled posts")
-    return []
-  }
+export async function getScheduledPosts(userId?: string) {
+  if (!isFirestoreAvailable()) return []
 
-  const user = firebaseAuth?.currentUser
-
-  if (!user) {
-    console.warn("User not authenticated, cannot get scheduled posts")
+  const uid = userId || firebaseAuth?.currentUser?.uid
+  if (!uid) {
+    console.log("getScheduledPosts: No userId provided or found on auth")
     return []
   }
 
   try {
+    console.log("getScheduledPosts: Fetching for user", uid)
     const postsRef = collection(firebaseDb!, "posts")
-    const q = query(postsRef, where("userId", "==", user.uid))
+    const q = query(postsRef, where("userId", "==", uid))
     const querySnapshot = await getDocs(q)
 
     const posts: PostType[] = []

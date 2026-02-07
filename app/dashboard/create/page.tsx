@@ -266,8 +266,12 @@ export default function CreatePostPage() {
 
     try {
       const postData = {
+        title: content.substring(0, 50) || "New Post",
+        description: content.substring(0, 100) || "Created from scheduler",
         content,
         platforms: selectedPlatforms,
+        platform: selectedPlatforms.length === 1 ? selectedPlatforms[0] : (selectedPlatforms.length > 1 ? "multiple" : "unknown"),
+        contentType: mediaUrl ? (mediaUrl.match(/\.(mp4|mov|webm)$/i) ? "video" : "image") : "text",
         mediaUrl,
         thumbnailUrl,
         scheduledFor: scheduledDate ? new Date(
@@ -282,7 +286,9 @@ export default function CreatePostPage() {
         youtubePostType: selectedPlatforms.includes("youtube") ? (youtubeAspectRatio === "community" ? "community" : (mediaUrl ? "video" : "community")) : undefined
       }
 
-      await createPost(postData as any)
+      console.log("Submitting post data:", postData)
+      const postId = await createPost(postData as any)
+      console.log("Post created successfully with ID:", postId)
       router.push("/dashboard/calendar")
     } catch (err: any) {
       console.error("Error creating post:", err)

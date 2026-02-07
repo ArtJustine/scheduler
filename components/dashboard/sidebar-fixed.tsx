@@ -169,7 +169,10 @@ export function DashboardSidebar() {
   }
 
   const getChannelDisplay = (channel: any) => {
-    const platform = channel.title.toLowerCase()
+    if (!channel || !channel.title) {
+      return { title: "Unknown", icon: Share2, image: null }
+    }
+    const platform = channel.title?.toLowerCase()
     const connected = connectedAccounts[platform]
 
     if (connected) {
@@ -339,9 +342,9 @@ export function DashboardSidebar() {
             Social Channels
           </h2>
           <SidebarMenu>
-            {socialChannels.filter(channel => connectedAccounts[channel.title.toLowerCase()]).length > 0 ? (
+            {socialChannels.filter(channel => channel?.title && connectedAccounts[channel.title.toLowerCase()]).length > 0 ? (
               socialChannels
-                .filter(channel => connectedAccounts[channel.title.toLowerCase()])
+                .filter(channel => channel?.title && connectedAccounts[channel.title.toLowerCase()])
                 .map((channel) => {
                   const display = getChannelDisplay(channel)
                   return (

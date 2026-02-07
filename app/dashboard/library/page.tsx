@@ -55,62 +55,22 @@ function LibraryContent() {
     if (!user) return
     try {
       setIsLoading(true)
+      const userId = user.uid || (user as any).id
+      console.log("Library: Loading data for user", userId)
       const [media, hashtags, captions] = await Promise.all([
-        getMediaLibrary(),
+        getMediaLibrary(userId),
         getHashtagGroups(),
         getCaptionTemplates(),
       ])
-      setMediaItems(media)
-      setHashtagGroups(hashtags)
-      setCaptionTemplates(captions)
+      setMediaItems(media || [])
+      setHashtagGroups(hashtags || [])
+      setCaptionTemplates(captions || [])
     } catch (error) {
-      console.error("Error loading library data:", error)
+      console.error("Library: Error loading library data:", error)
     } finally {
       setIsLoading(false)
     }
   }
-
-  const handleAddDescription = async (data: any) => {
-    try {
-      await createCaption(data.title, data.content)
-      await loadLibraryData()
-    } catch (error) {
-      console.error("Error adding description:", error)
-    }
-  }
-
-  const handleDeleteDescription = async (id: string) => {
-    try {
-      await deleteCaption(id)
-      setCaptionTemplates(prev => prev.filter(t => t.id !== id))
-    } catch (error) {
-      console.error("Error deleting description:", error)
-    }
-  }
-
-  const handleAddHashtags = async (data: any) => {
-    try {
-      await createHashtag(data.name, data.hashtags)
-      await loadLibraryData()
-    } catch (error) {
-      console.error("Error adding hashtags:", error)
-    }
-  }
-
-  const handleDeleteHashtags = async (id: string) => {
-    try {
-      await deleteHashtag(id)
-      setHashtagGroups(prev => prev.filter(g => g.id !== id))
-    } catch (error) {
-      console.error("Error deleting hashtags:", error)
-    }
-  }
-
-  useEffect(() => {
-    if (tabParam) {
-      setActiveTab(tabParam)
-    }
-  }, [tabParam])
 
   useEffect(() => {
     if (user) {
@@ -163,61 +123,37 @@ function LibraryContent() {
               ) : (
                 <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-xl bg-muted/5">
                   <Plus className="h-8 w-8 text-muted-foreground mb-4 opacity-50" />
-                  <p className="text-sm font-medium text-muted-foreground">No media found in your library</p>
-                  <Button variant="link" size="sm" className="mt-2 text-primary" onClick={() => setIsUploadDialogOpen(true)}>
-                    Upload your first file
-                  </Button>
+                  <p className="text-muted-foreground mb-4">No media found in your library</p>
+                  <Button onClick={() => setIsUploadDialogOpen(true)}>Upload your first media</Button>
                 </div>
               )}
             </CardContent>
           </Card>
-
-          <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Upload Media</DialogTitle>
-                <DialogDescription>
-                  Upload images or videos to use in your posts.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4">
-                <MediaUploader onUpload={() => {
-                  setIsUploadDialogOpen(false)
-                  loadLibraryData()
-                }} />
-              </div>
-            </DialogContent>
-          </Dialog>
         </TabsContent>
 
         <TabsContent value="hashtags" className="mt-0 outline-none">
-          {isLoading ? (
-            <div className="flex justify-center p-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-            </div>
-          ) : (
-            <HashtagManager
-              groups={hashtagGroups}
-              onAdd={handleAddHashtags}
-              onDelete={handleDeleteHashtags}
-            />
-          )}
+          <HashtagManager groups={hashtagGroups} onUpdate={loadLibraryData} />
         </TabsContent>
 
         <TabsContent value="descriptions" className="mt-0 outline-none">
-          {isLoading ? (
-            <div className="flex justify-center p-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-            </div>
-          ) : (
-            <CaptionLibrary
-              templates={captionTemplates}
-              onAdd={handleAddDescription}
-              onDelete={handleDeleteDescription}
-            />
-          )}
+          <CaptionLibrary templates={captionTemplates} onUpdate={loadLibraryData} />
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Upload Media</DialogTitle>
+            <DialogDescription>
+              Upload images or videos to your content library to use them in your posts.
+            </DialogDescription>
+          </DialogHeader>
+          <MediaUploader onUpload={() => {
+            setIsUploadDialogOpen(false)
+            loadLibraryData()
+          }} />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -166,7 +166,7 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold">{stats.followers.toLocaleString()}</div>
+                        <div className="text-3xl font-bold">{stats?.followers?.toLocaleString() ?? '0'}</div>
                         <p className="text-xs text-green-600 flex items-center mt-1">
                             <Plus className="h-3 w-3 mr-1" />
                             12% from last month
@@ -181,7 +181,7 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold">{stats.engagement}%</div>
+                        <div className="text-3xl font-bold">{stats?.engagement ?? '0'}%</div>
                         <p className="text-xs text-green-600 flex items-center mt-1">
                             <Plus className="h-3 w-3 mr-1" />
                             2.4% from last month
@@ -196,7 +196,7 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold">{stats.impressions.toLocaleString()}</div>
+                        <div className="text-3xl font-bold">{stats?.impressions?.toLocaleString() ?? '0'}</div>
                         <p className="text-xs text-green-600 flex items-center mt-1">
                             <Plus className="h-3 w-3 mr-1" />
                             8% from last month
@@ -211,7 +211,7 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold">{stats.posts}</div>
+                        <div className="text-3xl font-bold">{stats?.posts ?? '0'}</div>
                         <p className="text-xs text-muted-foreground mt-1">
                             Active schedule
                         </p>
@@ -227,10 +227,10 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
                     </CardHeader>
                     <CardContent className="h-[300px]">
                         <LineChart
-                            data={stats.growth.map((val: number, i: number) => ({
+                            data={stats?.growth?.map((val: number, i: number) => ({
                                 date: `Week ${i + 1}`,
-                                value: val
-                            }))}
+                                value: val || 0
+                            })) || []}
                             color={info.color.includes("text-") ? "currentColor" : undefined}
                         />
                     </CardContent>
@@ -242,10 +242,10 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
                     </CardHeader>
                     <CardContent className="h-[300px]">
                         <BarChart
-                            data={stats.engagementData.map((val: number, i: number) => ({
+                            data={stats?.engagementData?.map((val: number, i: number) => ({
                                 date: `Week ${i + 1}`,
-                                value: val
-                            }))}
+                                value: val || 0
+                            })) || []}
                             color={info.color.includes("text-") ? "currentColor" : undefined}
                         />
                     </CardContent>

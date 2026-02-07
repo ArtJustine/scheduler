@@ -14,6 +14,7 @@ import { ScheduledPostCard } from "@/components/dashboard/scheduled-post-card"
 import { PlatformStats } from "@/components/dashboard/platform-stats"
 import { UpcomingPostsList } from "@/components/dashboard/upcoming-posts-list"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useAuth } from "@/lib/auth-provider"
 import type { PostType } from "@/types/post"
 import type { SocialAccounts } from "@/types/social"
 
@@ -39,33 +40,43 @@ function DashboardContent() {
   const [posts, setPosts] = useState<PostType[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
+  const { user } = useAuth()
   const router = useRouter()
 
   const loadData = async () => {
+    if (!user) return
     try {
       setIsLoading(true)
-      const [fetchedPosts, fetchedAccounts] = await Promise.all([getScheduledPosts(), getSocialAccounts()])
+      const userId = user.uid || (user as any).id
+      console.log("Dashboard: Loading data for user", userId)
+
+      const [fetchedPosts, fetchedAccounts] = await Promise.all([
+        getScheduledPosts(userId),
+        getSocialAccounts(userId)
+      ])
 
       setPosts(fetchedPosts || [])
       setSocialAccounts(fetchedAccounts || {})
     } catch (error) {
-      console.error("Error loading data:", error)
+      console.error("Dashboard: Error loading data:", error)
     } finally {
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    loadData()
+    if (user) {
+      loadData()
+    }
 
     const handleRefresh = () => loadData()
     window.addEventListener('social-accounts-updated', handleRefresh)
     return () => window.removeEventListener('social-accounts-updated', handleRefresh)
-  }, [])
+  }, [user])
 
   const getPostCount = (platform: string) => {
     if (!posts || !Array.isArray(posts)) return 0
-    return posts.filter((p) => p?.platform?.toLowerCase() === platform.toLowerCase()).length
+    return posts.filter((p) => p?.platform?.toLowerCase() === platform?.toLowerCase()).length
   }
 
   const getConnectedPlatformsList = () => {
@@ -207,4 +218,3 @@ function DashboardContent() {
     </div>
   )
 }
-

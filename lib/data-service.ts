@@ -103,8 +103,8 @@ export const logout = async () => {
 }
 
 // Social account functions
-export const getSocialAccounts = async (): Promise<SocialAccounts> => {
-  return await firebaseGetSocialAccounts()
+export const getSocialAccounts = async (userId?: string): Promise<SocialAccounts> => {
+  return await firebaseGetSocialAccounts(userId)
 }
 
 export const connectSocialAccount = async (platform: string, accountData: any) => {
@@ -116,8 +116,8 @@ export const disconnectSocialAccount = async (platform: string) => {
 }
 
 // Post functions
-export const getPosts = async () => {
-  return await firebaseGetScheduledPosts()
+export const getPosts = async (userId?: string) => {
+  return await firebaseGetScheduledPosts(userId)
 }
 
 export const getPostById = async (id: string) => {
@@ -142,8 +142,8 @@ export const schedulePost = async (id: string, date: string) => {
 }
 
 // Media functions
-export const getMediaLibrary = async (): Promise<MediaItem[]> => {
-  return await firebaseGetMediaLibrary()
+export const getMediaLibrary = async (userId?: string): Promise<MediaItem[]> => {
+  return await firebaseGetMediaLibrary(userId)
 }
 
 export const uploadMedia = async (file: File, title: string, type: "image" | "video") => {
@@ -186,6 +186,6 @@ export const getAnalytics = async (timeframe: string = "month") => {
 }
 
 // Scheduled posts functions
-export const getScheduledPosts = async () => {
-  return await firebaseGetScheduledPosts()
+export const getScheduledPosts = async (userId?: string) => {
+  return await firebaseGetScheduledPosts(userId)
 }

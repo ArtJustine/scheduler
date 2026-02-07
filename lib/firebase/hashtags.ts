@@ -44,28 +44,35 @@ export async function createHashtagGroup({ name, hashtags }: CreateHashtagGroupP
   } as HashtagGroup
 }
 
-export async function getHashtagGroups() {
+export async function getHashtagGroups(userId?: string) {
   if (!auth || !db) throw new Error("Firebase not initialized")
-  const user = auth.currentUser
 
-  if (!user) {
-    throw new Error("User not authenticated")
+  const uid = userId || auth.currentUser?.uid
+  if (!uid) {
+    console.log("getHashtagGroups: No userId provided or found on auth")
+    return []
   }
 
-  const hashtagQuery = query(
-    collection(db, "hashtagGroups"),
-    where("userId", "==", user.uid),
-    orderBy("createdAt", "asc"),
-  )
+  try {
+    console.log("getHashtagGroups: Fetching for user", uid)
+    const hashtagQuery = query(
+      collection(db, "hashtagGroups"),
+      where("userId", "==", uid),
+      orderBy("createdAt", "asc"),
+    )
 
-  const snapshot = await getDocs(hashtagQuery)
+    const snapshot = await getDocs(hashtagQuery)
 
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt.toDate().toISOString(),
-    updatedAt: doc.data().updatedAt.toDate().toISOString(),
-  })) as HashtagGroup[]
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString(),
+      updatedAt: doc.data().updatedAt?.toDate().toISOString() || new Date().toISOString(),
+    })) as HashtagGroup[]
+  } catch (error) {
+    console.error("Error fetching hashtag groups:", error)
+    return []
+  }
 }
 
 export async function updateHashtagGroup(groupId: string, data: Partial<HashtagGroup>) {

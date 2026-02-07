@@ -87,6 +87,42 @@ function LibraryContent() {
     }
   }
 
+  const handleAddHashtag = async (group: any) => {
+    try {
+      await createHashtag(group.name, group.hashtags)
+      loadLibraryData()
+    } catch (error) {
+      console.error("Error adding hashtag group:", error)
+    }
+  }
+
+  const handleDeleteHashtag = async (id: string) => {
+    try {
+      await deleteHashtag(id)
+      loadLibraryData()
+    } catch (error) {
+      console.error("Error deleting hashtag group:", error)
+    }
+  }
+
+  const handleAddCaption = async (caption: any) => {
+    try {
+      await createCaption(caption.title, caption.content)
+      loadLibraryData()
+    } catch (error) {
+      console.error("Error adding caption:", error)
+    }
+  }
+
+  const handleDeleteCaption = async (id: string) => {
+    try {
+      await deleteCaption(id)
+      loadLibraryData()
+    } catch (error) {
+      console.error("Error deleting caption:", error)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1">
@@ -132,11 +168,19 @@ function LibraryContent() {
         </TabsContent>
 
         <TabsContent value="hashtags" className="mt-0 outline-none">
-          <HashtagManager groups={hashtagGroups} onUpdate={loadLibraryData} />
+          <HashtagManager
+            groups={hashtagGroups}
+            onAdd={handleAddHashtag}
+            onDelete={handleDeleteHashtag}
+          />
         </TabsContent>
 
         <TabsContent value="descriptions" className="mt-0 outline-none">
-          <CaptionLibrary templates={captionTemplates} onUpdate={loadLibraryData} />
+          <CaptionLibrary
+            templates={captionTemplates}
+            onAdd={handleAddCaption}
+            onDelete={handleDeleteCaption}
+          />
         </TabsContent>
       </Tabs>
 

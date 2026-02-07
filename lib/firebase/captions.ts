@@ -44,28 +44,35 @@ export async function createCaptionTemplate({ title, content }: CreateCaptionTem
   } as CaptionTemplate
 }
 
-export async function getCaptionTemplates() {
+export async function getCaptionTemplates(userId?: string) {
   if (!auth || !db) throw new Error("Firebase not initialized")
-  const user = auth.currentUser
 
-  if (!user) {
-    throw new Error("User not authenticated")
+  const uid = userId || auth.currentUser?.uid
+  if (!uid) {
+    console.log("getCaptionTemplates: No userId provided or found on auth")
+    return []
   }
 
-  const captionQuery = query(
-    collection(db, "captionTemplates"),
-    where("userId", "==", user.uid),
-    orderBy("createdAt", "desc"),
-  )
+  try {
+    console.log("getCaptionTemplates: Fetching for user", uid)
+    const captionQuery = query(
+      collection(db, "captionTemplates"),
+      where("userId", "==", uid),
+      orderBy("createdAt", "desc"),
+    )
 
-  const snapshot = await getDocs(captionQuery)
+    const snapshot = await getDocs(captionQuery)
 
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt.toDate().toISOString(),
-    updatedAt: doc.data().updatedAt.toDate().toISOString(),
-  })) as CaptionTemplate[]
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString(),
+      updatedAt: doc.data().updatedAt?.toDate().toISOString() || new Date().toISOString(),
+    })) as CaptionTemplate[]
+  } catch (error) {
+    console.error("Error fetching caption templates:", error)
+    return []
+  }
 }
 
 export async function updateCaptionTemplate(templateId: string, data: Partial<CaptionTemplate>) {

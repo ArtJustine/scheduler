@@ -11,7 +11,11 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" })
 export const metadata: Metadata = {
   title: "Chiyu - Social Media Scheduler",
   description: "Schedule your social media posts across platforms with Chiyu. The premium scheduler for modern creators.",
-  generator: 'v0.dev'
+  generator: 'v0.dev',
+  icons: {
+    icon: '/logo-light.png',
+    apple: '/logo-light.png',
+  }
 }
 
 export default function RootLayout({

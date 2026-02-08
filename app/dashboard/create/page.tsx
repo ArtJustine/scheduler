@@ -539,30 +539,31 @@ export default function CreatePostPage() {
                         <span>Add Media</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[280px] p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-white/20 rounded-[2.5rem] bg-white/80 dark:bg-black/80 backdrop-blur-2xl animate-in zoom-in-95 fade-in duration-300">
+                    <DropdownMenuContent align="start" className="w-[240px] p-2 shadow-2xl border-white/20 rounded-3xl bg-white/80 dark:bg-black/80 backdrop-blur-2xl animate-in zoom-in-95 duration-200">
+                      <DropdownMenuLabel className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground/50 px-3 py-2">Source</DropdownMenuLabel>
                       <DropdownMenuItem
-                        className="text-xs py-4 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-[1.8rem] px-5 flex items-center gap-4 font-bold transition-all group active:scale-95"
+                        className="text-xs py-3 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-2xl px-4 flex items-center gap-3 font-bold transition-all group"
                         onClick={() => setShowMediaUploader(true)}
                       >
-                        <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm">
-                          <Upload className="h-5 w-5" />
+                        <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                          <Upload className="h-4 w-4" />
                         </div>
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[14px]">Upload New</span>
-                          <span className="text-[10px] text-muted-foreground/80 font-medium group-hover:text-primary/70">From your device storage</span>
+                        <div className="flex flex-col">
+                          <span>Upload New</span>
+                          <span className="text-[10px] text-muted-foreground font-medium group-hover:text-primary/70">From your device</span>
                         </div>
                       </DropdownMenuItem>
                       {mediaItems.length > 0 && (
                         <DropdownMenuItem
-                          className="text-xs py-4 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-[1.8rem] px-5 flex items-center gap-4 font-bold mt-1.5 transition-all group active:scale-95"
+                          className="text-xs py-3 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-2xl px-4 flex items-center gap-3 font-bold mt-1 transition-all group"
                           onClick={() => setShowMediaLibrary(true)}
                         >
-                          <div className="h-11 w-11 rounded-2xl bg-secondary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm">
-                            <ImageIcon className="h-5 w-5" />
+                          <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                            <ImageIcon className="h-4 w-4" />
                           </div>
-                          <div className="flex flex-col gap-0.5">
-                            <span>Media Library</span>
-                            <span className="text-[10px] text-muted-foreground/80 font-medium group-hover:text-primary/70">{mediaItems.length} items available</span>
+                          <div className="flex flex-col">
+                            <span>Library ({mediaItems.length})</span>
+                            <span className="text-[10px] text-muted-foreground font-medium group-hover:text-primary/70">Re-use content</span>
                           </div>
                         </DropdownMenuItem>
                       )}

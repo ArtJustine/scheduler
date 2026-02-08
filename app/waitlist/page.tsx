@@ -93,7 +93,7 @@ export default function WaitlistPage() {
                                     <Button
                                         type="submit"
                                         disabled={loading}
-                                        className="w-full text-lg py-6 font-bold"
+                                        className="w-full rounded-full bg-primary text-primary-foreground text-xl py-8 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0"
                                     >
                                         {loading ? "Joining..." : "Reserve My Spot"}
                                     </Button>

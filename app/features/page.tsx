@@ -28,7 +28,7 @@ export default function FeaturesPage() {
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-200">
                             <Link href="/waitlist">
-                                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-6 h-auto rounded-full shadow-2xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 border-0 font-bold">
+                                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-lg md:text-xl px-8 md:px-12 py-6 md:py-8 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
                                     Get Started for Free
                                 </Button>
                             </Link>
@@ -56,7 +56,9 @@ export default function FeaturesPage() {
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Facebook</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <img src="/x.webp" alt="X" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
+                                <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <img src="/x.webp" alt="X" className="h-6 w-6 object-contain group-hover:scale-110 transition-transform" />
+                                </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">X</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
@@ -64,11 +66,15 @@ export default function FeaturesPage() {
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">LinkedIn</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group">
-                                <img src="/tiktok.webp" alt="TikTok" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
+                                <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <img src="/tiktok.webp" alt="TikTok" className="h-6 w-6 object-contain group-hover:scale-110 transition-transform" />
+                                </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">TikTok</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <img src="/threads.webp" alt="Threads" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
+                                <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <img src="/threads.webp" alt="Threads" className="h-6 w-6 object-contain group-hover:scale-110 transition-transform" />
+                                </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Threads</span>
                             </div>
                         </div>
@@ -566,7 +572,7 @@ export default function FeaturesPage() {
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link href="/waitlist">
-                                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 h-auto shadow-lg shadow-primary/25">
+                                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-lg md:text-xl px-8 md:px-12 py-6 md:py-8 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
                                     Get Started for Free
                                 </Button>
                             </Link>

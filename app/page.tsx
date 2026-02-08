@@ -51,7 +51,7 @@ export default function Home() {
           </FloatingIcon>
 
           <FloatingIcon initialPos={{ top: "8%", left: "48%" }} className="animate-float-medium">
-            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
+            <div className="w-20 h-20 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/x.webp" alt="X" className="w-10 h-10 object-contain" />
             </div>
           </FloatingIcon>
@@ -63,7 +63,7 @@ export default function Home() {
           </FloatingIcon>
 
           <FloatingIcon initialPos={{ top: "48%", left: "8%" }} className="animate-float-medium">
-            <div className="w-32 h-32 bg-white dark:bg-slate-900 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
+            <div className="w-32 h-32 bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/tiktok.webp" alt="TikTok" className="w-16 h-16 object-contain" />
             </div>
           </FloatingIcon>
@@ -81,7 +81,7 @@ export default function Home() {
           </FloatingIcon>
 
           <FloatingIcon initialPos={{ bottom: "8%", right: "22%" }} className="animate-float-medium">
-            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
+            <div className="w-20 h-20 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/threads.webp" alt="Threads" className="w-10 h-10 object-contain" />
             </div>
           </FloatingIcon>
@@ -102,10 +102,14 @@ export default function Home() {
             <img src="/youtube.webp" alt="YouTube" className="w-16 h-16 object-contain" />
           </FloatingIcon>
           <FloatingIcon initialPos={{ top: "60%", left: "15%" }} className="animate-float-medium">
-            <img src="/tiktok.webp" alt="TikTok" className="w-20 h-20 object-contain" />
+            <div className="bg-white p-3 rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center w-24 h-24">
+              <img src="/tiktok.webp" alt="TikTok" className="w-12 h-12 object-contain" />
+            </div>
           </FloatingIcon>
           <FloatingIcon initialPos={{ top: "80%", left: "70%" }} className="animate-float-slow">
-            <img src="/x.webp" alt="X" className="w-12 h-12 object-contain" />
+            <div className="bg-white p-2 rounded-xl shadow-lg border border-gray-100 flex items-center justify-center w-16 h-16">
+              <img src="/x.webp" alt="X" className="w-8 h-8 object-contain" />
+            </div>
           </FloatingIcon>
         </div>
 
@@ -254,7 +258,7 @@ export default function Home() {
 
             <div className="pt-8">
               <Link href="/waitlist">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 h-auto shadow-lg shadow-primary/25">
+                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-lg md:text-xl px-8 md:px-12 py-6 md:py-8 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
                   Join the Waitlist
                 </Button>
               </Link>
@@ -400,7 +404,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/waitlist">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 h-auto shadow-lg shadow-primary/25">
+                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-lg md:text-xl px-8 md:px-12 py-6 md:py-8 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
                   Get Started for Free
                 </Button>
               </Link>

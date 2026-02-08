@@ -96,7 +96,7 @@ export function SiteHeader() {
                                         <Link href="/blog" className="text-lg font-medium hover:text-primary transition-colors">Blog</Link>
                                         <hr className="border-border" />
                                         <Link href="/waitlist" className="w-full">
-                                            <Button className="w-full bg-slate-900 text-white rounded-xl">Waitlist</Button>
+                                            <Button className="w-full bg-primary text-white rounded-full py-6 h-auto font-bold transition-all hover:scale-105 active:scale-95 border-0">Waitlist</Button>
                                         </Link>
                                     </div>
                                 </SheetContent>
@@ -158,7 +158,7 @@ export function SiteHeader() {
                         <ModeToggle />
                         {user ? (
                             <Link href={isDashboard ? "/" : "/dashboard"}>
-                                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-lg shadow-primary/25">
+                                <Button className="rounded-full bg-primary text-primary-foreground px-6 py-2 h-auto font-bold transition-all hover:scale-105 active:scale-95 border-0 shadow-lg shadow-primary/25">
                                     {isDashboard ? "Exit Dashboard" : "Dashboard"}
                                 </Button>
                             </Link>
@@ -168,7 +168,7 @@ export function SiteHeader() {
                                     Login
                                 </Link>
                                 <Link href="/waitlist">
-                                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-lg shadow-primary/25">
+                                    <Button className="rounded-full bg-primary text-primary-foreground px-8 py-3 h-auto font-bold text-lg transition-all hover:scale-105 active:scale-95 border-0 shadow-lg shadow-primary/25">
                                         Waitlist
                                     </Button>
                                 </Link>
@@ -250,7 +250,7 @@ export function SiteHeader() {
                                             {user ? (
                                                 <div className="flex flex-col space-y-4">
                                                     <Link href={isDashboard ? "/" : "/dashboard"} className="w-full">
-                                                        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-14 text-lg rounded-2xl shadow-xl shadow-primary/20">
+                                                        <Button className="w-full bg-primary text-primary-foreground h-14 text-xl rounded-full font-bold shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 border-0">
                                                             {isDashboard ? "Exit Dashboard" : "Dashboard"}
                                                         </Button>
                                                     </Link>
@@ -261,7 +261,7 @@ export function SiteHeader() {
                                                         <Button variant="outline" className="w-full h-14 text-lg rounded-2xl border-border/50 bg-background/50">Login</Button>
                                                     </Link>
                                                     <Link href="/waitlist" className="w-full">
-                                                        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-14 text-lg rounded-2xl shadow-xl shadow-primary/20">Waitlist</Button>
+                                                        <Button className="w-full bg-primary text-primary-foreground h-14 text-xl rounded-full font-bold shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 border-0">Waitlist</Button>
                                                     </Link>
                                                 </div>
                                             )}
@@ -353,7 +353,7 @@ function HeaderNav({ pathname, minimalist = false }: { pathname: string | null, 
                 </Link>
             </div>
             <Link href="/waitlist">
-                <Button className="rounded-full bg-primary text-white hover:opacity-90 px-6 py-2 h-auto text-sm font-bold border-0 shadow-none">
+                <Button className="rounded-full bg-primary text-white px-8 py-3 h-auto text-base font-bold transition-all hover:scale-105 active:scale-95 border-0 shadow-lg shadow-primary/25">
                     Waitlist
                 </Button>
             </Link>

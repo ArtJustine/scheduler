@@ -21,7 +21,7 @@ export default function PricingPage() {
                             <Button variant="ghost" className="text-sm">Login</Button>
                         </Link>
                         <Link href="/waitlist">
-                            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25">
+                            <Button className="rounded-full bg-primary text-primary-foreground px-6 py-2 h-auto font-bold transition-all hover:scale-105 active:scale-95 border-0">
                                 Get Started
                             </Button>
                         </Link>
@@ -49,7 +49,9 @@ export default function PricingPage() {
                                 <div className="text-4xl font-bold mb-4">$0 <span className="text-lg font-normal text-muted-foreground">/mo</span></div>
                                 <p className="text-muted-foreground mb-8">Perfect for getting started.</p>
                                 <Link href="/waitlist">
-                                    <Button variant="outline" className="w-full mb-8">Get Started</Button>
+                                    <Button size="lg" className="w-full rounded-full bg-primary text-primary-foreground text-lg py-6 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
+                                        Get Started
+                                    </Button>
                                 </Link>
                                 <ul className="space-y-4">
                                     <li className="flex items-center gap-3 text-sm"><Check className="h-4 w-4 text-primary" /> 3 Social Accounts</li>
@@ -65,7 +67,9 @@ export default function PricingPage() {
                                 <div className="text-4xl font-bold mb-4 text-primary">$29 <span className="text-lg font-normal text-muted-foreground">/mo</span></div>
                                 <p className="text-muted-foreground mb-8">For serious creators.</p>
                                 <Link href="/waitlist">
-                                    <Button className="w-full mb-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25">Get Started</Button>
+                                    <Button size="lg" className="w-full rounded-full bg-primary text-primary-foreground text-lg py-6 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
+                                        Get Started
+                                    </Button>
                                 </Link>
                                 <ul className="space-y-4">
                                     <li className="flex items-center gap-3 text-sm"><Check className="h-4 w-4 text-primary" /> Unlimited Accounts</li>
@@ -81,7 +85,9 @@ export default function PricingPage() {
                                 <div className="text-4xl font-bold mb-4">$99 <span className="text-lg font-normal text-muted-foreground">/mo</span></div>
                                 <p className="text-muted-foreground mb-8">For teams and agencies.</p>
                                 <Link href="/waitlist">
-                                    <Button variant="outline" className="w-full mb-8">Contact Sales</Button>
+                                    <Button size="lg" className="w-full rounded-full bg-primary text-primary-foreground text-lg py-6 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
+                                        Contact Sales
+                                    </Button>
                                 </Link>
                                 <ul className="space-y-4">
                                     <li className="flex items-center gap-3 text-sm"><Check className="h-4 w-4 text-primary" /> Everything in Pro</li>

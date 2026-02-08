@@ -70,7 +70,7 @@ export default function PublicBioPage() {
             <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center p-8">
                 <h1 className="text-4xl font-bold text-white mb-4">404</h1>
                 <p className="text-zinc-500 mb-8">This digital space hasn't been claimed yet.</p>
-                <a href="/" className="px-6 py-3 bg-primary text-white rounded-full font-bold">Start yours at Chiyu</a>
+                <a href="/" className="rounded-full bg-primary text-primary-foreground px-8 py-3 h-auto font-bold transition-all hover:scale-105 active:scale-95 border-0 shadow-lg shadow-primary/25">Start yours at Chiyu</a>
             </div>
         )
     }

@@ -54,7 +54,9 @@ export function SiteFooter() {
                             <img src="/instagram.webp" alt="Instagram" className="h-5 w-5 object-contain opacity-70 hover:opacity-100" />
                         </Link>
                         <Link href="https://x.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-all hover:scale-110">
-                            <img src="/x.webp" alt="X" className="h-5 w-5 object-contain opacity-70 hover:opacity-100" />
+                            <div className="bg-white p-1 rounded-md shadow-sm border border-gray-100 flex items-center justify-center">
+                                <img src="/x.webp" alt="X" className="h-4 w-4 object-contain" />
+                            </div>
                         </Link>
                         <Link href="https://youtube.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-all hover:scale-110">
                             <img src="/youtube.webp" alt="YouTube" className="h-5 w-5 object-contain opacity-70 hover:opacity-100" />

@@ -35,14 +35,27 @@ export function UpcomingPostsList({ posts = [] }: UpcomingPostsListProps) {
           </div>
           <div className="flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium capitalize bg-primary/10 text-primary">
             {['instagram', 'youtube', 'facebook', 'x', 'linkedin', 'bluesky', 'threads', 'pinterest', 'tiktok'].includes((post.platform || "").toLowerCase()) && (
-              <img
-                src={`/${post.platform?.toLowerCase()}.webp`}
-                alt={post.platform}
-                className="h-3 w-3 object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
+              ['x', 'tiktok', 'threads'].includes(post.platform?.toLowerCase() || "") ? (
+                <div className="bg-white p-0.5 rounded-sm flex items-center justify-center">
+                  <img
+                    src={`/${post.platform?.toLowerCase()}.webp`}
+                    alt={post.platform}
+                    className="h-2.5 w-2.5 object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              ) : (
+                <img
+                  src={`/${post.platform?.toLowerCase()}.webp`}
+                  alt={post.platform}
+                  className="h-3 w-3 object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              )
             )}
             {post.platform || "Multiple"}
           </div>

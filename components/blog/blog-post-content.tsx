@@ -162,9 +162,9 @@ export function BlogPostContent({ post }: BlogPostContentProps) {
 
                     <Button
                         onClick={handleShare}
-                        className="rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-all shadow-xl shadow-slate-900/10 dark:shadow-white/10 px-8 h-12"
+                        className="rounded-full bg-primary text-primary-foreground px-10 py-6 h-auto text-lg font-bold transition-all hover:scale-105 active:scale-95 border-0 shadow-xl shadow-primary/20"
                     >
-                        <Share2 className="h-4 w-4 mr-2" />
+                        <Share2 className="h-5 w-5 mr-3" />
                         Share Insight
                     </Button>
                 </div>

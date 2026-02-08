@@ -1,11 +1,39 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Calendar, Zap, ThumbsUp, Instagram, Youtube, Video, ArrowRight, Star, CheckCircle2, QrCode, Globe, Clock, Layers, ShieldCheck, Mail, Edit3, BarChart3, Facebook, Twitter, Linkedin } from "lucide-react"
+import { Calendar, Zap, ThumbsUp, Instagram, Youtube, Video, ArrowRight, Star, CheckCircle2, QrCode, Globe, Clock, Layers, ShieldCheck, Mail, Edit3, BarChart3, Facebook, Twitter, Linkedin, Play } from "lucide-react"
 import Link from "next/link"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
+import { cn } from "@/lib/utils"
+
+function FloatingIcon({ children, className, initialPos }: { children: React.ReactNode, className?: string, initialPos: { top?: string, left?: string, right?: string, bottom?: string } }) {
+  const [pos, setPos] = useState(initialPos)
+
+  const handleInteraction = () => {
+    const randomTop = Math.floor(Math.random() * 70) + 5 + "%"
+    const randomLeft = Math.floor(Math.random() * 70) + 5 + "%"
+    setPos({ top: randomTop, left: randomLeft, right: "auto", bottom: "auto" })
+  }
+
+  return (
+    <div
+      className={cn(
+        "absolute transition-all duration-1000 ease-in-out pointer-events-auto cursor-help",
+        className
+      )}
+      style={pos}
+      onMouseEnter={handleInteraction}
+      onClick={handleInteraction}
+    >
+      {children}
+    </div>
+  )
+}
 
 export default function Home() {
   return (
@@ -16,67 +44,69 @@ export default function Home() {
       <section className="relative w-full min-h-[85vh] flex items-center justify-center overflow-hidden bg-white dark:bg-black transition-colors duration-500">
         {/* Floating Social Platform Icons - Desktop */}
         <div className="absolute inset-0 pointer-events-none hidden md:block">
-          {/* Top Row */}
-          <div className="absolute top-[12%] left-[12%] animate-float-slow">
-            <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+          <FloatingIcon initialPos={{ top: "12%", left: "12%" }} className="animate-float-slow">
+            <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
               <Instagram className="w-12 h-12 text-[#E1306C]" />
             </div>
-          </div>
-          <div className="absolute top-[8%] left-[48%] animate-float-medium">
-            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+          </FloatingIcon>
+
+          <FloatingIcon initialPos={{ top: "8%", left: "48%" }} className="animate-float-medium">
+            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
               <Twitter className="w-10 h-10 text-black dark:text-white" />
             </div>
-          </div>
-          <div className="absolute top-[18%] right-[12%] animate-float-fast">
-            <div className="w-28 h-28 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+          </FloatingIcon>
+
+          <FloatingIcon initialPos={{ top: "18%", right: "12%" }} className="animate-float-fast">
+            <div className="w-28 h-28 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
               <Youtube className="w-14 h-14 text-red-600" />
             </div>
-          </div>
+          </FloatingIcon>
 
-          {/* Middle Row */}
-          <div className="absolute top-[48%] left-[8%] animate-float-medium">
-            <div className="w-32 h-32 bg-white dark:bg-slate-900 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+          <FloatingIcon initialPos={{ top: "48%", left: "8%" }} className="animate-float-medium">
+            <div className="w-32 h-32 bg-white dark:bg-slate-900 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
               <Video className="w-16 h-16 text-black dark:text-white" />
             </div>
-          </div>
-          <div className="absolute top-[42%] right-[8%] animate-float">
-            <div className="w-28 h-28 bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-soft flex items-center justify-center border border-border group hover:scale-105 transition-transform duration-500 pointer-events-auto cursor-help">
+          </FloatingIcon>
+
+          <FloatingIcon initialPos={{ top: "42%", right: "8%" }} className="animate-float">
+            <div className="w-28 h-28 bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-soft flex items-center justify-center border border-border group hover:scale-105 transition-transform duration-500">
               <Facebook className="w-14 h-14 text-[#0668E1]" />
             </div>
-          </div>
+          </FloatingIcon>
 
-          {/* Bottom Row */}
-          <div className="absolute bottom-[12%] left-[18%] animate-float-fast">
-            <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+          <FloatingIcon initialPos={{ bottom: "12%", left: "18%" }} className="animate-float-fast">
+            <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
               <Linkedin className="w-12 h-12 text-[#0077B5]" />
             </div>
-          </div>
-          <div className="absolute bottom-[8%] right-[22%] animate-float-medium">
-            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500 pointer-events-auto cursor-help">
+          </FloatingIcon>
+
+          <FloatingIcon initialPos={{ bottom: "8%", right: "22%" }} className="animate-float-medium">
+            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
               <Globe className="w-10 h-10 text-primary" />
             </div>
-          </div>
-          <div className="absolute bottom-[18%] left-[49%] animate-float">
-            <div className="w-24 h-24 bg-white dark:bg-zinc-900 rounded-[2rem] shadow-soft flex items-center justify-center border border-border group hover:scale-105 transition-transform duration-500 pointer-events-auto cursor-help">
+          </FloatingIcon>
+
+          <FloatingIcon initialPos={{ bottom: "18%", left: "49%" }} className="animate-float">
+            <div className="w-24 h-24 bg-white dark:bg-zinc-900 rounded-[2rem] shadow-soft flex items-center justify-center border border-border group hover:scale-105 transition-transform duration-500">
               <QrCode className="w-12 h-12 text-foreground" />
             </div>
-          </div>
+          </FloatingIcon>
         </div>
 
         {/* Mobile Icons (Simplified overlay) */}
-        <div className="absolute inset-0 pointer-events-none md:hidden opacity-[0.08] dark:opacity-[0.15] overflow-hidden">
-          <div className="absolute top-[10%] left-[10%] animate-float-slow">
+        <div className="absolute inset-0 pointer-events-none md:hidden opacity-[0.15] dark:opacity-[0.25] overflow-hidden">
+          <FloatingIcon initialPos={{ top: "10%", left: "10%" }} className="animate-float-slow">
             <Instagram className="w-12 h-12 text-[#E1306C]" />
-          </div>
-          <div className="absolute top-[15%] right-[10%] animate-float-fast">
+          </FloatingIcon>
+          <FloatingIcon initialPos={{ top: "15%", left: "70%" }} className="animate-float-fast">
             <Youtube className="w-16 h-16 text-red-600" />
-          </div>
-          <div className="absolute bottom-[20%] left-[15%] animate-float-medium">
+          </FloatingIcon>
+          <FloatingIcon initialPos={{ top: "60%", left: "15%" }} className="animate-float-medium">
             <Video className="w-20 h-20 text-black dark:text-white" />
-          </div>
-          <div className="absolute bottom-[10%] right-[15%] animate-float-slow">
+          </FloatingIcon>
+          <FloatingIcon initialPos={{ top: "80%", left: "70%" }} className="animate-float-slow">
             <Twitter className="w-12 h-12 text-black dark:text-white" />
-          </div>
+          </FloatingIcon>
         </div>
 
         <div className="container relative z-10 px-6 pt-24 md:pt-32 pb-12">

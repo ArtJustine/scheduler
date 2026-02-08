@@ -85,13 +85,6 @@ export default function BlogPage() {
                 <div className="container px-6">
                     {/* Hero Section */}
                     <div className="max-w-4xl mx-auto text-center mb-24">
-                        <div className="inline-flex items-center space-x-2 bg-primary/10 border border-primary/20 px-4 py-2 rounded-full text-primary text-sm font-bold mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <span className="relative flex h-2 w-2 mr-1">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                            </span>
-                            THE CHIYU JOURNAL
-                        </div>
                         <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-8 text-foreground leading-[0.9] animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
                             Insights for the <br />
                             <span className="text-primary italic">Vertical Era.</span>

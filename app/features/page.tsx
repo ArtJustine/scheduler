@@ -19,9 +19,6 @@ export default function FeaturesPage() {
 
                 <div className="container relative z-10 px-6">
                     <div className="max-w-5xl mx-auto text-center space-y-6">
-                        <div className="inline-flex items-center space-x-2 bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full text-primary text-[10px] font-bold animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            PLATFORM CAPABILITIES
-                        </div>
                         <h1 className="text-4xl md:text-6xl lg:text-7xl font-black font-heading tracking-tighter text-slate-900 dark:text-white leading-[1.1] animate-in fade-in slide-in-from-bottom-6 duration-700">
                             The Engine <br />
                             of <span className="text-primary italic">Distribution.</span>

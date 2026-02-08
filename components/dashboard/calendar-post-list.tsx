@@ -107,12 +107,12 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
                         <span className="sr-only">Open menu</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[180px] p-1.5 shadow-lg border border-border/50 rounded-xl bg-popover text-popover-foreground animate-in zoom-in-95 duration-150">
-                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2.5 py-1.5">Post Options</DropdownMenuLabel>
+                    <DropdownMenuContent align="end" className="w-[180px] p-1 shadow-lg border border-border rounded-xl bg-popover text-popover-foreground animate-in zoom-in-95 duration-150">
+                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 py-1.5">Post Options</DropdownMenuLabel>
                       <div className="space-y-0.5">
                         {post.status !== "published" && (
                           <DropdownMenuItem
-                            className="cursor-pointer text-sm py-2 rounded-lg px-2.5 flex items-center gap-2.5 focus:bg-accent focus:text-accent-foreground group/item"
+                            className="cursor-pointer text-sm min-h-[36px] rounded-md px-2 flex items-center gap-2 focus:bg-accent focus:text-accent-foreground group/item [&_svg]:shrink-0"
                             onClick={async () => {
                               try {
                                 const res = await fetch(`/api/posts/${post.id}/publish`, { method: "POST" })
@@ -128,30 +128,30 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
                               }
                             }}
                           >
-                            <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                               <Send className="h-3.5 w-3.5" />
-                            </div>
-                            <span>Publish Now</span>
+                            </span>
+                            <span className="leading-none">Publish Now</span>
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
-                          className="cursor-pointer text-sm py-2 rounded-lg px-2.5 flex items-center gap-2.5 focus:bg-accent focus:text-accent-foreground group/item"
+                          className="cursor-pointer text-sm min-h-[36px] rounded-md px-2 flex items-center gap-2 focus:bg-accent focus:text-accent-foreground group/item [&_svg]:shrink-0"
                           onClick={() => onEdit?.(post.id)}
                         >
-                          <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                             <Edit2 className="h-3.5 w-3.5" />
-                          </div>
-                          <span>Edit Details</span>
+                          </span>
+                          <span className="leading-none">Edit Details</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="my-1" />
                         <DropdownMenuItem
-                          className="cursor-pointer text-sm text-destructive py-2 rounded-lg px-2.5 flex items-center gap-2.5 focus:bg-destructive/10 focus:text-destructive group/item"
+                          className="cursor-pointer text-sm min-h-[36px] text-destructive rounded-md px-2 flex items-center gap-2 focus:bg-destructive/10 focus:text-destructive group/item [&_svg]:shrink-0"
                           onClick={() => onDelete?.(post.id)}
                         >
-                          <div className="h-7 w-7 rounded-md bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
                             <Trash2 className="h-3.5 w-3.5" />
-                          </div>
-                          <span>Discard Post</span>
+                          </span>
+                          <span className="leading-none">Discard Post</span>
                         </DropdownMenuItem>
                       </div>
                     </DropdownMenuContent>

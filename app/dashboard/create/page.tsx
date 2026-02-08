@@ -539,31 +539,31 @@ export default function CreatePostPage() {
                         <span>Add Media</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[220px] p-1.5 shadow-lg border border-border/50 rounded-xl bg-popover text-popover-foreground animate-in zoom-in-95 duration-150">
-                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2.5 py-1.5">Source</DropdownMenuLabel>
+                    <DropdownMenuContent align="start" sideOffset={4} className="w-[220px] min-w-[220px] p-1 shadow-lg border border-border rounded-xl bg-popover text-popover-foreground animate-in zoom-in-95 duration-150">
+                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 py-1.5">Source</DropdownMenuLabel>
                       <DropdownMenuItem
-                        className="text-sm py-2 cursor-pointer focus:bg-accent focus:text-accent-foreground rounded-lg px-2.5 flex items-center gap-2.5 group"
+                        className="cursor-pointer min-h-[44px] rounded-md px-2 flex items-center gap-3 focus:bg-accent focus:text-accent-foreground group [&_svg]:shrink-0"
                         onClick={() => setShowMediaUploader(true)}
                       >
-                        <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                          <Upload className="h-3.5 w-3.5" />
-                        </div>
-                        <div className="flex flex-col text-left min-w-0">
-                          <span className="font-medium">Upload New</span>
-                          <span className="text-[11px] text-muted-foreground">From your device</span>
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                          <Upload className="h-4 w-4" />
+                        </span>
+                        <div className="flex min-w-0 flex-col items-start justify-center gap-0.5 text-left">
+                          <span className="text-sm font-medium leading-tight">Upload New</span>
+                          <span className="text-[11px] text-muted-foreground leading-tight">From your device</span>
                         </div>
                       </DropdownMenuItem>
                       {mediaItems.length > 0 && (
                         <DropdownMenuItem
-                          className="text-sm py-2 cursor-pointer focus:bg-accent focus:text-accent-foreground rounded-lg px-2.5 flex items-center gap-2.5 group"
+                          className="cursor-pointer min-h-[44px] rounded-md px-2 flex items-center gap-3 focus:bg-accent focus:text-accent-foreground group [&_svg]:shrink-0"
                           onClick={() => setShowMediaLibrary(true)}
                         >
-                          <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                            <ImageIcon className="h-3.5 w-3.5" />
-                          </div>
-                          <div className="flex flex-col text-left min-w-0">
-                            <span className="font-medium">Library ({mediaItems.length})</span>
-                            <span className="text-[11px] text-muted-foreground">Re-use content</span>
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                            <ImageIcon className="h-4 w-4" />
+                          </span>
+                          <div className="flex min-w-0 flex-col items-start justify-center gap-0.5 text-left">
+                            <span className="text-sm font-medium leading-tight">Library ({mediaItems.length})</span>
+                            <span className="text-[11px] text-muted-foreground leading-tight">Re-use content</span>
                           </div>
                         </DropdownMenuItem>
                       )}

@@ -20,7 +20,7 @@ export default function PricingPage() {
                         <Link href="/login">
                             <Button variant="ghost" className="text-sm">Login</Button>
                         </Link>
-                        <Link href="/signup">
+                        <Link href="/waitlist">
                             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25">
                                 Get Started
                             </Button>
@@ -48,7 +48,7 @@ export default function PricingPage() {
                                 <h3 className="text-xl font-bold font-heading mb-2">Starter</h3>
                                 <div className="text-4xl font-bold mb-4">$0 <span className="text-lg font-normal text-muted-foreground">/mo</span></div>
                                 <p className="text-muted-foreground mb-8">Perfect for getting started.</p>
-                                <Link href="/signup">
+                                <Link href="/waitlist">
                                     <Button variant="outline" className="w-full mb-8">Get Started</Button>
                                 </Link>
                                 <ul className="space-y-4">
@@ -64,7 +64,7 @@ export default function PricingPage() {
                                 <h3 className="text-xl font-bold font-heading mb-2">Pro</h3>
                                 <div className="text-4xl font-bold mb-4 text-primary">$29 <span className="text-lg font-normal text-muted-foreground">/mo</span></div>
                                 <p className="text-muted-foreground mb-8">For serious creators.</p>
-                                <Link href="/signup">
+                                <Link href="/waitlist">
                                     <Button className="w-full mb-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25">Get Started</Button>
                                 </Link>
                                 <ul className="space-y-4">
@@ -80,7 +80,7 @@ export default function PricingPage() {
                                 <h3 className="text-xl font-bold font-heading mb-2">Business</h3>
                                 <div className="text-4xl font-bold mb-4">$99 <span className="text-lg font-normal text-muted-foreground">/mo</span></div>
                                 <p className="text-muted-foreground mb-8">For teams and agencies.</p>
-                                <Link href="/signup">
+                                <Link href="/waitlist">
                                     <Button variant="outline" className="w-full mb-8">Contact Sales</Button>
                                 </Link>
                                 <ul className="space-y-4">

@@ -113,8 +113,8 @@ export default function LoginPage() {
             <CardFooter className="flex justify-center border-t pt-6">
               <div className="text-sm text-muted-foreground">
                 Don't have an account?{" "}
-                <Link href="/signup" className="text-primary hover:underline font-medium">
-                  Sign up
+                <Link href="/waitlist" className="text-primary hover:underline font-medium">
+                  Join the waitlist
                 </Link>
               </div>
             </CardFooter>

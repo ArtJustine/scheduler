@@ -399,7 +399,7 @@ export default function Home() {
               Stop fighting the algorithm and start mastering your distribution. Join the next wave of Chiyu early adopters.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/signup">
+              <Link href="/waitlist">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 h-auto shadow-lg shadow-primary/25">
                   Get Started for Free
                 </Button>

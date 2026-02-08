@@ -27,7 +27,7 @@ export default function FeaturesPage() {
                             We&apos;ve engineered the world&apos;s most precise social media distribution engine. Master your presence across 12+ platforms from a single, high-performance command center.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-200">
-                            <Link href="/signup">
+                            <Link href="/waitlist">
                                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-6 h-auto rounded-full shadow-2xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 border-0 font-bold">
                                     Get Started for Free
                                 </Button>
@@ -565,7 +565,7 @@ export default function FeaturesPage() {
                             Experience the engine that powers modern distribution.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <Link href="/signup">
+                            <Link href="/waitlist">
                                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6 h-auto shadow-lg shadow-primary/25">
                                     Get Started for Free
                                 </Button>

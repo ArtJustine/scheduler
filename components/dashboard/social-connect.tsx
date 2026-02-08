@@ -93,26 +93,26 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
   }
 
   const getPlatformIcon = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case "instagram":
-        return <Instagram className="h-5 w-5" />
-      case "youtube":
-        return <Youtube className="h-5 w-5" />
-      case "tiktok":
-        return <Video className="h-5 w-5" />
-      case "facebook":
-        return <Facebook className="h-5 w-5" />
-      case "twitter":
-        return <Twitter className="h-5 w-5" />
-      case "threads":
-        return <MessageSquare className="h-5 w-5" />
-      case "pinterest":
-        return <Share2 className="h-5 w-5" />
-      case "linkedin":
-        return <Linkedin className="h-5 w-5" />
-      default:
-        return null
+    const iconPath = `/${platform.toLowerCase()}.webp`
+    const alt = platform
+
+    // Map some platform names to their icon files if they differ
+    let finalPath = iconPath
+    if (platform.toLowerCase() === "twitter" || platform.toLowerCase() === "x") {
+      finalPath = "/x.webp"
     }
+
+    return (
+      <img
+        src={finalPath}
+        alt={alt}
+        className="h-5 w-5 object-contain"
+        onError={(e) => {
+          // Fallback if image fails to load (can just hide or show a generic icon)
+          (e.target as HTMLImageElement).style.display = 'none';
+        }}
+      />
+    )
   }
 
   const platforms = [
@@ -149,6 +149,16 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
     {
       name: "LinkedIn",
       description: "Connect your LinkedIn profile to schedule and publish posts",
+      disabled: false,
+    },
+    {
+      name: "X",
+      description: "Connect your X account to schedule and publish posts",
+      disabled: false,
+    },
+    {
+      name: "Bluesky",
+      description: "Connect your Bluesky account to schedule and publish posts",
       disabled: false,
     },
   ]

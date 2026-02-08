@@ -70,10 +70,15 @@ export function PlatformStats({
           {connected && profileImage ? (
             <img src={profileImage} alt={username} className="h-6 w-6 rounded-full" />
           ) : (
-            <div className={cn("p-1.5 rounded-md", getPlatformColors(platform))}>
-              {platform.toLowerCase() === 'youtube' && <Youtube className="h-4 w-4" />}
-              {platform.toLowerCase() === 'tiktok' && <Share2 className="h-4 w-4" />}
-              {platform.toLowerCase() === 'instagram' && <Instagram className="h-4 w-4" />}
+            <div className={cn("p-1 h-8 w-8 rounded-md flex items-center justify-center bg-muted/20")}>
+              <img
+                src={`/${platform.toLowerCase() === 'x' ? 'x' : platform.toLowerCase()}.webp`}
+                alt={platform}
+                className="h-5 w-5 object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
             </div>
           )}
           <div>

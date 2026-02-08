@@ -69,7 +69,17 @@ export function ScheduledPostCard({ post }: ScheduledPostCardProps) {
               {new Date(post.scheduledFor || Date.now()).toLocaleDateString()}
             </span>
           </div>
-          <div className="rounded-full px-2 py-1 text-xs font-medium capitalize bg-primary/10 text-primary">
+          <div className="flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium capitalize bg-primary/10 text-primary">
+            {['instagram', 'youtube', 'facebook', 'x', 'linkedin', 'bluesky', 'threads', 'pinterest', 'tiktok'].includes((post.platform || "").toLowerCase()) && (
+              <img
+                src={`/${post.platform?.toLowerCase()}.webp`}
+                alt={post.platform}
+                className="h-3 w-3 object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            )}
             {post.platform || "Multiple"}
           </div>
         </div>

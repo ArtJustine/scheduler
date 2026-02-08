@@ -50,7 +50,18 @@ export function SiteFooter() {
                         © {new Date().getFullYear()} Chiyu. All rights reserved.
                     </p>
                     <div className="flex items-center space-x-6">
-                        {/* Social icons could go here */}
+                        <Link href="https://instagram.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-all hover:scale-110">
+                            <img src="/instagram.webp" alt="Instagram" className="h-5 w-5 object-contain opacity-70 hover:opacity-100" />
+                        </Link>
+                        <Link href="https://x.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-all hover:scale-110">
+                            <img src="/x.webp" alt="X" className="h-5 w-5 object-contain opacity-70 hover:opacity-100" />
+                        </Link>
+                        <Link href="https://youtube.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-all hover:scale-110">
+                            <img src="/youtube.webp" alt="YouTube" className="h-5 w-5 object-contain opacity-70 hover:opacity-100" />
+                        </Link>
+                        <Link href="https://linkedin.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-all hover:scale-110">
+                            <img src="/linkedin.webp" alt="LinkedIn" className="h-5 w-5 object-contain opacity-70 hover:opacity-100" />
+                        </Link>
                     </div>
                 </div>
             </div>

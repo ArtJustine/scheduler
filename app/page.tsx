@@ -46,49 +46,49 @@ export default function Home() {
         <div className="absolute inset-0 pointer-events-none hidden md:block">
           <FloatingIcon initialPos={{ top: "12%", left: "12%" }} className="animate-float-slow">
             <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
-              <Instagram className="w-12 h-12 text-[#E1306C]" />
+              <img src="/instagram.webp" alt="Instagram" className="w-12 h-12 object-contain" />
             </div>
           </FloatingIcon>
 
           <FloatingIcon initialPos={{ top: "8%", left: "48%" }} className="animate-float-medium">
             <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
-              <Twitter className="w-10 h-10 text-black dark:text-white" />
+              <img src="/x.webp" alt="X" className="w-10 h-10 object-contain" />
             </div>
           </FloatingIcon>
 
           <FloatingIcon initialPos={{ top: "18%", right: "12%" }} className="animate-float-fast">
             <div className="w-28 h-28 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
-              <Youtube className="w-14 h-14 text-red-600" />
+              <img src="/youtube.webp" alt="YouTube" className="w-14 h-14 object-contain" />
             </div>
           </FloatingIcon>
 
           <FloatingIcon initialPos={{ top: "48%", left: "8%" }} className="animate-float-medium">
             <div className="w-32 h-32 bg-white dark:bg-slate-900 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
-              <Video className="w-16 h-16 text-black dark:text-white" />
+              <img src="/tiktok.webp" alt="TikTok" className="w-16 h-16 object-contain" />
             </div>
           </FloatingIcon>
 
           <FloatingIcon initialPos={{ top: "42%", right: "8%" }} className="animate-float">
             <div className="w-28 h-28 bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-soft flex items-center justify-center border border-border group hover:scale-105 transition-transform duration-500">
-              <Facebook className="w-14 h-14 text-[#0668E1]" />
+              <img src="/facebook.webp" alt="Facebook" className="w-14 h-14 object-contain" />
             </div>
           </FloatingIcon>
 
           <FloatingIcon initialPos={{ bottom: "12%", left: "18%" }} className="animate-float-fast">
             <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
-              <Linkedin className="w-12 h-12 text-[#0077B5]" />
+              <img src="/linkedin.webp" alt="LinkedIn" className="w-12 h-12 object-contain" />
             </div>
           </FloatingIcon>
 
           <FloatingIcon initialPos={{ bottom: "8%", right: "22%" }} className="animate-float-medium">
             <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-center border border-gray-100 dark:border-slate-800 group hover:scale-110 transition-transform duration-500">
-              <Globe className="w-10 h-10 text-primary" />
+              <img src="/threads.webp" alt="Threads" className="w-10 h-10 object-contain" />
             </div>
           </FloatingIcon>
 
           <FloatingIcon initialPos={{ bottom: "18%", left: "49%" }} className="animate-float">
             <div className="w-24 h-24 bg-white dark:bg-zinc-900 rounded-[2rem] shadow-soft flex items-center justify-center border border-border group hover:scale-105 transition-transform duration-500">
-              <QrCode className="w-12 h-12 text-foreground" />
+              <img src="/bluesky.webp" alt="Bluesky" className="w-12 h-12 object-contain" />
             </div>
           </FloatingIcon>
         </div>
@@ -96,16 +96,16 @@ export default function Home() {
         {/* Mobile Icons (Simplified overlay) */}
         <div className="absolute inset-0 pointer-events-none md:hidden opacity-[0.15] dark:opacity-[0.25] overflow-hidden">
           <FloatingIcon initialPos={{ top: "10%", left: "10%" }} className="animate-float-slow">
-            <Instagram className="w-12 h-12 text-[#E1306C]" />
+            <img src="/instagram.webp" alt="Instagram" className="w-12 h-12 object-contain" />
           </FloatingIcon>
           <FloatingIcon initialPos={{ top: "15%", left: "70%" }} className="animate-float-fast">
-            <Youtube className="w-16 h-16 text-red-600" />
+            <img src="/youtube.webp" alt="YouTube" className="w-16 h-16 object-contain" />
           </FloatingIcon>
           <FloatingIcon initialPos={{ top: "60%", left: "15%" }} className="animate-float-medium">
-            <Video className="w-20 h-20 text-black dark:text-white" />
+            <img src="/tiktok.webp" alt="TikTok" className="w-20 h-20 object-contain" />
           </FloatingIcon>
           <FloatingIcon initialPos={{ top: "80%", left: "70%" }} className="animate-float-slow">
-            <Twitter className="w-12 h-12 text-black dark:text-white" />
+            <img src="/x.webp" alt="X" className="w-12 h-12 object-contain" />
           </FloatingIcon>
         </div>
 

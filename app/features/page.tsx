@@ -44,31 +44,31 @@ export default function FeaturesPage() {
                         <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-center">Supported Platforms</p>
                         <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 transition-all duration-500">
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <Instagram className="h-8 w-8 text-foreground group-hover:scale-110 transition-transform" />
+                                <img src="/instagram.webp" alt="Instagram" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Instagram</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group">
-                                <Youtube className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
+                                <img src="/youtube.webp" alt="YouTube" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">YouTube</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <Facebook className="h-8 w-8 text-foreground group-hover:scale-110 transition-transform" />
+                                <img src="/facebook.webp" alt="Facebook" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Facebook</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <Twitter className="h-8 w-8 text-foreground group-hover:scale-110 transition-transform" />
+                                <img src="/x.webp" alt="X" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">X</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <Linkedin className="h-8 w-8 text-foreground group-hover:scale-110 transition-transform" />
+                                <img src="/linkedin.webp" alt="LinkedIn" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">LinkedIn</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group">
-                                <Video className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
+                                <img src="/tiktok.webp" alt="TikTok" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">TikTok</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <Globe className="h-8 w-8 text-foreground group-hover:scale-110 transition-transform" />
+                                <img src="/threads.webp" alt="Threads" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Threads</span>
                             </div>
                         </div>

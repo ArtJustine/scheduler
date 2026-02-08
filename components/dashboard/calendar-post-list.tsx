@@ -107,13 +107,12 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
                         <span className="sr-only">Open menu</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[200px] p-2 shadow-2xl border-white/10 rounded-3xl bg-white/80 dark:bg-black/80 backdrop-blur-2xl animate-in zoom-in-95 duration-200">
-                      <DropdownMenuLabel className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground/40 px-3 py-2">Post Options</DropdownMenuLabel>
-
-                      <div className="space-y-1">
+                    <DropdownMenuContent align="end" className="w-[180px] p-1.5 shadow-lg border border-border/50 rounded-xl bg-popover text-popover-foreground animate-in zoom-in-95 duration-150">
+                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2.5 py-1.5">Post Options</DropdownMenuLabel>
+                      <div className="space-y-0.5">
                         {post.status !== "published" && (
                           <DropdownMenuItem
-                            className="cursor-pointer font-bold text-xs py-3 rounded-2xl px-4 flex items-center gap-3 focus:bg-primary/10 transition-all group/item"
+                            className="cursor-pointer text-sm py-2 rounded-lg px-2.5 flex items-center gap-2.5 focus:bg-accent focus:text-accent-foreground group/item"
                             onClick={async () => {
                               try {
                                 const res = await fetch(`/api/posts/${post.id}/publish`, { method: "POST" })
@@ -129,31 +128,28 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
                               }
                             }}
                           >
-                            <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-white transition-colors shadow-sm">
-                              <Send className="h-4 w-4" />
+                            <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                              <Send className="h-3.5 w-3.5" />
                             </div>
                             <span>Publish Now</span>
                           </DropdownMenuItem>
                         )}
-
                         <DropdownMenuItem
-                          className="cursor-pointer font-bold text-xs py-3 rounded-2xl px-4 flex items-center gap-3 focus:bg-primary/10 transition-all group/item"
+                          className="cursor-pointer text-sm py-2 rounded-lg px-2.5 flex items-center gap-2.5 focus:bg-accent focus:text-accent-foreground group/item"
                           onClick={() => onEdit?.(post.id)}
                         >
-                          <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-white transition-colors shadow-sm">
-                            <Edit2 className="h-4 w-4" />
+                          <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                            <Edit2 className="h-3.5 w-3.5" />
                           </div>
                           <span>Edit Details</span>
                         </DropdownMenuItem>
-
-                        <DropdownMenuSeparator className="bg-muted/10 mx-3 my-1" />
-
+                        <DropdownMenuSeparator className="my-1" />
                         <DropdownMenuItem
-                          className="cursor-pointer font-bold text-xs text-rose-500 py-3 rounded-2xl px-4 flex items-center gap-3 focus:bg-rose-500/10 transition-all group/item focus:text-rose-500"
+                          className="cursor-pointer text-sm text-destructive py-2 rounded-lg px-2.5 flex items-center gap-2.5 focus:bg-destructive/10 focus:text-destructive group/item"
                           onClick={() => onDelete?.(post.id)}
                         >
-                          <div className="h-8 w-8 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 group-hover/item:bg-rose-500 group-hover/item:text-white transition-colors shadow-sm">
-                            <Trash2 className="h-4 w-4" />
+                          <div className="h-7 w-7 rounded-md bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
+                            <Trash2 className="h-3.5 w-3.5" />
                           </div>
                           <span>Discard Post</span>
                         </DropdownMenuItem>

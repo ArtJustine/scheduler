@@ -539,31 +539,31 @@ export default function CreatePostPage() {
                         <span>Add Media</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[240px] p-2 shadow-2xl border-white/20 rounded-3xl bg-white/80 dark:bg-black/80 backdrop-blur-2xl animate-in zoom-in-95 duration-200">
-                      <DropdownMenuLabel className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground/50 px-3 py-2">Source</DropdownMenuLabel>
+                    <DropdownMenuContent align="start" className="w-[220px] p-1.5 shadow-lg border border-border/50 rounded-xl bg-popover text-popover-foreground animate-in zoom-in-95 duration-150">
+                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2.5 py-1.5">Source</DropdownMenuLabel>
                       <DropdownMenuItem
-                        className="text-xs py-3 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-2xl px-4 flex items-center gap-3 font-bold transition-all group"
+                        className="text-sm py-2 cursor-pointer focus:bg-accent focus:text-accent-foreground rounded-lg px-2.5 flex items-center gap-2.5 group"
                         onClick={() => setShowMediaUploader(true)}
                       >
-                        <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                          <Upload className="h-4 w-4" />
+                        <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                          <Upload className="h-3.5 w-3.5" />
                         </div>
-                        <div className="flex flex-col">
-                          <span>Upload New</span>
-                          <span className="text-[10px] text-muted-foreground font-medium group-hover:text-primary/70">From your device</span>
+                        <div className="flex flex-col text-left min-w-0">
+                          <span className="font-medium">Upload New</span>
+                          <span className="text-[11px] text-muted-foreground">From your device</span>
                         </div>
                       </DropdownMenuItem>
                       {mediaItems.length > 0 && (
                         <DropdownMenuItem
-                          className="text-xs py-3 cursor-pointer focus:bg-primary/10 focus:text-primary rounded-2xl px-4 flex items-center gap-3 font-bold mt-1 transition-all group"
+                          className="text-sm py-2 cursor-pointer focus:bg-accent focus:text-accent-foreground rounded-lg px-2.5 flex items-center gap-2.5 group"
                           onClick={() => setShowMediaLibrary(true)}
                         >
-                          <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                            <ImageIcon className="h-4 w-4" />
+                          <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                            <ImageIcon className="h-3.5 w-3.5" />
                           </div>
-                          <div className="flex flex-col">
-                            <span>Library ({mediaItems.length})</span>
-                            <span className="text-[10px] text-muted-foreground font-medium group-hover:text-primary/70">Re-use content</span>
+                          <div className="flex flex-col text-left min-w-0">
+                            <span className="font-medium">Library ({mediaItems.length})</span>
+                            <span className="text-[11px] text-muted-foreground">Re-use content</span>
                           </div>
                         </DropdownMenuItem>
                       )}

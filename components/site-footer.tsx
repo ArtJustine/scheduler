@@ -51,18 +51,24 @@ export function SiteFooter() {
                     </p>
                     <div className="flex items-center space-x-6">
                         <Link href="https://instagram.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-all hover:scale-110">
-                            <img src="/instagram.webp" alt="Instagram" className="h-5 w-5 object-contain opacity-70 hover:opacity-100" />
+                            <div className="bg-white p-1 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
+                                <img src="/instagram.webp" alt="Instagram" className="h-4 w-4 object-contain" />
+                            </div>
                         </Link>
                         <Link href="https://x.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-all hover:scale-110">
-                            <div className="bg-white p-1 rounded-md shadow-sm border border-gray-100 flex items-center justify-center">
+                            <div className="bg-white p-1 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
                                 <img src="/x.webp" alt="X" className="h-4 w-4 object-contain" />
                             </div>
                         </Link>
                         <Link href="https://youtube.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-all hover:scale-110">
-                            <img src="/youtube.webp" alt="YouTube" className="h-5 w-5 object-contain opacity-70 hover:opacity-100" />
+                            <div className="bg-white p-1 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
+                                <img src="/youtube.webp" alt="YouTube" className="h-4 w-4 object-contain" />
+                            </div>
                         </Link>
                         <Link href="https://linkedin.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-all hover:scale-110">
-                            <img src="/linkedin.webp" alt="LinkedIn" className="h-5 w-5 object-contain opacity-70 hover:opacity-100" />
+                            <div className="bg-white p-1 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
+                                <img src="/linkedin.webp" alt="LinkedIn" className="h-4 w-4 object-contain" />
+                            </div>
                         </Link>
                     </div>
                 </div>

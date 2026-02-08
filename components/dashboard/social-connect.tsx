@@ -102,28 +102,22 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
       finalPath = "/x.webp"
     }
 
-    const isBlackIcon = ["x", "tiktok", "threads"].includes(platform.toLowerCase())
-
     const img = (
       <img
         src={finalPath}
         alt={alt}
-        className={isBlackIcon ? "h-3.5 w-3.5 object-contain" : "h-5 w-5 object-contain"}
+        className="h-3.5 w-3.5 object-contain"
         onError={(e) => {
           (e.target as HTMLImageElement).style.display = 'none';
         }}
       />
     )
 
-    if (isBlackIcon) {
-      return (
-        <div className="bg-white p-1 rounded-md shadow-sm border border-gray-100 flex items-center justify-center h-6 w-6">
-          {img}
-        </div>
-      )
-    }
-
-    return img
+    return (
+      <div className="bg-white p-1 rounded-full shadow-sm border border-gray-100 flex items-center justify-center h-6 w-6">
+        {img}
+      </div>
+    )
   }
 
   const platforms = [

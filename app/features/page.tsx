@@ -44,36 +44,44 @@ export default function FeaturesPage() {
                         <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-center">Supported Platforms</p>
                         <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 transition-all duration-500">
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <img src="/instagram.webp" alt="Instagram" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
+                                <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <img src="/instagram.webp" alt="Instagram" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
+                                </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Instagram</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group">
-                                <img src="/youtube.webp" alt="YouTube" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
+                                <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <img src="/youtube.webp" alt="YouTube" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
+                                </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">YouTube</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <img src="/facebook.webp" alt="Facebook" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
+                                <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <img src="/facebook.webp" alt="Facebook" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
+                                </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Facebook</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
-                                    <img src="/x.webp" alt="X" className="h-6 w-6 object-contain group-hover:scale-110 transition-transform" />
+                                <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <img src="/x.webp" alt="X" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
                                 </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">X</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <img src="/linkedin.webp" alt="LinkedIn" className="h-8 w-8 object-contain group-hover:scale-110 transition-transform" />
+                                <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <img src="/linkedin.webp" alt="LinkedIn" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
+                                </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">LinkedIn</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group">
-                                <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
-                                    <img src="/tiktok.webp" alt="TikTok" className="h-6 w-6 object-contain group-hover:scale-110 transition-transform" />
+                                <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <img src="/tiktok.webp" alt="TikTok" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
                                 </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">TikTok</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
-                                <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
-                                    <img src="/threads.webp" alt="Threads" className="h-6 w-6 object-contain group-hover:scale-110 transition-transform" />
+                                <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <img src="/threads.webp" alt="Threads" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
                                 </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Threads</span>
                             </div>

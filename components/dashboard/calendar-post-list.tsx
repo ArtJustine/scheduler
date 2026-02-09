@@ -107,12 +107,11 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
                         <span className="sr-only">Open menu</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[180px] p-1 shadow-lg border border-border rounded-xl bg-popover text-popover-foreground animate-in zoom-in-95 duration-150">
-                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 py-1.5">Post Options</DropdownMenuLabel>
-                      <div className="space-y-0.5">
+                    <DropdownMenuContent align="end" className="w-[200px] p-2 shadow-lg border border-border rounded-xl bg-popover text-popover-foreground animate-in zoom-in-95 duration-150">
+                      <div className="flex flex-col gap-1">
                         {post.status !== "published" && (
                           <DropdownMenuItem
-                            className="cursor-pointer text-sm min-h-[36px] rounded-md px-2 flex items-center gap-2 focus:bg-accent focus:text-accent-foreground group/item [&_svg]:shrink-0"
+                            className="cursor-pointer text-sm font-medium py-2.5 rounded-lg px-3 flex items-center gap-3 focus:bg-accent focus:text-accent-foreground transition-colors group/item"
                             onClick={async () => {
                               try {
                                 const res = await fetch(`/api/posts/${post.id}/publish`, { method: "POST" })
@@ -128,30 +127,23 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
                               }
                             }}
                           >
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                              <Send className="h-3.5 w-3.5" />
-                            </span>
-                            <span className="leading-none">Publish Now</span>
+                            <Send className="h-4 w-4 text-muted-foreground group-hover/item:text-foreground transition-colors" />
+                            <span>Publish Now</span>
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
-                          className="cursor-pointer text-sm min-h-[36px] rounded-md px-2 flex items-center gap-2 focus:bg-accent focus:text-accent-foreground group/item [&_svg]:shrink-0"
+                          className="cursor-pointer text-sm font-medium py-2.5 rounded-lg px-3 flex items-center gap-3 focus:bg-accent focus:text-accent-foreground transition-colors group/item"
                           onClick={() => onEdit?.(post.id)}
                         >
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </span>
-                          <span className="leading-none">Edit Details</span>
+                          <Edit2 className="h-4 w-4 text-muted-foreground group-hover/item:text-foreground transition-colors" />
+                          <span>Edit Details</span>
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="my-1" />
                         <DropdownMenuItem
-                          className="cursor-pointer text-sm min-h-[36px] text-destructive rounded-md px-2 flex items-center gap-2 focus:bg-destructive/10 focus:text-destructive group/item [&_svg]:shrink-0"
+                          className="cursor-pointer text-sm font-medium py-2.5 rounded-lg px-3 flex items-center gap-3 text-destructive focus:bg-destructive/10 focus:text-destructive transition-colors group/item"
                           onClick={() => onDelete?.(post.id)}
                         >
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </span>
-                          <span className="leading-none">Discard Post</span>
+                          <Trash2 className="h-4 w-4" />
+                          <span>Discard Post</span>
                         </DropdownMenuItem>
                       </div>
                     </DropdownMenuContent>

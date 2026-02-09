@@ -539,34 +539,25 @@ export default function CreatePostPage() {
                         <span>Add Media</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" sideOffset={4} className="w-[220px] min-w-[220px] p-1 shadow-lg border border-border rounded-xl bg-popover text-popover-foreground animate-in zoom-in-95 duration-150">
-                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 py-1.5">Source</DropdownMenuLabel>
-                      <DropdownMenuItem
-                        className="cursor-pointer min-h-[44px] rounded-md px-2 flex items-center gap-3 focus:bg-accent focus:text-accent-foreground group [&_svg]:shrink-0"
-                        onClick={() => setShowMediaUploader(true)}
-                      >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                          <Upload className="h-4 w-4" />
-                        </span>
-                        <div className="flex min-w-0 flex-col items-start justify-center gap-0.5 text-left">
-                          <span className="text-sm font-medium leading-tight">Upload New</span>
-                          <span className="text-[11px] text-muted-foreground leading-tight">From your device</span>
-                        </div>
-                      </DropdownMenuItem>
-                      {mediaItems.length > 0 && (
+                    <DropdownMenuContent align="start" sideOffset={4} className="w-[200px] p-2 shadow-lg border border-border rounded-xl bg-popover text-popover-foreground animate-in zoom-in-95 duration-150">
+                      <div className="flex flex-col gap-1">
                         <DropdownMenuItem
-                          className="cursor-pointer min-h-[44px] rounded-md px-2 flex items-center gap-3 focus:bg-accent focus:text-accent-foreground group [&_svg]:shrink-0"
-                          onClick={() => setShowMediaLibrary(true)}
+                          className="cursor-pointer text-sm font-medium py-2.5 rounded-lg px-3 flex items-center gap-3 focus:bg-accent focus:text-accent-foreground transition-colors group/item"
+                          onClick={() => setShowMediaUploader(true)}
                         >
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                            <ImageIcon className="h-4 w-4" />
-                          </span>
-                          <div className="flex min-w-0 flex-col items-start justify-center gap-0.5 text-left">
-                            <span className="text-sm font-medium leading-tight">Library ({mediaItems.length})</span>
-                            <span className="text-[11px] text-muted-foreground leading-tight">Re-use content</span>
-                          </div>
+                          <Upload className="h-4 w-4 text-muted-foreground group-hover/item:text-foreground transition-colors" />
+                          <span>Upload New</span>
                         </DropdownMenuItem>
-                      )}
+                        {mediaItems.length > 0 && (
+                          <DropdownMenuItem
+                            className="cursor-pointer text-sm font-medium py-2.5 rounded-lg px-3 flex items-center gap-3 focus:bg-accent focus:text-accent-foreground transition-colors group/item"
+                            onClick={() => setShowMediaLibrary(true)}
+                          >
+                            <ImageIconLucide className="h-4 w-4 text-muted-foreground group-hover/item:text-foreground transition-colors" />
+                            <span>Library ({mediaItems.length})</span>
+                          </DropdownMenuItem>
+                        )}
+                      </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
 
@@ -749,41 +740,7 @@ export default function CreatePostPage() {
             </Alert>
           )}
 
-          {/* Platform Selection */}
-          <div className="flex flex-wrap gap-4 mb-8">
-            {connectedPlatforms.map((platform) => (
-              <div key={platform} className="relative group">
-                <Button
-                  variant={isPlatformSelected(platform) ? "default" : "outline"}
-                  size="icon"
-                  className={cn(
-                    "rounded-full h-12 w-12 transition-all shadow-sm",
-                    isPlatformSelected(platform) && "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                  )}
-                  onClick={() => togglePlatform(platform)}
-                  title={platform.charAt(0).toUpperCase() + platform.slice(1)}
-                >
-                  {getPlatformIcon(platform)}
-                </Button>
-                {isPlatformSelected(platform) && (
-                  <div className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-background flex items-center justify-center">
-                    <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-            ))}
-            <Button
-              variant="default"
-              size="icon"
-              className="rounded-full h-12 w-12 bg-primary text-white shadow-md hover:scale-105 transition-transform"
-              title="Add platform"
-              onClick={() => router.push("/dashboard/connections")}
-            >
-              <Plus className="h-6 w-6" />
-            </Button>
-          </div>
+
 
           {/* Scheduling Section */}
           <Card className="shadow-sm">
@@ -1001,6 +958,25 @@ export default function CreatePostPage() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
+          </div>
+
+          {/* Preview Platform Selector */}
+          <div className="flex items-center gap-2 py-2 mb-2 overflow-x-auto no-scrollbar">
+            {connectedPlatforms.map((platform) => (
+              <button
+                key={platform}
+                onClick={() => setPreviewPlatform(platform)}
+                className={cn(
+                  "flex items-center justify-center w-9 h-9 rounded-full transition-all border shadow-sm",
+                  previewPlatform === platform
+                    ? "bg-primary border-primary scale-110 ring-2 ring-primary/20"
+                    : "bg-card border-border hover:border-primary/50 hover:bg-accent"
+                )}
+                title={platform.charAt(0).toUpperCase() + platform.slice(1)}
+              >
+                {getPlatformIcon(platform, cn("h-4 w-4", previewPlatform === platform ? "text-primary-foreground" : ""))}
+              </button>
+            ))}
           </div>
 
           <Tabs value={previewPlatform} onValueChange={setPreviewPlatform} className="w-full">

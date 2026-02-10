@@ -65,7 +65,7 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
           const colors = getPlatformColor(post.platform)
           const postDate = new Date(post.scheduledFor)
           const isPast = postDate < new Date()
-          const displayStatus = (post.status === "scheduled" && isPast) ? "pending" : (post.status || "scheduled")
+          const displayStatus = (post.status === "scheduled" && isPast) ? "pending" : (post.status || "scheduled") as string
 
           return (
             <div

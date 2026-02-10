@@ -30,7 +30,7 @@ export const config = {
   // YouTube API Configuration
   youtube: {
     clientId: process.env.YOUTUBE_CLIENT_ID || "913909744920-eq12dpthfkp3ur4qahh4teuf1b69vcu0.apps.googleusercontent.com",
-    clientSecret: process.env.YOUTUBE_CLIENT_SECRET || "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",
+    clientSecret: process.env.YOUTUBE_CLIENT_SECRET || "",
     redirectUri: process.env.YOUTUBE_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/youtube",
     apiKey: process.env.YOUTUBE_API_KEY || "AIzaSyAuluhWpEFVsoNYS8PCyaf4XIgvHif6cC0",
     scopes: [

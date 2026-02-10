@@ -298,6 +298,14 @@ async function publishToYouTube(userId: string, post: any) {
       result = await attemptUpload(accessToken)
     }
 
+    if (result.retry) {
+      throw new Error("YouTube API returned 401 Unauthorized even after token refresh")
+    }
+
+    if (!result.id) {
+      throw new Error("YouTube API call succeeded but returned no video ID")
+    }
+
     return {
       success: true,
       platformId: result.id,

@@ -1,4 +1,4 @@
-import { firebaseDb } from "./firebase-client"
+import { serverDb as firebaseDb } from "./firebase-server"
 import { collection, getDocs, getDoc, updateDoc, doc, query, where } from "firebase/firestore"
 import { config } from "./config"
 

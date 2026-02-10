@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
-import { firebaseDb } from "@/lib/firebase-client"
+import { serverDb as firebaseDb } from "@/lib/firebase-server"
 import { checkScheduledPosts } from "@/lib/scheduler-service"
 
 export async function POST(

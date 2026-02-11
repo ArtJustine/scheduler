@@ -1,7 +1,7 @@
 
 import { NextResponse } from "next/server"
 import { adminDb } from "@/lib/firebase-admin"
-import { checkScheduledPosts } from "@/lib/scheduler-service"
+import { checkScheduledPosts, publishPost } from "@/lib/scheduler-service"
 
 export async function POST(
     request: Request,
@@ -19,14 +19,18 @@ export async function POST(
             return NextResponse.json({ error: "Post not found" }, { status: 404 })
         }
 
+        const postData = postSnap.data() || {}
+
         // Set scheduledFor to now if it's in the future and the user wants to publish now
+        // And ensure status is scheduled so publishPost accepts it (though publishPost logic doesn't strictly check status before running, it updates it)
         await postRef.update({
             scheduledFor: new Date().toISOString(),
             status: "scheduled"
         })
 
-        // Now call the scheduler to process it
-        await checkScheduledPosts()
+        // DIRECTLY call publishPost for this specific ID
+        // This bypasses any query logic or index issues in checkScheduledPosts
+        await publishPost(postData.userId, postId, { ...postData, id: postId })
 
         // Refresh the status
         const updatedSnap = await postRef.get()

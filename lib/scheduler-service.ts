@@ -9,20 +9,23 @@ export async function checkScheduledPosts() {
 
     const now = new Date().toISOString()
 
-    // Query the posts collection for scheduled posts that are due
+    // Query the posts collection for scheduled posts
+    // We filter by date in memory to avoid needing a composite index on [status, scheduledFor]
     const postsRef = adminDb.collection("posts")
     const snapshot = await postsRef
       .where("status", "==", "scheduled")
-      .where("scheduledFor", "<=", now)
       .get()
 
-    console.log(`Found ${snapshot.size} posts to publish`)
+    console.log(`Found ${snapshot.size} scheduled posts total`)
 
     // Iterate through each scheduled post
     for (const doc of snapshot.docs) {
       const post = doc.data()
-      // Publish the post
-      await publishPost(post.userId, doc.id, post)
+      // Check time client-side (server-side logic but not DB query)
+      if (post.scheduledFor <= now) {
+        console.log(`Publishing due post: ${doc.id}`)
+        await publishPost(post.userId, doc.id, post)
+      }
     }
   } catch (error) {
     console.error("Error checking scheduled posts:", error)
@@ -30,7 +33,7 @@ export async function checkScheduledPosts() {
 }
 
 // Function to publish a scheduled post
-async function publishPost(userId: string, postId: string, post: any) {
+export async function publishPost(userId: string, postId: string, post: any) {
   try {
     if (!adminDb) throw new Error("Database not initialized")
 

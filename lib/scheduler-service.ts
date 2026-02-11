@@ -1,31 +1,28 @@
-import { serverDb as firebaseDb } from "./firebase-server"
-import { collection, getDocs, getDoc, updateDoc, doc, query, where } from "firebase/firestore"
+
+import { adminDb } from "./firebase-admin"
 import { config } from "./config"
 
 // Function to check for scheduled posts that need to be published
 export async function checkScheduledPosts() {
   try {
-    if (!firebaseDb) return console.log("Database not initialized")
+    if (!adminDb) return console.log("Database not initialized")
 
     const now = new Date().toISOString()
 
     // Query the posts collection for scheduled posts that are due
-    const postsRef = collection(firebaseDb, "posts")
-    const q = query(
-      postsRef,
-      where("status", "==", "scheduled"),
-      where("scheduledFor", "<=", now)
-    )
+    const postsRef = adminDb.collection("posts")
+    const snapshot = await postsRef
+      .where("status", "==", "scheduled")
+      .where("scheduledFor", "<=", now)
+      .get()
 
-    const postsSnapshot = await getDocs(q)
-
-    console.log(`Found ${postsSnapshot.size} posts to publish`)
+    console.log(`Found ${snapshot.size} posts to publish`)
 
     // Iterate through each scheduled post
-    for (const postDoc of postsSnapshot.docs) {
-      const post = postDoc.data()
+    for (const doc of snapshot.docs) {
+      const post = doc.data()
       // Publish the post
-      await publishPost(post.userId, postDoc.id, post)
+      await publishPost(post.userId, doc.id, post)
     }
   } catch (error) {
     console.error("Error checking scheduled posts:", error)
@@ -35,11 +32,11 @@ export async function checkScheduledPosts() {
 // Function to publish a scheduled post
 async function publishPost(userId: string, postId: string, post: any) {
   try {
-    if (!firebaseDb) throw new Error("Database not initialized")
+    if (!adminDb) throw new Error("Database not initialized")
 
     // Update the post status to "publishing"
-    const postRef = doc(firebaseDb, "posts", postId)
-    await updateDoc(postRef, {
+    const postRef = adminDb.collection("posts").doc(postId)
+    await postRef.update({
       status: "publishing",
       updatedAt: new Date().toISOString()
     })
@@ -78,7 +75,7 @@ async function publishPost(userId: string, postId: string, post: any) {
 
     // Update the post with individual platform status and overall status
     if (allSuccessful) {
-      await updateDoc(postRef, {
+      await postRef.update({
         status: "published",
         publishedAt: new Date().toISOString(),
         platformResults: results,
@@ -87,7 +84,7 @@ async function publishPost(userId: string, postId: string, post: any) {
       console.log(`Successfully published post ${postId} to all platforms`)
     } else {
       // If any platform failed, mark as failed overall but store details
-      await updateDoc(postRef, {
+      await postRef.update({
         status: "failed",
         platformResults: results,
         error: "One or more platforms failed to publish",
@@ -97,9 +94,9 @@ async function publishPost(userId: string, postId: string, post: any) {
   } catch (error: any) {
     console.error(`Error publishing post ${postId}:`, error)
 
-    if (!firebaseDb) throw new Error("Database not initialized")
-    const postRef = doc(firebaseDb, "posts", postId)
-    await updateDoc(postRef, {
+    if (!adminDb) throw new Error("Database not initialized")
+    const postRef = adminDb.collection("posts").doc(postId)
+    await postRef.update({
       status: "failed",
       error: error.message,
     })
@@ -124,18 +121,21 @@ async function refreshYouTubeToken(userId: string, refreshToken: string) {
     if (data.error) throw new Error(data.error_description || data.error)
 
     // Update user doc with new access token
-    if (firebaseDb) {
-      const userDocRef = doc(firebaseDb, "users", userId)
-      const userDoc = await getDoc(userDocRef)
-      if (userDoc.exists()) {
+    if (adminDb) {
+      const userRef = adminDb.collection("users").doc(userId)
+      const userDoc = await userRef.get()
+
+      if (userDoc.exists) {
         const userData = userDoc.data()
-        await updateDoc(userDocRef, {
-          youtube: {
-            ...userData.youtube,
-            accessToken: data.access_token,
-            updatedAt: new Date().toISOString()
-          }
-        })
+        if (userData) {
+          await userRef.update({
+            youtube: {
+              ...userData.youtube,
+              accessToken: data.access_token,
+              updatedAt: new Date().toISOString()
+            }
+          })
+        }
       }
     }
 
@@ -149,14 +149,14 @@ async function refreshYouTubeToken(userId: string, refreshToken: string) {
 // Function to publish a post to Instagram
 async function publishToInstagram(userId: string, post: any) {
   try {
-    if (!firebaseDb) throw new Error("Database not initialized")
-    const userDocRef = doc(firebaseDb, "users", userId)
-    const userDoc = await getDoc(userDocRef)
+    if (!adminDb) throw new Error("Database not initialized")
+    const userRef = adminDb.collection("users").doc(userId)
+    const userDoc = await userRef.get()
 
-    if (!userDoc.exists()) throw new Error("User settings not found")
+    if (!userDoc.exists) throw new Error("User settings not found")
 
     const userData = userDoc.data()
-    const instagram = userData.instagram
+    const instagram = userData?.instagram
 
     if (!instagram || !instagram.accessToken) throw new Error("Instagram account not connected")
 
@@ -217,14 +217,14 @@ async function publishToYouTube(userId: string, post: any) {
   let refreshToken: string | null = null
 
   try {
-    if (!firebaseDb) throw new Error("Database not initialized")
-    const userDocRef = doc(firebaseDb, "users", userId)
-    const userDoc = await getDoc(userDocRef)
+    if (!adminDb) throw new Error("Database not initialized")
+    const userRef = adminDb.collection("users").doc(userId)
+    const userDoc = await userRef.get()
 
-    if (!userDoc.exists()) throw new Error("User settings not found")
+    if (!userDoc.exists) throw new Error("User settings not found")
 
     const userData = userDoc.data()
-    const youtube = userData.youtube
+    const youtube = userData?.youtube
 
     if (!youtube || !youtube.accessToken) throw new Error("YouTube account not connected")
 

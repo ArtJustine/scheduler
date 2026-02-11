@@ -539,24 +539,39 @@ export default function CreatePostPage() {
                         <span>Add Media</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" sideOffset={4} className="w-[200px] p-2 shadow-lg border border-border rounded-xl bg-popover text-popover-foreground animate-in zoom-in-95 duration-150">
+                    <DropdownMenuContent align="start" sideOffset={8} className="w-[240px] p-1.5 shadow-2xl border border-white/10 rounded-2xl bg-white/90 dark:bg-black/90 backdrop-blur-xl animate-in zoom-in-95 duration-200">
                       <div className="flex flex-col gap-1">
                         <DropdownMenuItem
-                          className="cursor-pointer text-sm font-medium py-2.5 rounded-lg px-3 flex items-center gap-3 focus:bg-accent focus:text-accent-foreground transition-colors group/item"
+                          className="cursor-pointer py-3 px-3 rounded-xl transition-all group/item focus:bg-primary/10 focus:text-primary data-[highlighted]:bg-primary/10"
                           onClick={() => setShowMediaUploader(true)}
                         >
-                          <Upload className="h-4 w-4 text-muted-foreground group-hover/item:text-foreground transition-colors" />
-                          <span>Upload New</span>
+                          <div className="flex items-center gap-3 w-full">
+                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-primary-foreground transition-colors shrink-0">
+                              <Upload className="h-4 w-4" />
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-xs font-bold leading-none">Upload New Media</span>
+                              <span className="text-[10px] text-muted-foreground leading-none">Drag & drop or select file</span>
+                            </div>
+                          </div>
                         </DropdownMenuItem>
-                        {mediaItems.length > 0 && (
-                          <DropdownMenuItem
-                            className="cursor-pointer text-sm font-medium py-2.5 rounded-lg px-3 flex items-center gap-3 focus:bg-accent focus:text-accent-foreground transition-colors group/item"
-                            onClick={() => setShowMediaLibrary(true)}
-                          >
-                            <ImageIconLucide className="h-4 w-4 text-muted-foreground group-hover/item:text-foreground transition-colors" />
-                            <span>Library ({mediaItems.length})</span>
-                          </DropdownMenuItem>
-                        )}
+
+                        <div className="mx-2 my-1 h-px bg-border/50" />
+
+                        <DropdownMenuItem
+                          className="cursor-pointer py-3 px-3 rounded-xl transition-all group/item focus:bg-secondary focus:text-secondary-foreground data-[highlighted]:bg-secondary"
+                          onClick={() => setShowMediaLibrary(true)}
+                        >
+                          <div className="flex items-center gap-3 w-full">
+                            <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover/item:bg-foreground group-hover/item:text-background transition-colors shrink-0">
+                              <ImageIconLucide className="h-4 w-4" />
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-xs font-bold leading-none">Select from Library</span>
+                              <span className="text-[10px] text-muted-foreground leading-none">{mediaItems.length} items available</span>
+                            </div>
+                          </div>
+                        </DropdownMenuItem>
                       </div>
                     </DropdownMenuContent>
                   </DropdownMenu>

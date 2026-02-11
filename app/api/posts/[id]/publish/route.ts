@@ -1,6 +1,6 @@
+
 import { NextResponse } from "next/server"
-import { doc, getDoc, updateDoc } from "firebase/firestore"
-import { serverDb as firebaseDb } from "@/lib/firebase-server"
+import { adminDb } from "@/lib/firebase-admin"
 import { checkScheduledPosts } from "@/lib/scheduler-service"
 
 export async function POST(
@@ -9,21 +9,18 @@ export async function POST(
 ) {
     try {
         const { id: postId } = await params
-        if (!firebaseDb) throw new Error("Database not initialized")
+        if (!adminDb) throw new Error("Database not initialized")
 
-        // For simplicity, we trigger the scheduler which will pick up this post if it's due
-        // OR we can explicitly call a publish function for this specific post
-        // But since checkScheduledPosts uses the 'now' time, we might need to update the post first
+        // Using Admin SDK syntax
+        const postRef = adminDb.collection("posts").doc(postId)
+        const postSnap = await postRef.get()
 
-        const postRef = doc(firebaseDb, "posts", postId)
-        const postSnap = await getDoc(postRef)
-
-        if (!postSnap.exists()) {
+        if (!postSnap.exists) {
             return NextResponse.json({ error: "Post not found" }, { status: 404 })
         }
 
         // Set scheduledFor to now if it's in the future and the user wants to publish now
-        await updateDoc(postRef, {
+        await postRef.update({
             scheduledFor: new Date().toISOString(),
             status: "scheduled"
         })
@@ -32,7 +29,7 @@ export async function POST(
         await checkScheduledPosts()
 
         // Refresh the status
-        const updatedSnap = await getDoc(postRef)
+        const updatedSnap = await postRef.get()
         const updatedPost = updatedSnap.data()
 
         if (updatedPost?.status === "published") {

@@ -3,6 +3,9 @@ import { NextResponse } from "next/server"
 import { adminDb } from "@/lib/firebase-admin"
 import { checkScheduledPosts, publishPost } from "@/lib/scheduler-service"
 
+export const maxDuration = 60; // Allow up to 60 seconds for execution (Vercel Hobby Limit)
+export const dynamic = 'force-dynamic';
+
 export async function POST(
     request: Request,
     { params }: { params: Promise<{ id: string }> }

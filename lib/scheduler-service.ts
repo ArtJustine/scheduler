@@ -404,7 +404,7 @@ async function publishToTikTok(userId: string, post: any) {
       const initBody = {
         post_info: {
           title: post.title || post.content?.substring(0, 80) || "Scheduled Post",
-          privacy_level: "SELF_ONLY", // Mandatory for unaudited/sandbox accounts
+          privacy_level: "MUTUAL_FOLLOW_FRIENDS", // Alternative for sandbox restriction testing
           disable_comment: false,
           disable_duet: false,
           disable_stitch: false,

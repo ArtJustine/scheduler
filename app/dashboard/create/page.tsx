@@ -296,7 +296,7 @@ export default function CreatePostPage() {
     setError(null)
 
     try {
-      const postData = {
+      const postData: any = {
         title: content.substring(0, 50) || "New Post",
         description: content.substring(0, 100) || "Created from scheduler",
         content,
@@ -326,20 +326,24 @@ export default function CreatePostPage() {
         })(),
         status: "scheduled" as const,
         aspectRatio: youtubeAspectRatio,
-        youtubePostType: selectedPlatforms.includes("youtube") ? (youtubeAspectRatio === "community" ? "community" : (mediaUrl ? "video" : "community")) : undefined,
-        youtubeOptions: selectedPlatforms.includes("youtube") ? {
+        timezone
+      }
+
+      // Only add YouTube specific fields if YouTube is selected to avoid 'undefined' field values in Firestore
+      if (selectedPlatforms.includes("youtube")) {
+        postData.youtubePostType = youtubeAspectRatio === "community" ? "community" : (mediaUrl ? "video" : "community")
+        postData.youtubeOptions = {
           playlist: youtubePlaylist,
           madeForKids: youtubeMadeForKids,
           ageRestriction: youtubeAgeRestriction,
           alteredContent: youtubeAlteredContent,
           tags: youtubeTags.split(",").map(t => t.trim()).filter(t => t),
           category: youtubeCategory
-        } : undefined,
-        timezone
+        }
       }
 
       console.log("Submitting post data:", postData)
-      await createPost(postData as any)
+      await createPost(postData)
       setSuccess(true)
       window.scrollTo({ top: 0, behavior: "smooth" })
 
@@ -549,29 +553,33 @@ export default function CreatePostPage() {
                             <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-primary-foreground transition-colors shrink-0">
                               <Upload className="h-4 w-4" />
                             </div>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-xs font-bold leading-none">Upload New Media</span>
-                              <span className="text-[10px] text-muted-foreground leading-none">Drag & drop or select file</span>
+                            <div className="flex flex-col gap-0.5 flex-1">
+                              <span className="text-sm font-semibold leading-none">Upload New Media</span>
+                              <span className="text-xs text-muted-foreground leading-none">Drag & drop or select file</span>
                             </div>
                           </div>
                         </DropdownMenuItem>
 
-                        <div className="mx-2 my-1 h-px bg-border/50" />
+                        {mediaItems.length > 0 && (
+                          <>
+                            <div className="mx-2 my-1 h-px bg-border/50" />
 
-                        <DropdownMenuItem
-                          className="cursor-pointer py-3 px-3 rounded-xl transition-all group/item focus:bg-secondary focus:text-secondary-foreground data-[highlighted]:bg-secondary"
-                          onClick={() => setShowMediaLibrary(true)}
-                        >
-                          <div className="flex items-center gap-3 w-full">
-                            <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover/item:bg-foreground group-hover/item:text-background transition-colors shrink-0">
-                              <ImageIconLucide className="h-4 w-4" />
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-xs font-bold leading-none">Select from Library</span>
-                              <span className="text-[10px] text-muted-foreground leading-none">{mediaItems.length} items available</span>
-                            </div>
-                          </div>
-                        </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="cursor-pointer py-3 px-3 rounded-xl transition-all group/item focus:bg-secondary focus:text-secondary-foreground data-[highlighted]:bg-secondary"
+                              onClick={() => setShowMediaLibrary(true)}
+                            >
+                              <div className="flex items-center gap-3 w-full">
+                                <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover/item:bg-foreground group-hover/item:text-background transition-colors shrink-0">
+                                  <ImageIconLucide className="h-4 w-4" />
+                                </div>
+                                <div className="flex flex-col gap-0.5 flex-1">
+                                  <span className="text-sm font-semibold leading-none">Select from Library</span>
+                                  <span className="text-xs text-muted-foreground leading-none">{mediaItems.length} items available</span>
+                                </div>
+                              </div>
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </div>
                     </DropdownMenuContent>
                   </DropdownMenu>

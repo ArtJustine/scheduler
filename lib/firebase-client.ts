@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app"
 import { getAuth } from "firebase/auth"
-import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore"
+import { initializeFirestore, enableIndexedDbPersistence } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
 
 // Your web app's Firebase configuration
@@ -31,7 +31,9 @@ if (typeof window !== "undefined") {
   }
 
   firebaseAuth = getAuth(firebaseApp)
-  firebaseDb = getFirestore(firebaseApp)
+  // Use initializeFirestore to enable ignoreUndefinedProperties
+  // This prevents the "Unsupported field value: undefined" error globally
+  firebaseDb = initializeFirestore(firebaseApp!, { ignoreUndefinedProperties: true })
   firebaseStorage = getStorage(firebaseApp)
 
   if (firebaseDb) {

@@ -60,10 +60,7 @@ export async function publishPost(userId: string, postId: string, post: any) {
           publishResult = await publishToYouTube(userId, post)
           break
         case "tiktok":
-          publishResult = {
-            success: false,
-            error: "TikTok integration is currently disabled for publishing",
-          }
+          publishResult = await publishToTikTok(userId, post)
           break
         default:
           publishResult = {
@@ -103,6 +100,50 @@ export async function publishPost(userId: string, postId: string, post: any) {
       status: "failed",
       error: error.message,
     })
+  }
+}
+
+// Function to refresh TikTok token
+async function refreshTikTokToken(userId: string, refreshToken: string) {
+  try {
+    const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_key: config.tiktok.clientKey,
+        client_secret: config.tiktok.clientSecret,
+        refresh_token: refreshToken,
+        grant_type: "refresh_token",
+      }),
+    })
+
+    const data = await response.json()
+    if (data.error) throw new Error(data.error_description || data.error)
+
+    // Update user doc with new access token
+    if (adminDb) {
+      const userRef = adminDb.collection("users").doc(userId)
+      const userDoc = await userRef.get()
+
+      if (userDoc.exists) {
+        const userData = userDoc.data()
+        if (userData) {
+          await userRef.update({
+            tiktok: {
+              ...userData.tiktok,
+              accessToken: data.access_token,
+              refreshToken: data.refresh_token || refreshToken, // TikTok sometimes returns a new refresh token
+              updatedAt: new Date().toISOString()
+            }
+          })
+        }
+      }
+    }
+
+    return data.access_token
+  } catch (error) {
+    console.error("Error refreshing TikTok token:", error)
+    throw error
   }
 }
 
@@ -316,6 +357,101 @@ async function publishToYouTube(userId: string, post: any) {
 
   } catch (error: any) {
     console.error("Error publishing to YouTube:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Function to publish a post to TikTok
+async function publishToTikTok(userId: string, post: any) {
+  let accessToken: string | null = null
+  let refreshToken: string | null = null
+
+  try {
+    if (!adminDb) throw new Error("Database not initialized")
+    const userRef = adminDb.collection("users").doc(userId)
+    const userDoc = await userRef.get()
+
+    if (!userDoc.exists) throw new Error("User settings not found")
+
+    const userData = userDoc.data()
+    const tiktok = userData?.tiktok
+
+    if (!tiktok || !tiktok.accessToken) throw new Error("TikTok account not connected")
+
+    accessToken = tiktok.accessToken
+    refreshToken = tiktok.refreshToken
+
+    async function attemptPublish(token: string) {
+      // TikTok API Video Posting (PULL_FROM_URL)
+      // Documentation: https://developers.tiktok.com/doc/content-posting-api-v2-direct-post/
+
+      if (!post.mediaUrl) throw new Error("No media URL provided for TikTok upload")
+
+      const publishUrl = "https://open.tiktokapis.com/v2/post/publish/video/init/"
+      const body = {
+        post_info: {
+          title: post.title || post.content?.substring(0, 80) || "Scheduled Post",
+          privacy_level: "PUBLIC_TO_EVERYONE",
+          disable_comment: false,
+          disable_duet: false,
+          disable_stitch: false,
+          video_ad_tag: false
+        },
+        source_info: {
+          source: "PULL_FROM_URL",
+          video_url: post.mediaUrl
+        }
+      }
+
+      const response = await fetch(publishUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      })
+
+      if (response.status === 401 && refreshToken) {
+        return { retry: true }
+      }
+
+      const data = await response.json()
+
+      // TikTok returns 0 in "error.code" for success or if it's not present
+      if (data.error && data.error.code !== "ok" && data.error.code !== 0) {
+        throw new Error(`TikTok API Error: ${data.error.message || "Unknown error"}`)
+      }
+
+      return data.data
+    }
+
+    if (!accessToken) throw new Error("TikTok access token missing")
+    let result = await attemptPublish(accessToken)
+
+    // If unauthorized, try refreshing token once
+    if (result && result.retry && refreshToken) {
+      console.log("TikTok token expired, refreshing...")
+      accessToken = await refreshTikTokToken(userId, refreshToken)
+      if (!accessToken) throw new Error("Failed to refresh TikTok access token")
+      result = await attemptPublish(accessToken)
+    }
+
+    if (result && result.retry) {
+      throw new Error("TikTok API returned 401 Unauthorized even after token refresh")
+    }
+
+    if (!result || !result.publish_id) {
+      throw new Error("TikTok API call succeeded but returned no publish ID")
+    }
+
+    return {
+      success: true,
+      platformId: result.publish_id,
+    }
+
+  } catch (error: any) {
+    console.error("Error publishing to TikTok:", error)
     return { success: false, error: error.message }
   }
 }

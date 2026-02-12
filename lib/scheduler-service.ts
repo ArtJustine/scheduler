@@ -83,13 +83,16 @@ export async function publishPost(userId: string, postId: string, post: any) {
       })
       console.log(`Successfully published post ${postId} to all platforms`)
     } else {
+      // Extract the first error message to show to the user
+      const firstError = Object.values(results).find(r => !r.success)?.error || "One or more platforms failed to publish"
+
       // If any platform failed, mark as failed overall but store details
       await postRef.update({
         status: "failed",
         platformResults: results,
-        error: "One or more platforms failed to publish",
+        error: firstError,
       })
-      console.error(`Failed to publish post ${postId} to some platforms`)
+      console.error(`Failed to publish post ${postId} to some platforms: ${firstError}`)
     }
   } catch (error: any) {
     console.error(`Error publishing post ${postId}:`, error)
@@ -417,10 +420,11 @@ async function publishToTikTok(userId: string, post: any) {
       }
 
       const data = await response.json()
+      console.log("TikTok API raw response:", JSON.stringify(data))
 
       // TikTok returns 0 in "error.code" for success or if it's not present
       if (data.error && data.error.code !== "ok" && data.error.code !== 0) {
-        throw new Error(`TikTok API Error: ${data.error.message || "Unknown error"}`)
+        throw new Error(`TikTok API Error (${data.error.code}): ${data.error.message || "Unknown error"}`)
       }
 
       return data.data

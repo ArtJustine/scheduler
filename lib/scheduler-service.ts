@@ -385,13 +385,23 @@ async function publishToTikTok(userId: string, post: any) {
     refreshToken = tiktok.refreshToken
 
     async function attemptPublish(token: string) {
-      // TikTok API Video Posting (PULL_FROM_URL)
+      // Switch to FILE_UPLOAD to bypass TikTok domain verification requirements
       // Documentation: https://developers.tiktok.com/doc/content-posting-api-v2-direct-post/
 
       if (!post.mediaUrl) throw new Error("No media URL provided for TikTok upload")
 
+      // 1. Fetch the media to get its size and data
+      console.log("Fetching media from Firebase for TikTok upload:", post.mediaUrl)
+      const mediaResponse = await fetch(post.mediaUrl)
+      if (!mediaResponse.ok) throw new Error("Failed to fetch media file from storage")
+
+      const mediaBlob = await mediaResponse.blob()
+      const videoSize = mediaBlob.size
+      console.log(`Video size detected: ${videoSize} bytes`)
+
+      // 2. Initialize the upload
       const publishUrl = "https://open.tiktokapis.com/v2/post/publish/video/init/"
-      const body = {
+      const initBody = {
         post_info: {
           title: post.title || post.content?.substring(0, 80) || "Scheduled Post",
           privacy_level: "PUBLIC_TO_EVERYONE",
@@ -401,33 +411,54 @@ async function publishToTikTok(userId: string, post: any) {
           video_ad_tag: false
         },
         source_info: {
-          source: "PULL_FROM_URL",
-          video_url: post.mediaUrl
+          source: "FILE_UPLOAD",
+          video_size: videoSize,
+          chunk_size: videoSize, // Sending as a single chunk for simplicity
+          total_chunk_count: 1
         }
       }
 
-      const response = await fetch(publishUrl, {
+      const initResponse = await fetch(publishUrl, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(initBody),
       })
 
-      if (response.status === 401 && refreshToken) {
+      if (initResponse.status === 401 && refreshToken) {
         return { retry: true }
       }
 
-      const data = await response.json()
-      console.log("TikTok API raw response:", JSON.stringify(data))
+      const initData = await initResponse.json()
+      console.log("TikTok Init Response:", JSON.stringify(initData))
 
-      // TikTok returns 0 in "error.code" for success or if it's not present
-      if (data.error && data.error.code !== "ok" && data.error.code !== 0) {
-        throw new Error(`TikTok API Error (${data.error.code}): ${data.error.message || "Unknown error"}`)
+      if (initData.error && initData.error.code !== "ok" && initData.error.code !== 0) {
+        throw new Error(`TikTok API Error (${initData.error.code}): ${initData.error.message || "Init failed"}`)
       }
 
-      return data.data
+      const uploadUrl = initData.data.upload_url
+      if (!uploadUrl) throw new Error("No upload URL returned from TikTok")
+
+      // 3. Perform the actual binary upload
+      console.log("Uploading bytes to TikTok...")
+      const uploadResponse = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "video/mp4", // Most TikToks are mp4
+          "Content-Range": `bytes 0-${videoSize - 1}/${videoSize}`
+        },
+        body: mediaBlob
+      })
+
+      if (!uploadResponse.ok) {
+        const errText = await uploadResponse.text()
+        console.error("TikTok Upload Error Body:", errText)
+        throw new Error(`TikTok binary upload failed: ${uploadResponse.statusText}`)
+      }
+
+      return initData.data
     }
 
     if (!accessToken) throw new Error("TikTok access token missing")

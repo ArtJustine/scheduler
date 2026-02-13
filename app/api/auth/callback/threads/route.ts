@@ -76,40 +76,48 @@ export async function GET(request: NextRequest) {
             console.error("Error fetching basic profile:", err)
         }
 
-        // 3. Try fetching stats individually so one failure doesn't kill it
+        // 3. Try fetching stats individually with redundant field names
         try {
-            // Try follower_count
-            const fRes = await fetch(`https://graph.threads.net/me?fields=follower_count&access_token=${accessToken}`)
-            if (fRes.ok) {
-                const fData = await fRes.json()
-                followerCount = fData.follower_count || 0
-            } else {
-                // Try insights as fallback
-                const iRes = await fetch(`https://graph.threads.net/me/threads_insights?metric=followers_count&access_token=${accessToken}`)
-                if (iRes.ok) {
-                    const iData = await iRes.json()
+            console.log("Attempting to fetch follower count...")
+            // Try user fields variations
+            const userStatsUrl = `https://graph.threads.net/me?fields=follower_count,followers_count,media_count&access_token=${accessToken}`
+            const userStatsRes = await fetch(userStatsUrl)
+
+            if (userStatsRes.ok) {
+                const sData = await userStatsRes.json()
+                console.log("User Stats API Response:", JSON.stringify(sData))
+                followerCount = sData.follower_count ?? sData.followers_count ?? 0
+                postsCount = sData.media_count ?? postsCount
+            }
+
+            // 4. Try Business Insights endpoint as a strong backup
+            if (followerCount === 0 && threadsId) {
+                console.log("Follower count 0, trying insights...")
+                const insightsUrl = `https://graph.threads.net/${threadsId}/threads_insights?metric=followers_count&access_token=${accessToken}`
+                const insightsRes = await fetch(insightsUrl)
+                if (insightsRes.ok) {
+                    const iData = await insightsRes.json()
+                    console.log("Insights Response:", JSON.stringify(iData))
                     if (iData.data && iData.data.length > 0) {
-                        followerCount = iData.data[0].values[0].value || 0
+                        // For 'followers_count', it's usually the first value in the array
+                        followerCount = iData.data[0].values?.[0]?.value ?? 0
                     }
                 }
             }
-        } catch (err) { console.warn("Follower fetch failed", err) }
+        } catch (err) {
+            console.warn("Follower fetch process failed:", err)
+        }
 
-        try {
-            // Try media_count/posts
-            const mRes = await fetch(`https://graph.threads.net/me?fields=media_count&access_token=${accessToken}`)
-            if (mRes.ok) {
-                const mData = await mRes.json()
-                postsCount = mData.media_count || 0
-            } else {
-                // Manual count fallback
+        // 5. Final fallback for post count if still missing
+        if (postsCount === 0) {
+            try {
                 const mlRes = await fetch(`https://graph.threads.net/me/threads?fields=id&access_token=${accessToken}`)
                 if (mlRes.ok) {
                     const mlData = await mlRes.json()
                     if (mlData.data) postsCount = mlData.data.length
                 }
-            }
-        } catch (err) { console.warn("Posts fetch failed", err) }
+            } catch (err) { console.warn("Posts manual count failed", err) }
+        }
 
         // Ensure clean numbers
         followerCount = Number(followerCount) || 0

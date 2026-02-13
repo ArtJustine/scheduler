@@ -9,6 +9,7 @@ import {
     Settings,
     MoreVertical
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -132,21 +133,29 @@ export function WorkspaceSwitcher() {
                 <DropdownMenuContent className="w-[280px] p-2" align="start">
                     {workspaces.length > 0 && (
                         <>
-                            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground px-3 py-2">
-                                Workspaces
+                            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 px-3 py-2">
+                                Your Brands
                             </DropdownMenuLabel>
                             <div className="space-y-1">
                                 {workspaces.map((w) => (
                                     <DropdownMenuItem
                                         key={w.id}
                                         onClick={() => handleSwitch(w.id)}
-                                        className="flex items-center justify-between p-3 rounded-xl cursor-pointer"
+                                        className="flex items-center justify-between p-2.5 rounded-xl cursor-pointer hover:bg-muted/50 transition-colors"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`h-8 w-8 rounded bg-slate-100 flex items-center justify-center ${activeWorkspace?.id === w.id ? 'text-primary' : 'text-slate-400'}`}>
+                                            <div className={cn(
+                                                "h-8 w-8 rounded-lg flex items-center justify-center transition-colors",
+                                                activeWorkspace?.id === w.id ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-400"
+                                            )}>
                                                 <Building2 className="h-4 w-4" />
                                             </div>
-                                            <span className="font-semibold text-sm">{w.name}</span>
+                                            <span className={cn(
+                                                "text-sm",
+                                                activeWorkspace?.id === w.id ? "font-bold" : "font-medium"
+                                            )}>
+                                                {w.name}
+                                            </span>
                                         </div>
                                         {activeWorkspace?.id === w.id && <Check className="h-4 w-4 text-primary" />}
                                     </DropdownMenuItem>

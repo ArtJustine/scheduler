@@ -84,18 +84,21 @@ const socialChannels = [
   {
     title: "TikTok",
     icon: Share2,
+    image: "/tiktok.webp",
     href: "/dashboard/platform/tiktok",
     color: "text-rose-600",
   },
   {
     title: "YouTube",
     icon: Youtube,
+    image: "/youtube.webp",
     href: "/dashboard/platform/youtube",
     color: "text-red-600",
   },
   {
     title: "Threads",
     icon: Share2,
+    image: "/threads.webp",
     href: "/dashboard/platform/threads",
     color: "text-slate-900 dark:text-white",
   },
@@ -177,7 +180,7 @@ export function DashboardSidebar() {
 
   const getChannelDisplay = (channel: any) => {
     if (!channel || !channel.title) {
-      return { title: "Unknown", icon: Share2, image: null }
+      return { title: "Unknown", icon: Share2, image: channel?.image || null }
     }
     const platform = channel.title?.toLowerCase()
     const connected = connectedAccounts[platform]
@@ -185,15 +188,15 @@ export function DashboardSidebar() {
     if (connected) {
       return {
         title: connected.username || channel.title,
-        icon: connected.profileImage ? null : (platform === 'threads' ? Share2 : channel.icon),
-        image: connected.profileImage,
+        icon: connected.profileImage || channel.image ? null : channel.icon,
+        image: connected.profileImage || channel.image,
       }
     }
 
     return {
       title: channel.title,
-      icon: channel.icon,
-      image: null,
+      icon: channel.image ? null : channel.icon,
+      image: channel.image,
     }
   }
 
@@ -348,9 +351,27 @@ export function DashboardSidebar() {
         </SidebarMenu>
 
         <div className="px-3 py-4 relative z-10">
-          <h2 className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
-            Social Channels
-          </h2>
+          <div className="flex items-center justify-between mb-2 px-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+              Social Channels
+            </h2>
+            <div className="flex -space-x-1.5 overflow-hidden">
+              {socialChannels
+                .filter(channel => connectedAccounts[channel.title.toLowerCase()]?.connected)
+                .map((channel) => (
+                  <div
+                    key={channel.title}
+                    className="h-4 w-4 rounded-full border border-background bg-white flex items-center justify-center overflow-hidden"
+                  >
+                    <img
+                      src={connectedAccounts[channel.title.toLowerCase()]?.profileImage || channel.image}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))}
+            </div>
+          </div>
           <SidebarMenu>
             {socialChannels.filter(channel => channel?.title && connectedAccounts[channel.title.toLowerCase()]).length > 0 ? (
               socialChannels

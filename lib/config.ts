@@ -14,9 +14,9 @@ export const config = {
 
   // Instagram API Configuration
   instagram: {
-    appId: process.env.INSTAGRAM_APP_ID || "",
-    appSecret: process.env.INSTAGRAM_APP_SECRET || "",
-    redirectUri: process.env.INSTAGRAM_REDIRECT_URI || "http://localhost:3000/api/auth/callback/instagram",
+    appId: process.env.INSTAGRAM_APP_ID || "188015572670356",
+    appSecret: process.env.INSTAGRAM_APP_SECRET || "0fdbc78f68ee1fb25be20c04095c403f",
+    redirectUri: process.env.INSTAGRAM_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/instagram",
     apiVersion: "v18.0",
   },
 
@@ -42,9 +42,9 @@ export const config = {
 
   // Facebook API Configuration (for Instagram Business)
   facebook: {
-    appId: process.env.FACEBOOK_APP_ID || "",
-    appSecret: process.env.FACEBOOK_APP_SECRET || "",
-    redirectUri: process.env.FACEBOOK_REDIRECT_URI || "http://localhost:3000/api/auth/callback/facebook",
+    appId: process.env.FACEBOOK_APP_ID || "943816434644966",
+    appSecret: process.env.FACEBOOK_APP_SECRET || "106bb8fb32f22f00aa01ee0800da6cd2",
+    redirectUri: process.env.FACEBOOK_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/facebook",
     apiVersion: "v18.0",
     scopes: ["instagram_basic", "instagram_content_publish", "pages_show_list", "pages_read_engagement"],
   },

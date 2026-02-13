@@ -389,7 +389,14 @@ export function DashboardSidebar() {
                         <Link href={channel.href} className="flex items-center gap-3">
                           <div className="h-6 w-6 rounded-lg bg-slate-100/50 flex items-center justify-center overflow-hidden flex-shrink-0">
                             {display.image ? (
-                              <img src={display.image} alt="" className="h-full w-full object-cover" />
+                              <img
+                                src={display.image}
+                                alt=""
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = channel.image;
+                                }}
+                              />
                             ) : (
                               <channel.icon className={cn("h-4 w-4", channel.color)} />
                             )}

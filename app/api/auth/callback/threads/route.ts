@@ -36,6 +36,21 @@ export async function GET(request: NextRequest) {
         // Exchange authorization code for access token
         const tokenData = await threadsOAuth.exchangeCodeForToken(code, storedRedirectUri)
 
+        // 1. Exchange for Long-Lived Token (highly recommended for Threads)
+        let accessToken = tokenData.access_token
+        try {
+            console.log("Exchanging for long-lived Threads token...")
+            const exchangeUrl = `https://graph.threads.net/access_token?grant_type=th_exchange_token&client_secret=${config.threads.appSecret}&access_token=${tokenData.access_token}`
+            const exchangeResponse = await fetch(exchangeUrl)
+            if (exchangeResponse.ok) {
+                const exchangeData = await exchangeResponse.json()
+                accessToken = exchangeData.access_token || accessToken
+                console.log("Long-lived token obtained")
+            }
+        } catch (err) {
+            console.warn("Could not exchange for long-lived token, using short-lived:", err)
+        }
+
         // Get user info and stats from Threads
         let threadsUsername = "Threads User"
         let threadsId = null
@@ -43,60 +58,60 @@ export async function GET(request: NextRequest) {
         let followerCount = 0
         let postsCount = 0
 
+        // 2. Fetch basic profile fields we are 100% sure about
         try {
-            // 1. Fetch basic profile with as many fields as possible
-            console.log("Fetching Threads profile...")
-            const profileUrl = `https://graph.threads.net/me?fields=id,username,name,threads_profile_picture_url,follower_count,media_count&access_token=${tokenData.access_token}`
-            const threadsResponse = await fetch(profileUrl)
-
-            if (threadsResponse.ok) {
-                const threadsData = await threadsResponse.json()
-                console.log("Threads Profile Data:", JSON.stringify(threadsData))
-                threadsUsername = threadsData.username || threadsData.name || threadsUsername
-                threadsId = threadsData.id
-                profileImage = threadsData.threads_profile_picture_url || threadsData.profile_picture_url
-
-                // Try to get follower count from different possible field names
-                followerCount = threadsData.follower_count ?? threadsData.followers_count ?? 0
-                postsCount = threadsData.media_count ?? 0
+            console.log("Fetching basic Threads profile...")
+            const profileUrl = `https://graph.threads.net/me?fields=id,username,name,threads_profile_picture_url&access_token=${accessToken}`
+            const profileRes = await fetch(profileUrl)
+            if (profileRes.ok) {
+                const profileData = await profileRes.json()
+                threadsUsername = profileData.username || profileData.name || threadsUsername
+                threadsId = profileData.id
+                profileImage = profileData.threads_profile_picture_url
+                console.log("Basic profile fetched for:", threadsUsername)
             } else {
-                const errText = await threadsResponse.text()
-                console.error("Threads Profile Fetch Failed:", threadsResponse.status, errText)
-            }
-
-            // 2. Fallback for stats if still 0
-            if (followerCount === 0) {
-                const insightsUrl = `https://graph.threads.net/${threadsId || 'me'}/threads_insights?metric=followers_count&access_token=${tokenData.access_token}`
-                const insightsResponse = await fetch(insightsUrl)
-                if (insightsResponse.ok) {
-                    const insightsData = await insightsResponse.json()
-                    if (insightsData.data && insightsData.data.length > 0) {
-                        followerCount = insightsData.data[0].values[0].value || 0
-                    }
-                }
-            }
-
-            // 3. Fallback for post count by fetching threads list
-            if (postsCount === 0) {
-                const mediaResponse = await fetch(
-                    `https://graph.threads.net/me/threads?fields=id&access_token=${tokenData.access_token}`
-                )
-                if (mediaResponse.ok) {
-                    const mediaData = await mediaResponse.json()
-                    if (mediaData.data) {
-                        postsCount = mediaData.data.length
-                        // If paging exists, we know it's at least this many
-                        if (mediaData.paging?.next) {
-                            // We could try to get a better count, but let's stick to first page for now
-                        }
-                    }
-                }
+                console.error("Basic profile fetch failed", await profileRes.text())
             }
         } catch (err) {
-            console.warn("Could not fetch Threads user info or stats:", err)
+            console.error("Error fetching basic profile:", err)
         }
 
-        // Ensure everything is a number
+        // 3. Try fetching stats individually so one failure doesn't kill it
+        try {
+            // Try follower_count
+            const fRes = await fetch(`https://graph.threads.net/me?fields=follower_count&access_token=${accessToken}`)
+            if (fRes.ok) {
+                const fData = await fRes.json()
+                followerCount = fData.follower_count || 0
+            } else {
+                // Try insights as fallback
+                const iRes = await fetch(`https://graph.threads.net/me/threads_insights?metric=followers_count&access_token=${accessToken}`)
+                if (iRes.ok) {
+                    const iData = await iRes.json()
+                    if (iData.data && iData.data.length > 0) {
+                        followerCount = iData.data[0].values[0].value || 0
+                    }
+                }
+            }
+        } catch (err) { console.warn("Follower fetch failed", err) }
+
+        try {
+            // Try media_count/posts
+            const mRes = await fetch(`https://graph.threads.net/me?fields=media_count&access_token=${accessToken}`)
+            if (mRes.ok) {
+                const mData = await mRes.json()
+                postsCount = mData.media_count || 0
+            } else {
+                // Manual count fallback
+                const mlRes = await fetch(`https://graph.threads.net/me/threads?fields=id&access_token=${accessToken}`)
+                if (mlRes.ok) {
+                    const mlData = await mlRes.json()
+                    if (mlData.data) postsCount = mlData.data.length
+                }
+            }
+        } catch (err) { console.warn("Posts fetch failed", err) }
+
+        // Ensure clean numbers
         followerCount = Number(followerCount) || 0
         postsCount = Number(postsCount) || 0
 
@@ -106,7 +121,7 @@ export async function GET(request: NextRequest) {
             id: threadsId || userId,
             username: threadsUsername,
             profileImage: profileImage,
-            accessToken: tokenData.access_token,
+            accessToken: accessToken, // Use the long-lived one if we got it
             refreshToken: tokenData.refresh_token || null,
             expiresAt: tokenData.expires_in
                 ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()

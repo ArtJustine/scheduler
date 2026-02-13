@@ -36,21 +36,43 @@ export async function GET(request: NextRequest) {
         // Exchange authorization code for access token
         const tokenData = await threadsOAuth.exchangeCodeForToken(code, storedRedirectUri)
 
-        // Get user info from Threads
+        // Get user info and stats from Threads
         let threadsUsername = "Threads User"
         let threadsId = null
+        let profileImage = null
+        let followerCount = 0
+        let postsCount = 0
 
         try {
+            // Fetch basic profile and follower count
             const threadsResponse = await fetch(
-                `https://graph.threads.net/me?fields=id,username,threads_profile_picture_url&access_token=${tokenData.access_token}`
+                `https://graph.threads.net/me?fields=id,username,threads_profile_picture_url,follower_count&access_token=${tokenData.access_token}`
             )
             if (threadsResponse.ok) {
                 const threadsData = await threadsResponse.json()
-                threadsUsername = threadsData.username
+                threadsUsername = threadsData.username || threadsUsername
                 threadsId = threadsData.id
+                profileImage = threadsData.threads_profile_picture_url
+                followerCount = threadsData.follower_count || 0
+            }
+
+            // Fetch threads to get a count (limit=1 just to check paging)
+            const mediaResponse = await fetch(
+                `https://graph.threads.net/me/threads?limit=1&access_token=${tokenData.access_token}`
+            )
+            if (mediaResponse.ok) {
+                const mediaData = await mediaResponse.json()
+                // Threads API doesn't always provide total_count in paging, but we'll check if it does
+                // If not, we can only count what's in the data array or leave as is
+                if (mediaData.paging?.total_count) {
+                    postsCount = mediaData.paging.total_count
+                } else if (mediaData.data) {
+                    // This is only the first page, but better than nothing or we can skip it
+                    // For now, let's keep it as 0 if we can't get a reliable total_count
+                }
             }
         } catch (err) {
-            console.warn("Could not fetch Threads user info:", err)
+            console.warn("Could not fetch Threads user info or stats:", err)
         }
 
         // Prepare account data for handover
@@ -58,6 +80,7 @@ export async function GET(request: NextRequest) {
             platform: "threads",
             id: threadsId || userId,
             username: threadsUsername,
+            profileImage: profileImage,
             accessToken: tokenData.access_token,
             refreshToken: tokenData.refresh_token || null,
             expiresAt: tokenData.expires_in
@@ -65,6 +88,8 @@ export async function GET(request: NextRequest) {
                 : null,
             connectedAt: new Date().toISOString(),
             connected: true,
+            followers: followerCount,
+            posts: postsCount,
         }
         // Save to Firestore directly from the server for better reliability
         try {

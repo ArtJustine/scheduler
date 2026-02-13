@@ -36,16 +36,20 @@ export async function GET(request: NextRequest) {
     // Exchange authorization code for access token
     const tokenData = await instagramOAuth.exchangeCodeForToken(code, storedRedirectUri)
 
-    // Get user info from Instagram
+    // Get user info and stats from Instagram
     let username = "instagram_user"
     let profilePicture = null
+    let followerCount = 0
+    let postsCount = 0
+
     try {
       const userInfoResponse = await fetch(
-        `https://graph.instagram.com/me?fields=username,account_type&access_token=${tokenData.access_token}`
+        `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${tokenData.access_token}`
       )
       if (userInfoResponse.ok) {
         const userInfo = await userInfoResponse.json()
         username = userInfo.username || username
+        postsCount = userInfo.media_count || 0
       }
     } catch (err) {
       console.warn("Could not fetch Instagram user info:", err)
@@ -64,6 +68,8 @@ export async function GET(request: NextRequest) {
         : null,
       connectedAt: new Date().toISOString(),
       connected: true,
+      followers: followerCount,
+      posts: postsCount,
     }
 
     // Save to Firestore directly from the server for better reliability

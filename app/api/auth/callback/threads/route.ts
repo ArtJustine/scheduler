@@ -4,6 +4,7 @@ import { config } from "@/lib/config"
 import { threadsOAuth, oauthHelpers } from "@/lib/oauth-utils"
 import { cookies } from "next/headers"
 import { doc, setDoc, updateDoc } from "firebase/firestore"
+import { serverDb } from "@/lib/firebase-server"
 
 export async function GET(request: NextRequest) {
     try {
@@ -67,7 +68,6 @@ export async function GET(request: NextRequest) {
         }
         // Save to Firestore directly from the server for better reliability
         try {
-            const { serverDb } = await import("@/lib/firebase-server")
             if (serverDb) {
                 const workspaceId = cookieStore.get("oauth_workspace_id")?.value
 

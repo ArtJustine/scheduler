@@ -61,8 +61,7 @@ export async function getActiveWorkspace(userId: string): Promise<Workspace | nu
             workspaceId = workspaces[0].id
             await setDoc(userRef, { activeWorkspaceId: workspaceId }, { merge: true })
         } else {
-            // Create a default one
-            workspaceId = await createWorkspace(userId, "Default Brand")
+            return null
         }
     }
 

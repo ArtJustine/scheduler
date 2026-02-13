@@ -119,10 +119,10 @@ export function WorkspaceSwitcher() {
                             </div>
                             <div className="flex flex-col items-start overflow-hidden">
                                 <span className="text-sm font-bold truncate">
-                                    {activeWorkspace?.name || "Select Brand"}
+                                    {activeWorkspace?.name || "Add New Brand"}
                                 </span>
                                 <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                                    Workspace
+                                    {activeWorkspace ? "Workspace" : "Get Started"}
                                 </span>
                             </div>
                         </div>
@@ -130,28 +130,31 @@ export function WorkspaceSwitcher() {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-[280px] p-2" align="start">
-                    <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground px-3 py-2">
-                        Workspaces
-                    </DropdownMenuLabel>
-                    <div className="space-y-1">
-                        {workspaces.map((w) => (
-                            <DropdownMenuItem
-                                key={w.id}
-                                onClick={() => handleSwitch(w.id)}
-                                className="flex items-center justify-between p-3 rounded-xl cursor-pointer"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`h-8 w-8 rounded bg-slate-100 flex items-center justify-center ${activeWorkspace?.id === w.id ? 'text-primary' : 'text-slate-400'}`}>
-                                        <Building2 className="h-4 w-4" />
-                                    </div>
-                                    <span className="font-semibold text-sm">{w.name}</span>
-                                </div>
-                                {activeWorkspace?.id === w.id && <Check className="h-4 w-4 text-primary" />}
-                            </DropdownMenuItem>
-                        ))}
-                    </div>
-
-                    <DropdownMenuSeparator className="my-2" />
+                    {workspaces.length > 0 && (
+                        <>
+                            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground px-3 py-2">
+                                Workspaces
+                            </DropdownMenuLabel>
+                            <div className="space-y-1">
+                                {workspaces.map((w) => (
+                                    <DropdownMenuItem
+                                        key={w.id}
+                                        onClick={() => handleSwitch(w.id)}
+                                        className="flex items-center justify-between p-3 rounded-xl cursor-pointer"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`h-8 w-8 rounded bg-slate-100 flex items-center justify-center ${activeWorkspace?.id === w.id ? 'text-primary' : 'text-slate-400'}`}>
+                                                <Building2 className="h-4 w-4" />
+                                            </div>
+                                            <span className="font-semibold text-sm">{w.name}</span>
+                                        </div>
+                                        {activeWorkspace?.id === w.id && <Check className="h-4 w-4 text-primary" />}
+                                    </DropdownMenuItem>
+                                ))}
+                            </div>
+                            <DropdownMenuSeparator className="my-2" />
+                        </>
+                    )}
 
                     <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                         <DialogTrigger asChild>

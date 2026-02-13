@@ -7,9 +7,11 @@ import { AnalyticsView } from "@/components/dashboard/analytics-view"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock, Plus, Info } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Calendar, Clock, Plus, Info, Building2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { getScheduledPosts, getSocialAccounts } from "@/lib/data-service"
+import { getActiveWorkspace, createWorkspace } from "@/lib/firebase/workspaces"
 import { ScheduledPostCard } from "@/components/dashboard/scheduled-post-card"
 import { PlatformStats } from "@/components/dashboard/platform-stats"
 import { UpcomingPostsList } from "@/components/dashboard/upcoming-posts-list"
@@ -40,6 +42,9 @@ function DashboardContent() {
   const [posts, setPosts] = useState<PostType[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
+  const [activeWorkspace, setActiveWorkspace] = useState<any>(null)
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false)
+  const [newWorkspaceName, setNewWorkspaceName] = useState("")
   const { user } = useAuth()
   const router = useRouter()
 
@@ -48,17 +53,36 @@ function DashboardContent() {
     try {
       setIsLoading(true)
       const userId = user.uid || (user as any).id
-      console.log("Dashboard: Loading data for user", userId)
 
-      const [fetchedPosts, fetchedAccounts] = await Promise.all([
-        getScheduledPosts(userId),
-        getSocialAccounts(userId)
-      ])
+      const workspace = await getActiveWorkspace(userId)
+      setActiveWorkspace(workspace)
 
-      setPosts(fetchedPosts || [])
-      setSocialAccounts(fetchedAccounts || {})
+      if (workspace) {
+        const [fetchedPosts, fetchedAccounts] = await Promise.all([
+          getScheduledPosts(userId),
+          getSocialAccounts(userId)
+        ])
+
+        setPosts(fetchedPosts || [])
+        setSocialAccounts(fetchedAccounts || {})
+      }
     } catch (error) {
       console.error("Dashboard: Error loading data:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleCreateWorkspace = async () => {
+    if (!user || !newWorkspaceName.trim()) return
+    try {
+      setIsLoading(true)
+      await createWorkspace(user.uid, newWorkspaceName)
+      setNewWorkspaceName("")
+      await loadData()
+      window.dispatchEvent(new CustomEvent('social-accounts-updated'))
+    } catch (error) {
+      console.error("Error creating workspace:", error)
     } finally {
       setIsLoading(false)
     }
@@ -84,13 +108,9 @@ function DashboardContent() {
   }
 
   const getConnectedPlatformsList = () => {
-    const corePlatforms = ["tiktok", "youtube", "threads"]
-    const connected = Object.keys(socialAccounts).filter(
+    return Object.keys(socialAccounts).filter(
       (key) => socialAccounts[key as keyof SocialAccounts]?.connected
     )
-
-    // Combine core platforms with any other connected ones, removing duplicates
-    return Array.from(new Set([...corePlatforms, ...connected]))
   }
 
   const platformsToShow = getConnectedPlatformsList()
@@ -131,23 +151,63 @@ function DashboardContent() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {platformsToShow.map((platformKey) => {
-              const account = socialAccounts[platformKey as keyof SocialAccounts]
-              return (
-                <PlatformStats
-                  key={platformKey}
-                  platform={platformKey.charAt(0).toUpperCase() + platformKey.slice(1)}
-                  postCount={getPostCount(platformKey)}
-                  followers={account?.followers}
-                  posts={account?.posts}
-                  connected={!!account?.connected}
-                  username={account?.username}
-                  profileImage={account?.profileImage}
-                />
-              )
-            })}
-          </div>
+          {!activeWorkspace ? (
+            <Card className="border-dashed border-2 bg-muted/30">
+              <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6">
+                  <Building2 className="h-8 w-8" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Create your first brand</h2>
+                <p className="text-muted-foreground max-w-sm mb-8">
+                  A workspace helps you organize social accounts and posts for different brands or projects.
+                </p>
+                <div className="flex w-full max-w-sm items-center space-x-2">
+                  <Input
+                    placeholder="Brand Name (e.g. My Cafe)"
+                    value={newWorkspaceName}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewWorkspaceName(e.target.value)}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleCreateWorkspace()}
+                  />
+                  <Button onClick={handleCreateWorkspace} disabled={!newWorkspaceName.trim() || isLoading}>
+                    Create
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : platformsToShow.length === 0 ? (
+            <Card className="border-dashed border-2 bg-muted/30">
+              <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="h-16 w-16 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 mb-6">
+                  <Info className="h-8 w-8" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Connect a social account</h2>
+                <p className="text-muted-foreground max-w-sm mb-8">
+                  Your account overview will appear here once you connect your first social media platform to <strong>{activeWorkspace.name}</strong>.
+                </p>
+                <Button onClick={() => router.push("/dashboard/connections")}>
+                  Go to Connections
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {platformsToShow.map((platformKey) => {
+                const account = socialAccounts[platformKey as keyof SocialAccounts]
+                return (
+                  <PlatformStats
+                    key={platformKey}
+                    platform={platformKey.charAt(0).toUpperCase() + platformKey.slice(1)}
+                    postCount={getPostCount(platformKey)}
+                    followers={account?.followers}
+                    posts={account?.posts}
+                    connected={!!account?.connected}
+                    username={account?.username}
+                    profileImage={account?.profileImage}
+                  />
+                )
+              })}
+            </div>
+          )}
 
           <div className="grid gap-4 md:grid-cols-2">
             <Card>

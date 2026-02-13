@@ -96,6 +96,13 @@ const socialChannels = [
     color: "text-red-600",
   },
   {
+    title: "Instagram",
+    icon: Share2,
+    image: "/instagram.webp",
+    href: "/dashboard/platform/instagram",
+    color: "text-pink-600",
+  },
+  {
     title: "Threads",
     icon: Share2,
     image: "/threads.webp",

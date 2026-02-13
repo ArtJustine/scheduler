@@ -75,6 +75,52 @@ export async function GET(request: NextRequest) {
             if (serverDb) {
                 const workspaceId = cookieStore.get("oauth_workspace_id")?.value
 
+                // Fetch linked Instagram Business Accounts from Facebook Pages
+                try {
+                    console.log("Checking for linked Instagram Business accounts...")
+                    const pagesResponse = await fetch(
+                        `https://graph.facebook.com/v${config.facebook.apiVersion}/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${tokenData.access_token}`
+                    )
+
+                    if (pagesResponse.ok) {
+                        const pagesData = await pagesResponse.json()
+                        console.log("Found Pages:", pagesData.data?.length || 0)
+
+                        for (const page of (pagesData.data || [])) {
+                            if (page.instagram_business_account) {
+                                const ig = page.instagram_business_account
+                                const igAccountData = {
+                                    platform: "instagram",
+                                    id: ig.id,
+                                    username: ig.username,
+                                    name: ig.name,
+                                    profileImage: ig.profile_picture_url,
+                                    followers: Number(ig.followers_count) || 0,
+                                    posts: Number(ig.media_count) || 0,
+                                    accessToken: page.access_token, // Page token can often act on behalf of IG
+                                    connected: true,
+                                    connectedAt: new Date().toISOString(),
+                                    pageId: page.id,
+                                    pageName: page.name
+                                }
+
+                                if (workspaceId) {
+                                    const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
+                                    await updateDoc(workspaceDocRef, {
+                                        [`accounts.instagram`]: {
+                                            ...igAccountData,
+                                            updatedAt: new Date().toISOString()
+                                        }
+                                    } as any)
+                                    console.log("Linked Instagram account saved to Workspace:", workspaceId)
+                                }
+                            }
+                        }
+                    }
+                } catch (igErr) {
+                    console.warn("Could not fetch linked Instagram accounts:", igErr)
+                }
+
                 if (workspaceId) {
                     const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
                     await updateDoc(workspaceDocRef, {

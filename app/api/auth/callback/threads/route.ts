@@ -76,31 +76,41 @@ export async function GET(request: NextRequest) {
             console.error("Error fetching basic profile:", err)
         }
 
-        // 3. Try fetching stats individually with redundant field names
+        // 3. Try fetching stats individually with redundant field names and versioned API
         try {
-            console.log("Attempting to fetch follower count...")
-            // Try user fields variations
-            const userStatsUrl = `https://graph.threads.net/me?fields=follower_count,followers_count,media_count&access_token=${accessToken}`
-            const userStatsRes = await fetch(userStatsUrl)
+            console.log("Attempting to fetch follower count via v1.0...")
+            // Try user fields variations with versioned API
+            const vUrl = `https://graph.threads.net/v1.0/me?fields=follower_count,followers_count,media_count,is_private&access_token=${accessToken}`
+            const vRes = await fetch(vUrl)
 
-            if (userStatsRes.ok) {
-                const sData = await userStatsRes.json()
-                console.log("User Stats API Response:", JSON.stringify(sData))
-                followerCount = sData.follower_count ?? sData.followers_count ?? 0
-                postsCount = sData.media_count ?? postsCount
+            if (vRes.ok) {
+                const vData = await vRes.json()
+                console.log("Threads v1.0 API Response:", JSON.stringify(vData))
+                followerCount = vData.follower_count ?? vData.followers_count ?? vData.threads_follower_count ?? 0
+                postsCount = vData.media_count ?? postsCount
+                if (vData.is_private) console.log("Threads account is private, followers might be hidden")
+            } else {
+                // Try without version prefix as fallback
+                const fallbackUrl = `https://graph.threads.net/me?fields=follower_count,followers_count&access_token=${accessToken}`
+                const fallbackRes = await fetch(fallbackUrl)
+                if (fallbackRes.ok) {
+                    const fbData = await fallbackRes.json()
+                    followerCount = fbData.follower_count ?? fbData.followers_count ?? followerCount
+                }
             }
 
             // 4. Try Business Insights endpoint as a strong backup
             if (followerCount === 0 && threadsId) {
-                console.log("Follower count 0, trying insights...")
-                const insightsUrl = `https://graph.threads.net/${threadsId}/threads_insights?metric=followers_count&access_token=${accessToken}`
+                console.log("Follower count 0, trying total insights...")
+                // Note: period=lifetime is the default for followers_count
+                const insightsUrl = `https://graph.threads.net/v1.0/${threadsId}/threads_insights?metric=followers_count&access_token=${accessToken}`
                 const insightsRes = await fetch(insightsUrl)
                 if (insightsRes.ok) {
                     const iData = await insightsRes.json()
                     console.log("Insights Response:", JSON.stringify(iData))
                     if (iData.data && iData.data.length > 0) {
-                        // For 'followers_count', it's usually the first value in the array
-                        followerCount = iData.data[0].values?.[0]?.value ?? 0
+                        // Some endpoints return total_value, some return values array
+                        followerCount = iData.data[0].total_value ?? iData.data[0].values?.[0]?.value ?? 0
                     }
                 }
             }

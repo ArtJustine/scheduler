@@ -44,9 +44,9 @@ export async function GET(request: NextRequest) {
         let postsCount = 0
 
         try {
-            // 1. Fetch basic profile
+            // 1. Fetch basic profile with as many fields as possible
             console.log("Fetching Threads profile...")
-            const profileUrl = `https://graph.threads.net/me?fields=id,username,name,threads_profile_picture_url&access_token=${tokenData.access_token}`
+            const profileUrl = `https://graph.threads.net/me?fields=id,username,name,threads_profile_picture_url,follower_count,media_count&access_token=${tokenData.access_token}`
             const threadsResponse = await fetch(profileUrl)
 
             if (threadsResponse.ok) {
@@ -54,20 +54,18 @@ export async function GET(request: NextRequest) {
                 console.log("Threads Profile Data:", JSON.stringify(threadsData))
                 threadsUsername = threadsData.username || threadsData.name || threadsUsername
                 threadsId = threadsData.id
-                profileImage = threadsData.threads_profile_picture_url
+                profileImage = threadsData.threads_profile_picture_url || threadsData.profile_picture_url
+
+                // Try to get follower count from different possible field names
+                followerCount = threadsData.follower_count ?? threadsData.followers_count ?? 0
+                postsCount = threadsData.media_count ?? 0
             } else {
                 const errText = await threadsResponse.text()
                 console.error("Threads Profile Fetch Failed:", threadsResponse.status, errText)
             }
 
-            // 2. Fetch stats (followers) - try both fields and insights
-            const statsUrl = `https://graph.threads.net/me?fields=follower_count&access_token=${tokenData.access_token}`
-            const statsResponse = await fetch(statsUrl)
-            if (statsResponse.ok) {
-                const statsData = await statsResponse.json()
-                followerCount = statsData.follower_count || 0
-            } else {
-                // Try insights as fallback
+            // 2. Fallback for stats if still 0
+            if (followerCount === 0) {
                 const insightsUrl = `https://graph.threads.net/${threadsId || 'me'}/threads_insights?metric=followers_count&access_token=${tokenData.access_token}`
                 const insightsResponse = await fetch(insightsUrl)
                 if (insightsResponse.ok) {
@@ -78,21 +76,29 @@ export async function GET(request: NextRequest) {
                 }
             }
 
-            // 3. Fetch threads to get a count
-            const mediaResponse = await fetch(
-                `https://graph.threads.net/me/threads?fields=id&access_token=${tokenData.access_token}`
-            )
-            if (mediaResponse.ok) {
-                const mediaData = await mediaResponse.json()
-                // If there's paging and data, we can at least count what's on the first page
-                if (mediaData.data) {
-                    postsCount = mediaData.data.length
-                    // If we want more accurate, we'd need to paginate, but this is a start
+            // 3. Fallback for post count by fetching threads list
+            if (postsCount === 0) {
+                const mediaResponse = await fetch(
+                    `https://graph.threads.net/me/threads?fields=id&access_token=${tokenData.access_token}`
+                )
+                if (mediaResponse.ok) {
+                    const mediaData = await mediaResponse.json()
+                    if (mediaData.data) {
+                        postsCount = mediaData.data.length
+                        // If paging exists, we know it's at least this many
+                        if (mediaData.paging?.next) {
+                            // We could try to get a better count, but let's stick to first page for now
+                        }
+                    }
                 }
             }
         } catch (err) {
             console.warn("Could not fetch Threads user info or stats:", err)
         }
+
+        // Ensure everything is a number
+        followerCount = Number(followerCount) || 0
+        postsCount = Number(postsCount) || 0
 
         // Prepare account data for handover
         const accountData = {

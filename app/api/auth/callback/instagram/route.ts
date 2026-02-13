@@ -43,17 +43,36 @@ export async function GET(request: NextRequest) {
     let postsCount = 0
 
     try {
+      // 1. Fetch basic profile and counts
       const userInfoResponse = await fetch(
         `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${tokenData.access_token}`
       )
       if (userInfoResponse.ok) {
         const userInfo = await userInfoResponse.json()
+        console.log("Instagram Profile Data:", JSON.stringify(userInfo))
         username = userInfo.username || username
-        postsCount = userInfo.media_count || 0
+        postsCount = Number(userInfo.media_count) || 0
+      }
+
+      // 2. Fetch media list to verify count if 0
+      if (postsCount === 0) {
+        const mediaListResponse = await fetch(
+          `https://graph.instagram.com/me/media?access_token=${tokenData.access_token}`
+        )
+        if (mediaListResponse.ok) {
+          const mediaList = await mediaListResponse.json()
+          if (mediaList.data) {
+            postsCount = mediaList.data.length
+          }
+        }
       }
     } catch (err) {
       console.warn("Could not fetch Instagram user info:", err)
     }
+
+    // Ensure everything is a number
+    followerCount = Number(followerCount) || 0
+    postsCount = Number(postsCount) || 0
 
     // Prepare account data for handover
     const accountData = {

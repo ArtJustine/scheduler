@@ -76,14 +76,21 @@ function DashboardContent() {
 
   const getPostCount = (platform: string) => {
     if (!posts || !Array.isArray(posts)) return 0
-    return posts.filter((p) => p?.platform?.toLowerCase() === platform?.toLowerCase()).length
+    return posts.filter((p) => {
+      const pPlatform = p?.platform?.toLowerCase()
+      const pPlatforms = p?.platforms?.map((plat: string) => plat.toLowerCase()) || []
+      return pPlatform === platform.toLowerCase() || pPlatforms.includes(platform.toLowerCase())
+    }).length
   }
 
   const getConnectedPlatformsList = () => {
+    const corePlatforms = ["tiktok", "youtube", "threads"]
     const connected = Object.keys(socialAccounts).filter(
       (key) => socialAccounts[key as keyof SocialAccounts]?.connected
     )
-    return connected.length > 0 ? connected : ["tiktok", "youtube"]
+
+    // Combine core platforms with any other connected ones, removing duplicates
+    return Array.from(new Set([...corePlatforms, ...connected]))
   }
 
   const platformsToShow = getConnectedPlatformsList()

@@ -14,8 +14,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get user ID from query params or cookie
+    // Get user ID and workspace ID from query params
     const userId = request.nextUrl.searchParams.get("userId") || (await cookies()).get("userId")?.value
+    const workspaceId = request.nextUrl.searchParams.get("workspaceId")
 
     if (!userId) {
       return NextResponse.json(
@@ -71,6 +72,15 @@ export async function GET(request: NextRequest) {
       maxAge: 600,
       sameSite: "lax",
     })
+
+    if (workspaceId) {
+      response.cookies.set("oauth_workspace_id", workspaceId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 600,
+        sameSite: "lax",
+      })
+    }
 
     return response
   } catch (error) {

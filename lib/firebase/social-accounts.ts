@@ -1,6 +1,7 @@
-import { doc, getDoc, updateDoc, deleteField, setDoc } from "firebase/firestore"
+import { doc, getDoc, updateDoc, deleteField, setDoc, collection, query, where, getDocs } from "firebase/firestore"
 import { firebaseDb, firebaseAuth } from "@/lib/firebase-client"
 import type { SocialAccount, SocialAccountType } from "@/types/social"
+import { getActiveWorkspace } from "./workspaces"
 
 // Remove all mock data, preview mode, and offline fallback logic. Only use real Firestore data for all social account functions.
 
@@ -15,25 +16,21 @@ export async function getSocialAccounts(userId?: string) {
   try {
     console.log("getSocialAccounts: Fetching for user", uid)
     if (!firebaseDb) throw new Error("Database not initialized")
-    const userDocRef = doc(firebaseDb, "users", uid)
-    const userDoc = await getDoc(userDocRef)
 
-    if (!userDoc.exists()) {
-      // Create an empty document for the user if it doesn't exist
-      await setDoc(userDocRef, {})
-      return {}
-    }
+    // Get active workspace
+    const workspace = await getActiveWorkspace(uid)
+    if (!workspace) return {}
 
-    const userData = userDoc.data()
+    const accounts = workspace.accounts || {}
     return {
-      instagram: userData.instagram || null,
-      youtube: userData.youtube || null,
-      tiktok: userData.tiktok || null,
-      threads: userData.threads || null,
-      facebook: userData.facebook || null,
-      twitter: userData.twitter || null,
-      pinterest: userData.pinterest || null,
-      linkedin: userData.linkedin || null,
+      instagram: accounts.instagram || null,
+      youtube: accounts.youtube || null,
+      tiktok: accounts.tiktok || null,
+      threads: accounts.threads || null,
+      facebook: accounts.facebook || null,
+      twitter: accounts.twitter || null,
+      pinterest: accounts.pinterest || null,
+      linkedin: accounts.linkedin || null,
     }
   } catch (error) {
     console.error("Error getting social accounts:", error)
@@ -50,38 +47,26 @@ export async function connectSocialAccount(platform: SocialAccountType, accountD
 
   try {
     if (!firebaseDb) throw new Error("Database not initialized")
-    const userDocRef = doc(firebaseDb, "users", user.uid)
 
-    // Check if the document exists first
-    const docSnap = await getDoc(userDocRef)
+    // Get active workspace
+    const workspace = await getActiveWorkspace(user.uid)
+    if (!workspace) throw new Error("No active workspace found")
 
-    if (!docSnap.exists()) {
-      // Create the document with the platform data
-      await setDoc(userDocRef, {
-        [platform]: {
-          ...accountData,
-          followers: accountData.followers || 0,
-          followersGrowth: accountData.followersGrowth || 0,
-          engagement: accountData.engagement || 0,
-          impressions: accountData.impressions || 0,
-          posts: accountData.posts || 0,
-          updatedAt: new Date().toISOString(),
-        },
-      })
-    } else {
-      // Update the existing document
-      await updateDoc(userDocRef, {
-        [platform]: {
-          ...accountData,
-          followers: accountData.followers || 0,
-          followersGrowth: accountData.followersGrowth || 0,
-          engagement: accountData.engagement || 0,
-          impressions: accountData.impressions || 0,
-          posts: accountData.posts || 0,
-          updatedAt: new Date().toISOString(),
-        },
-      })
-    }
+    const workspaceRef = doc(firebaseDb, "workspaces", workspace.id)
+
+    // Update the workspace document's accounts field
+    await updateDoc(workspaceRef, {
+      [`accounts.${platform}`]: {
+        ...accountData,
+        followers: accountData.followers || 0,
+        followersGrowth: accountData.followersGrowth || 0,
+        engagement: accountData.engagement || 0,
+        impressions: accountData.impressions || 0,
+        posts: accountData.posts || 0,
+        updatedAt: new Date().toISOString(),
+      },
+      updatedAt: new Date().toISOString()
+    })
   } catch (error) {
     console.error(`Error connecting ${platform} account:`, error)
     throw error
@@ -97,11 +82,17 @@ export async function disconnectSocialAccount(platform: SocialAccountType) {
 
   try {
     if (!firebaseDb) throw new Error("Database not initialized")
-    const userDocRef = doc(firebaseDb, "users", user.uid)
 
-    // Remove the platform data
-    await updateDoc(userDocRef, {
-      [platform]: deleteField(),
+    // Get active workspace
+    const workspace = await getActiveWorkspace(user.uid)
+    if (!workspace) throw new Error("No active workspace found")
+
+    const workspaceRef = doc(firebaseDb, "workspaces", workspace.id)
+
+    // Remove the platform data from accounts
+    await updateDoc(workspaceRef, {
+      [`accounts.${platform}`]: deleteField(),
+      updatedAt: new Date().toISOString()
     })
   } catch (error) {
     console.error(`Error disconnecting ${platform} account:`, error)

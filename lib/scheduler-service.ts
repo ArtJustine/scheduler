@@ -31,6 +31,42 @@ export async function checkScheduledPosts() {
     console.error("Error checking scheduled posts:", error)
   }
 }
+// Helper to get platform credentials (workspace-aware)
+async function getSocialData(userId: string, workspaceId: string | undefined, platform: string) {
+  if (!adminDb) return null
+
+  if (workspaceId) {
+    const workspaceDoc = await adminDb.collection("workspaces").doc(workspaceId).get()
+    if (workspaceDoc.exists) {
+      const data = workspaceDoc.data()
+      return data?.accounts?.[platform]
+    }
+  }
+
+  // Legacy/Fallback to user document
+  const userDoc = await adminDb.collection("users").doc(userId).get()
+  return userDoc.exists ? userDoc.data()?.[platform] : null
+}
+
+// Helper to update platform credentials
+async function updateSocialData(userId: string, workspaceId: string | undefined, platform: string, update: any) {
+  if (!adminDb) return
+
+  if (workspaceId) {
+    const workspaceRef = adminDb.collection("workspaces").doc(workspaceId)
+    await workspaceRef.update({
+      [`accounts.${platform}`]: update,
+      updatedAt: new Date().toISOString()
+    })
+  } else {
+    // Legacy fallback
+    const userRef = adminDb.collection("users").doc(userId)
+    await userRef.update({
+      [platform]: update,
+      updatedAt: new Date().toISOString()
+    })
+  }
+}
 
 // Function to publish a scheduled post
 export async function publishPost(userId: string, postId: string, post: any) {
@@ -110,7 +146,7 @@ export async function publishPost(userId: string, postId: string, post: any) {
 }
 
 // Function to refresh TikTok token
-async function refreshTikTokToken(userId: string, refreshToken: string) {
+async function refreshTikTokToken(userId: string, workspaceId: string | undefined, refreshToken: string) {
   try {
     const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
       method: "POST",
@@ -126,24 +162,14 @@ async function refreshTikTokToken(userId: string, refreshToken: string) {
     const data = await response.json()
     if (data.error) throw new Error(data.error_description || data.error)
 
-    // Update user doc with new access token
-    if (adminDb) {
-      const userRef = adminDb.collection("users").doc(userId)
-      const userDoc = await userRef.get()
-
-      if (userDoc.exists) {
-        const userData = userDoc.data()
-        if (userData) {
-          await userRef.update({
-            tiktok: {
-              ...userData.tiktok,
-              accessToken: data.access_token,
-              refreshToken: data.refresh_token || refreshToken, // TikTok sometimes returns a new refresh token
-              updatedAt: new Date().toISOString()
-            }
-          })
-        }
-      }
+    const existingData = await getSocialData(userId, workspaceId, "tiktok")
+    if (existingData) {
+      await updateSocialData(userId, workspaceId, "tiktok", {
+        ...existingData,
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token || refreshToken,
+        updatedAt: new Date().toISOString()
+      })
     }
 
     return data.access_token
@@ -154,7 +180,7 @@ async function refreshTikTokToken(userId: string, refreshToken: string) {
 }
 
 // Function to refresh YouTube token
-async function refreshYouTubeToken(userId: string, refreshToken: string) {
+async function refreshYouTubeToken(userId: string, workspaceId: string | undefined, refreshToken: string) {
   try {
     const response = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
@@ -170,23 +196,13 @@ async function refreshYouTubeToken(userId: string, refreshToken: string) {
     const data = await response.json()
     if (data.error) throw new Error(data.error_description || data.error)
 
-    // Update user doc with new access token
-    if (adminDb) {
-      const userRef = adminDb.collection("users").doc(userId)
-      const userDoc = await userRef.get()
-
-      if (userDoc.exists) {
-        const userData = userDoc.data()
-        if (userData) {
-          await userRef.update({
-            youtube: {
-              ...userData.youtube,
-              accessToken: data.access_token,
-              updatedAt: new Date().toISOString()
-            }
-          })
-        }
-      }
+    const existingData = await getSocialData(userId, workspaceId, "youtube")
+    if (existingData) {
+      await updateSocialData(userId, workspaceId, "youtube", {
+        ...existingData,
+        accessToken: data.access_token,
+        updatedAt: new Date().toISOString()
+      })
     }
 
     return data.access_token
@@ -199,15 +215,7 @@ async function refreshYouTubeToken(userId: string, refreshToken: string) {
 // Function to publish a post to Instagram
 async function publishToInstagram(userId: string, post: any) {
   try {
-    if (!adminDb) throw new Error("Database not initialized")
-    const userRef = adminDb.collection("users").doc(userId)
-    const userDoc = await userRef.get()
-
-    if (!userDoc.exists) throw new Error("User settings not found")
-
-    const userData = userDoc.data()
-    const instagram = userData?.instagram
-
+    const instagram = await getSocialData(userId, post.workspaceId, "instagram")
     if (!instagram || !instagram.accessToken) throw new Error("Instagram account not connected")
 
     const igUserId = instagram.id || instagram.username
@@ -267,15 +275,7 @@ async function publishToYouTube(userId: string, post: any) {
   let refreshToken: string | null = null
 
   try {
-    if (!adminDb) throw new Error("Database not initialized")
-    const userRef = adminDb.collection("users").doc(userId)
-    const userDoc = await userRef.get()
-
-    if (!userDoc.exists) throw new Error("User settings not found")
-
-    const userData = userDoc.data()
-    const youtube = userData?.youtube
-
+    const youtube = await getSocialData(userId, post.workspaceId, "youtube")
     if (!youtube || !youtube.accessToken) throw new Error("YouTube account not connected")
 
     accessToken = youtube.accessToken
@@ -343,7 +343,7 @@ async function publishToYouTube(userId: string, post: any) {
     // If unauthorized, try refreshing token once
     if (result.retry && refreshToken) {
       console.log("YouTube token expired, refreshing...")
-      accessToken = await refreshYouTubeToken(userId, refreshToken)
+      accessToken = await refreshYouTubeToken(userId, post.workspaceId, refreshToken)
       if (!accessToken) throw new Error("Failed to refresh YouTube access token")
       result = await attemptUpload(accessToken)
     }
@@ -373,15 +373,7 @@ async function publishToTikTok(userId: string, post: any) {
   let refreshToken: string | null = null
 
   try {
-    if (!adminDb) throw new Error("Database not initialized")
-    const userRef = adminDb.collection("users").doc(userId)
-    const userDoc = await userRef.get()
-
-    if (!userDoc.exists) throw new Error("User settings not found")
-
-    const userData = userDoc.data()
-    const tiktok = userData?.tiktok
-
+    const tiktok = await getSocialData(userId, post.workspaceId, "tiktok")
     if (!tiktok || !tiktok.accessToken) throw new Error("TikTok account not connected")
 
     accessToken = tiktok.accessToken
@@ -470,7 +462,7 @@ async function publishToTikTok(userId: string, post: any) {
     // If unauthorized, try refreshing token once
     if (result && result.retry && refreshToken) {
       console.log("TikTok token expired, refreshing...")
-      accessToken = await refreshTikTokToken(userId, refreshToken)
+      accessToken = await refreshTikTokToken(userId, post.workspaceId, refreshToken)
       if (!accessToken) throw new Error("Failed to refresh TikTok access token")
       result = await attemptPublish(accessToken)
     }
@@ -497,15 +489,7 @@ async function publishToTikTok(userId: string, post: any) {
 // Function to publish a post to Threads
 async function publishToThreads(userId: string, post: any) {
   try {
-    if (!adminDb) throw new Error("Database not initialized")
-    const userRef = adminDb.collection("users").doc(userId)
-    const userDoc = await userRef.get()
-
-    if (!userDoc.exists) throw new Error("User settings not found")
-
-    const userData = userDoc.data()
-    const threads = userData?.threads
-
+    const threads = await getSocialData(userId, post.workspaceId, "threads")
     if (!threads || !threads.accessToken) throw new Error("Threads account not connected")
 
     const threadsUserId = threads.id || threads.username

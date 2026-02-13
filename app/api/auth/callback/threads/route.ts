@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { config } from "@/lib/config"
 import { threadsOAuth, oauthHelpers } from "@/lib/oauth-utils"
 import { cookies } from "next/headers"
+import { doc, setDoc, updateDoc } from "firebase/firestore"
 
 export async function GET(request: NextRequest) {
     try {
@@ -64,6 +65,36 @@ export async function GET(request: NextRequest) {
             connectedAt: new Date().toISOString(),
             connected: true,
         }
+        // Save to Firestore directly from the server for better reliability
+        try {
+            const { serverDb } = await import("@/lib/firebase-server")
+            if (serverDb) {
+                const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+
+                if (workspaceId) {
+                    const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
+                    await updateDoc(workspaceDocRef, {
+                        [`accounts.${accountData.platform}`]: {
+                            ...accountData,
+                            updatedAt: new Date().toISOString()
+                        },
+                        updatedAt: new Date().toISOString()
+                    } as any)
+                    console.log("Threads account saved to Workspace:", workspaceId)
+                } else {
+                    const userDocRef = doc(serverDb, "users", userId)
+                    await setDoc(userDocRef, {
+                        threads: {
+                            ...accountData,
+                            updatedAt: new Date().toISOString()
+                        }
+                    }, { merge: true })
+                    console.log("Threads account saved to User Doc:", userId)
+                }
+            }
+        } catch (saveError) {
+            console.error("Error saving Threads account to Firestore:", saveError)
+        }
 
         // Redirect to dashboard with handover flag
         const response = NextResponse.redirect(new URL("/dashboard/connections?success=threads_connected&handover=true", request.url))
@@ -77,10 +108,11 @@ export async function GET(request: NextRequest) {
             sameSite: "lax",
         })
 
-        // Clear OAuth state cookies
+        // Clear cookies
         response.cookies.delete("oauth_state")
         response.cookies.delete("oauth_user_id")
         response.cookies.delete("oauth_redirect_uri")
+        response.cookies.delete("oauth_workspace_id")
 
         return response
     } catch (error: any) {

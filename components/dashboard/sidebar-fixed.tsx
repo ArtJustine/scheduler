@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/collapsible"
 import { signOut } from "@/lib/firebase/auth"
 import { useAuth } from "@/lib/auth-provider"
+import { WorkspaceSwitcher } from "./workspace-switcher"
 
 const sidebarItems = [
   {
@@ -91,6 +92,12 @@ const socialChannels = [
     icon: Youtube,
     href: "/dashboard/platform/youtube",
     color: "text-red-600",
+  },
+  {
+    title: "Threads",
+    icon: Share2,
+    href: "/dashboard/platform/threads",
+    color: "text-slate-900 dark:text-white",
   },
 ]
 
@@ -178,7 +185,7 @@ export function DashboardSidebar() {
     if (connected) {
       return {
         title: connected.username || channel.title,
-        icon: connected.profileImage ? null : channel.icon,
+        icon: connected.profileImage ? null : (platform === 'threads' ? Share2 : channel.icon),
         image: connected.profileImage,
       }
     }
@@ -252,8 +259,8 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="flex items-center px-6 pt-10 pb-8">
-        <Link href="/dashboard" className="flex items-center space-x-3">
+      <SidebarHeader className="flex items-center px-6 pt-10 pb-4">
+        <Link href="/dashboard" className="flex items-center space-x-3 w-full justify-center">
           {mounted ? (
             <>
               <img
@@ -272,6 +279,9 @@ export function DashboardSidebar() {
           )}
         </Link>
       </SidebarHeader>
+
+      <WorkspaceSwitcher />
+
       <SidebarContent
         ref={contentRef}
         className="px-2 pt-4 relative scrollbar-thin scrollbar-thumb-primary/10 hover:scrollbar-thumb-primary/20 transition-colors"

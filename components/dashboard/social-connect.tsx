@@ -52,12 +52,17 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
         return
       }
 
-      // Redirect to the OAuth flow with user ID
+      // Get current workspace
+      const { getActiveWorkspace } = await import("@/lib/firebase/workspaces")
+      const workspace = await getActiveWorkspace(user.uid)
+      const workspaceId = workspace?.id || ""
+
+      // Redirect to the OAuth flow with user ID and workspace ID
       if (onConnect) {
         onConnect(platform)
       } else {
         // Use the actual OAuth endpoint with userId
-        window.location.href = `/api/auth/${platform.toLowerCase()}?userId=${user.uid}`
+        window.location.href = `/api/auth/${platform.toLowerCase()}?userId=${user.uid}&workspaceId=${workspaceId}`
       }
     } catch (error) {
       toast({

@@ -102,23 +102,38 @@ export async function GET(request: NextRequest) {
     // Save to Firestore directly from the server for better reliability
     try {
       if (serverDb) {
-        const userDocRef = doc(serverDb, "users", userId)
-        // Use setDoc with merge to create document if it doesn't exist
-        await setDoc(userDocRef, {
-          tiktok: {
-            ...accountData,
+        const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+
+        if (workspaceId) {
+          // Save to workspace doc
+          const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
+          await updateDoc(workspaceDocRef, {
+            [`accounts.${accountData.platform}`]: {
+              ...accountData,
+              updatedAt: new Date().toISOString()
+            },
             updatedAt: new Date().toISOString()
-          }
-        }, { merge: true })
-        console.log("TikTok account saved to Firestore for user:", userId)
+          })
+          console.log("TikTok account saved to Workspace:", workspaceId)
+        } else {
+          // Legacy: Save to user doc
+          const userDocRef = doc(serverDb, "users", userId)
+          await setDoc(userDocRef, {
+            tiktok: {
+              ...accountData,
+              updatedAt: new Date().toISOString()
+            }
+          }, { merge: true })
+          console.log("TikTok account saved to User Doc:", userId)
+        }
       }
     } catch (saveError) {
       console.error("Error saving TikTok account to Firestore:", saveError)
-      // We'll still try the handover cookie as a fallback
     }
 
-    // Redirect to dashboard with success flag
+    // Clear workspace cookie
     const response = NextResponse.redirect(new URL("/dashboard/connections?success=tiktok_connected&handover=true", request.url))
+    response.cookies.delete("oauth_workspace_id")
 
     // Set handover cookie as fallback (still useful for immediate UI update without wait)
     response.cookies.set("social_handover_data", JSON.stringify(accountData), {

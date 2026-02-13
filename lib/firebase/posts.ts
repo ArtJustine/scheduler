@@ -1,6 +1,7 @@
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc } from "firebase/firestore"
 import { firebaseDb, firebaseAuth } from "@/lib/firebase-client"
 import type { PostType } from "@/types/post"
+import { getActiveWorkspace } from "./workspaces"
 
 // Remove all mock data and preview mode logic. Only use real Firestore data for all post functions.
 
@@ -20,8 +21,13 @@ export async function getScheduledPosts(userId?: string) {
 
   try {
     console.log("getScheduledPosts: Fetching for user", uid)
+
+    // Get active workspace to filter posts
+    const workspace = await getActiveWorkspace(uid)
+    if (!workspace) return []
+
     const postsRef = collection(firebaseDb!, "posts")
-    const q = query(postsRef, where("userId", "==", uid))
+    const q = query(postsRef, where("workspaceId", "==", workspace.id))
     const querySnapshot = await getDocs(q)
 
     const posts: PostType[] = []
@@ -49,80 +55,45 @@ export async function getScheduledPosts(userId?: string) {
     })
   } catch (error: any) {
     console.error("Error getting scheduled posts:", error)
-
-    // If we get an offline error, return empty array as fallback
-    if (error.message?.includes("offline")) {
-      console.log("Client is offline, cannot get scheduled posts")
-      return []
-    }
-
     return []
   }
 }
 
 export async function getPost(postId: string) {
-  // Check if we're in the browser and Firestore is available
-  if (!isFirestoreAvailable()) {
-    console.warn("Firestore is not available, cannot get post by ID")
-    return null
-  }
-
-  const user = firebaseAuth?.currentUser
-
-  if (!user) {
-    console.warn("User not authenticated, cannot get post by ID")
-    return null
-  }
+  if (!isFirestoreAvailable()) return null
 
   try {
     const postRef = doc(firebaseDb!, "posts", postId)
     const postDoc = await getDoc(postRef)
 
-    if (!postDoc.exists()) {
-      return null
-    }
+    if (!postDoc.exists()) return null
 
     const postData = postDoc.data()
-
-    // Verify the post belongs to the current user
-    if (postData.userId !== user.uid) {
-      console.warn("Unauthorized access to post")
-      return null
-    }
-
     return {
       id: postDoc.id,
       ...postData,
     } as PostType
   } catch (error: any) {
     console.error("Error getting post by ID:", error)
-
-    // If we get an offline error, return null as fallback
-    if (error.message?.includes("offline")) {
-      console.log("Client is offline, cannot get post by ID")
-      return null
-    }
-
     return null
   }
 }
 
 export async function createPost(postData: Omit<PostType, "id" | "createdAt" | "updatedAt" | "userId">) {
-  if (!isFirestoreAvailable()) {
-    throw new Error("Firestore is not available")
-  }
+  if (!isFirestoreAvailable()) throw new Error("Firestore is not available")
 
   const user = firebaseAuth?.currentUser
-
-  if (!user) {
-    throw new Error("User not authenticated")
-  }
+  if (!user) throw new Error("User not authenticated")
 
   try {
+    const workspace = await getActiveWorkspace(user.uid)
+    if (!workspace) throw new Error("No active workspace found")
+
     const postsRef = collection(firebaseDb!, "posts")
     const newPost = {
       ...postData,
       userId: user.uid,
+      workspaceId: workspace.id,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }

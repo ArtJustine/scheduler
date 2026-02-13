@@ -48,7 +48,12 @@ export function PlatformStats({
         return
       }
 
-      window.location.href = `/api/auth/${platform.toLowerCase()}?userId=${user.uid}`
+      // Get current workspace
+      const { getActiveWorkspace } = await import("@/lib/firebase/workspaces")
+      const workspace = await getActiveWorkspace(user.uid)
+      const workspaceId = workspace?.id || ""
+
+      window.location.href = `/api/auth/${platform.toLowerCase()}?userId=${user.uid}&workspaceId=${workspaceId}`
     } catch (error) {
       toast({
         title: "Connection Failed",

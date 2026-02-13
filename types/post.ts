@@ -4,6 +4,7 @@ export interface PostType {
   title: string
   description: string
   platform: string
+  platforms?: string[]
   contentType: string
   scheduledFor: string
   mediaUrl: string | null

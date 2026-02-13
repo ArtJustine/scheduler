@@ -62,6 +62,9 @@ export async function publishPost(userId: string, postId: string, post: any) {
         case "tiktok":
           publishResult = await publishToTikTok(userId, post)
           break
+        case "threads":
+          publishResult = await publishToThreads(userId, post)
+          break
         default:
           publishResult = {
             success: false,
@@ -487,6 +490,101 @@ async function publishToTikTok(userId: string, post: any) {
 
   } catch (error: any) {
     console.error("Error publishing to TikTok:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Function to publish a post to Threads
+async function publishToThreads(userId: string, post: any) {
+  try {
+    if (!adminDb) throw new Error("Database not initialized")
+    const userRef = adminDb.collection("users").doc(userId)
+    const userDoc = await userRef.get()
+
+    if (!userDoc.exists) throw new Error("User settings not found")
+
+    const userData = userDoc.data()
+    const threads = userData?.threads
+
+    if (!threads || !threads.accessToken) throw new Error("Threads account not connected")
+
+    const threadsUserId = threads.id || threads.username
+    const accessToken = threads.accessToken
+
+    // 1. Create Media Container
+    // If it's just text, media_type = TEXT
+    // If image, media_type = IMAGE
+    // If video, media_type = VIDEO
+
+    let containerUrl = `https://graph.threads.net/v1.0/${threadsUserId}/threads`
+    let containerParams: any = {
+      text: post.content || post.description || "",
+      access_token: accessToken,
+    }
+
+    const isVideo = post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i) || post.contentType === "video"
+    const isImage = post.mediaUrl?.match(/\.(jpg|jpeg|png|webp|gif)$/i) || post.contentType === "image"
+
+    if (isVideo) {
+      containerParams.media_type = "VIDEO"
+      containerParams.video_url = post.mediaUrl
+    } else if (isImage) {
+      containerParams.media_type = "IMAGE"
+      containerParams.image_url = post.mediaUrl
+    } else {
+      containerParams.media_type = "TEXT"
+    }
+
+    const containerResponse = await fetch(containerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(containerParams),
+    })
+
+    const containerData = await containerResponse.json()
+    if (containerData.error) {
+      throw new Error(containerData.error.message || "Failed to create Threads container")
+    }
+
+    const creationId = containerData.id
+
+    // For videos, we might need to wait for processing
+    if (isVideo) {
+      let status = "IN_PROGRESS"
+      let attempts = 0
+      while ((status === "IN_PROGRESS" || status === "STARTED") && attempts < 10) {
+        await new Promise(resolve => setTimeout(resolve, 5000))
+        const statusResponse = await fetch(`https://graph.threads.net/v1.0/${creationId}?fields=status,error_message&access_token=${accessToken}`)
+        const statusData = await statusResponse.json()
+        status = statusData.status
+        if (status === "FINISHED") break
+        if (status === "ERROR") throw new Error(statusData.error_message || "Video processing failed")
+        attempts++
+      }
+    } else {
+      // Small delay for images just in case
+      await new Promise(resolve => setTimeout(resolve, 2000))
+    }
+
+    // 2. Publish Media
+    const publishUrl = `https://graph.threads.net/v1.0/${threadsUserId}/threads_publish`
+    const publishResponse = await fetch(publishUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        creation_id: creationId,
+        access_token: accessToken,
+      }),
+    })
+
+    const publishData = await publishResponse.json()
+    if (publishData.error) {
+      throw new Error(publishData.error.message || "Failed to publish Threads post")
+    }
+
+    return { success: true, platformId: publishData.id }
+  } catch (error: any) {
+    console.error("Error publishing to Threads:", error)
     return { success: false, error: error.message }
   }
 }

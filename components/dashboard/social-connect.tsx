@@ -100,6 +100,8 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
     let finalPath = iconPath
     if (platform.toLowerCase() === "twitter" || platform.toLowerCase() === "x") {
       finalPath = "/x.webp"
+    } else if (platform.toLowerCase() === "threads") {
+      finalPath = "/threads.webp"
     }
 
     const img = (

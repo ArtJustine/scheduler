@@ -78,9 +78,9 @@ export const config = {
 
   // Threads API Configuration
   threads: {
-    appId: process.env.THREADS_APP_ID || "",
-    appSecret: process.env.THREADS_APP_SECRET || "",
-    redirectUri: process.env.THREADS_REDIRECT_URI || "http://localhost:3000/api/auth/callback/threads",
+    appId: process.env.THREADS_APP_ID || "2277979319398653",
+    appSecret: process.env.THREADS_APP_SECRET || "dd000681cfe3962c0be3f18563848fd1",
+    redirectUri: process.env.THREADS_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/threads",
     scopes: ["threads_basic", "threads_content_publish", "threads_manage_insights"],
   },
 

@@ -242,6 +242,8 @@ export default function CreatePostPage() {
         return <Linkedin className={cn("h-5 w-5 text-blue-700", className)} />
       case "twitter":
         return <Twitter className={cn("h-5 w-5 text-sky-500", className)} />
+      case "threads":
+        return <Share2 className={cn("h-5 w-5", className)} />
       default:
         return <Share2 className={cn("h-5 w-5", className)} />
     }

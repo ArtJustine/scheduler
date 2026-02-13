@@ -44,31 +44,50 @@ export async function GET(request: NextRequest) {
         let postsCount = 0
 
         try {
-            // Fetch basic profile and follower count
-            const threadsResponse = await fetch(
-                `https://graph.threads.net/me?fields=id,username,threads_profile_picture_url,follower_count&access_token=${tokenData.access_token}`
-            )
+            // 1. Fetch basic profile
+            console.log("Fetching Threads profile...")
+            const profileUrl = `https://graph.threads.net/me?fields=id,username,name,threads_profile_picture_url&access_token=${tokenData.access_token}`
+            const threadsResponse = await fetch(profileUrl)
+
             if (threadsResponse.ok) {
                 const threadsData = await threadsResponse.json()
-                threadsUsername = threadsData.username || threadsUsername
+                console.log("Threads Profile Data:", JSON.stringify(threadsData))
+                threadsUsername = threadsData.username || threadsData.name || threadsUsername
                 threadsId = threadsData.id
                 profileImage = threadsData.threads_profile_picture_url
-                followerCount = threadsData.follower_count || 0
+            } else {
+                const errText = await threadsResponse.text()
+                console.error("Threads Profile Fetch Failed:", threadsResponse.status, errText)
             }
 
-            // Fetch threads to get a count (limit=1 just to check paging)
+            // 2. Fetch stats (followers) - try both fields and insights
+            const statsUrl = `https://graph.threads.net/me?fields=follower_count&access_token=${tokenData.access_token}`
+            const statsResponse = await fetch(statsUrl)
+            if (statsResponse.ok) {
+                const statsData = await statsResponse.json()
+                followerCount = statsData.follower_count || 0
+            } else {
+                // Try insights as fallback
+                const insightsUrl = `https://graph.threads.net/${threadsId || 'me'}/threads_insights?metric=followers_count&access_token=${tokenData.access_token}`
+                const insightsResponse = await fetch(insightsUrl)
+                if (insightsResponse.ok) {
+                    const insightsData = await insightsResponse.json()
+                    if (insightsData.data && insightsData.data.length > 0) {
+                        followerCount = insightsData.data[0].values[0].value || 0
+                    }
+                }
+            }
+
+            // 3. Fetch threads to get a count
             const mediaResponse = await fetch(
-                `https://graph.threads.net/me/threads?limit=1&access_token=${tokenData.access_token}`
+                `https://graph.threads.net/me/threads?fields=id&access_token=${tokenData.access_token}`
             )
             if (mediaResponse.ok) {
                 const mediaData = await mediaResponse.json()
-                // Threads API doesn't always provide total_count in paging, but we'll check if it does
-                // If not, we can only count what's in the data array or leave as is
-                if (mediaData.paging?.total_count) {
-                    postsCount = mediaData.paging.total_count
-                } else if (mediaData.data) {
-                    // This is only the first page, but better than nothing or we can skip it
-                    // For now, let's keep it as 0 if we can't get a reliable total_count
+                // If there's paging and data, we can at least count what's on the first page
+                if (mediaData.data) {
+                    postsCount = mediaData.data.length
+                    // If we want more accurate, we'd need to paginate, but this is a start
                 }
             }
         } catch (err) {

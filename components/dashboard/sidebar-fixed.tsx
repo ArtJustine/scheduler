@@ -350,18 +350,18 @@ export function DashboardSidebar() {
           ))}
         </SidebarMenu>
 
-        <div className="px-3 py-4 relative z-10">
+        <div className="px-3 py-1 relative z-10">
           <div className="flex items-center justify-between mb-2 px-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
-              Social Channels
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
+              Channels
             </h2>
-            <div className="flex -space-x-1.5 overflow-hidden">
+            <div className="flex -space-x-2 overflow-hidden">
               {socialChannels
                 .filter(channel => connectedAccounts[channel.title.toLowerCase()]?.connected)
                 .map((channel) => (
                   <div
                     key={channel.title}
-                    className="h-4 w-4 rounded-full border border-background bg-white flex items-center justify-center overflow-hidden"
+                    className="h-5 w-5 rounded-full border-2 border-background bg-slate-100 flex items-center justify-center overflow-hidden z-10 hover:z-20 transition-all"
                   >
                     <img
                       src={connectedAccounts[channel.title.toLowerCase()]?.profileImage || channel.image}
@@ -372,7 +372,7 @@ export function DashboardSidebar() {
                 ))}
             </div>
           </div>
-          <SidebarMenu>
+          <SidebarMenu className="gap-1">
             {socialChannels.filter(channel => channel?.title && connectedAccounts[channel.title.toLowerCase()]).length > 0 ? (
               socialChannels
                 .filter(channel => channel?.title && connectedAccounts[channel.title.toLowerCase()])
@@ -380,22 +380,29 @@ export function DashboardSidebar() {
                   const display = getChannelDisplay(channel)
                   return (
                     <SidebarMenuItem key={channel.href} onMouseEnter={handleMouseEnter}>
-                      <SidebarMenuButton asChild isActive={pathname === channel.href} tooltip={display.title}>
-                        <Link href={channel.href} className={cn("flex items-center")}>
-                          {display.image ? (
-                            <img src={display.image} alt="" className="mr-2 h-5 w-5 rounded-full" />
-                          ) : (
-                            <channel.icon className={cn("mr-2 h-5 w-5", channel.color)} />
-                          )}
-                          <span className="truncate">{display.title}</span>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={pathname === channel.href}
+                        tooltip={display.title}
+                        className="h-10 rounded-xl px-4"
+                      >
+                        <Link href={channel.href} className="flex items-center gap-3">
+                          <div className="h-6 w-6 rounded-lg bg-slate-100/50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {display.image ? (
+                              <img src={display.image} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              <channel.icon className={cn("h-4 w-4", channel.color)} />
+                            )}
+                          </div>
+                          <span className="truncate font-medium text-sm">{display.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )
                 })
             ) : (
-              <div className="px-4 py-2 text-xs text-muted-foreground italic">
-                No accounts connected yet.
+              <div className="px-4 py-2 text-[10px] text-muted-foreground/60 font-medium uppercase tracking-wider">
+                No Connections
               </div>
             )}
           </SidebarMenu>

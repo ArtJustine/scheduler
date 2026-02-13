@@ -58,10 +58,17 @@ export function WorkspaceSwitcher() {
         setIsLoading(true)
         try {
             const all = await getUserWorkspaces(user.uid)
-            setWorkspaces(all)
+            // Filter out system placeholders
+            const filtered = all.filter(w => w.name !== "Default Brand")
+            setWorkspaces(filtered)
 
             const active = await getActiveWorkspace(user.uid)
-            setActiveWorkspaceData(active)
+            // If active is a placeholder, treat as null
+            if (active && active.name === "Default Brand") {
+                setActiveWorkspaceData(null)
+            } else {
+                setActiveWorkspaceData(active)
+            }
         } catch (error) {
             console.error("Error loading workspaces:", error)
         } finally {

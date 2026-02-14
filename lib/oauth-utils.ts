@@ -21,73 +21,45 @@ export interface OAuthError {
   error_reason?: string
 }
 
-// Instagram OAuth utilities (Using Facebook Login for Business flow as recommended for insights)
+// Instagram OAuth utilities (Using Direct Instagram Login for Business)
 export const instagramOAuth = {
   getAuthUrl: (state: string = "instagram_auth", redirectUri?: string) => {
-    // According to Meta: "If you want insights, switch to API setup with Facebook login"
-    const url = new URL(`https://www.facebook.com/v${config.facebook.apiVersion}/dialog/oauth`)
-    url.searchParams.set("client_id", config.facebook.appId)
+    const url = new URL("https://www.instagram.com/oauth/authorize")
+    url.searchParams.set("client_id", config.instagram.appId)
     url.searchParams.set("redirect_uri", redirectUri || config.instagram.redirectUri)
-    url.searchParams.set("scope", config.facebook.scopes.join(","))
+    url.searchParams.set("scope", config.instagram.scopes?.join(",") || "user_profile,user_media")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
+    // Direct IG login settings
+    url.searchParams.set("force_authentication", "1")
+    url.searchParams.set("enable_fb_login", "0")
     return url.toString()
   },
 
   exchangeCodeForToken: async (code: string, redirectUri?: string): Promise<OAuthToken> => {
-    // Try Facebook Graph exchange first (Modern Business flow)
-    const fbUrl = new URL(`https://graph.facebook.com/v${config.facebook.apiVersion}/oauth/access_token`)
-    fbUrl.searchParams.set("client_id", config.facebook.appId)
-    fbUrl.searchParams.set("client_secret", config.facebook.appSecret)
-    fbUrl.searchParams.set("redirect_uri", redirectUri || config.instagram.redirectUri)
-    fbUrl.searchParams.set("code", code)
+    const body = new URLSearchParams({
+      client_id: config.instagram.appId,
+      client_secret: config.instagram.appSecret,
+      grant_type: "authorization_code",
+      redirect_uri: redirectUri || config.instagram.redirectUri,
+      code: code,
+    })
 
-    let response = await fetch(fbUrl.toString())
+    const response = await fetch("https://api.instagram.com/oauth/access_token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    })
 
-    // Fallback to legacy endpoints if FB exchange fails
     if (!response.ok) {
-      const endpoints = [
-        "https://graph.instagram.com/oauth/access_token",
-        "https://api.instagram.com/oauth/access_token",
-      ]
-
-      let lastError = "Instagram token exchange failed"
-      for (const endpoint of endpoints) {
-        const body = new URLSearchParams({
-          client_id: config.instagram.appId,
-          client_secret: config.instagram.appSecret,
-          grant_type: "authorization_code",
-          redirect_uri: redirectUri || config.instagram.redirectUri,
-          code: code,
-        })
-
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body,
-        })
-
-        if (res.ok) {
-          const data = await res.json()
-          return {
-            access_token: data.access_token,
-            user_id: data.user_id || data.id,
-            platform: "instagram",
-            created_at: Date.now(),
-          }
-        } else {
-          const err = await res.json().catch(() => ({} as any))
-          lastError = err.error_message || err.error?.message || lastError
-        }
-      }
-      throw new Error(lastError)
+      const error = await response.json().catch(() => ({} as any))
+      throw new Error(`Instagram token exchange failed: ${error.error_message || error.error?.message || "Internal error"}`)
     }
 
     const data = await response.json()
     return {
       access_token: data.access_token,
-      expires_in: data.expires_in,
-      token_type: data.token_type,
+      user_id: data.user_id || data.id,
       platform: "instagram",
       created_at: Date.now(),
     }

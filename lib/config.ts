@@ -18,6 +18,7 @@ export const config = {
     appSecret: process.env.INSTAGRAM_APP_SECRET || "0fdbc78f68ee1fb25be20c04095c403f",
     redirectUri: process.env.INSTAGRAM_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/instagram",
     apiVersion: "18.0",
+    scopes: ["user_profile", "user_media"],
   },
 
   // TikTok API Configuration
@@ -47,10 +48,8 @@ export const config = {
     redirectUri: process.env.FACEBOOK_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/facebook",
     apiVersion: "18.0",
     scopes: [
-      "instagram_basic",
-      "instagram_content_publish",
-      "pages_show_list",
-      "pages_read_engagement"
+      "instagram_business_basic",
+      "instagram_business_content_publish"
     ],
   },
 

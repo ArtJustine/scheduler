@@ -17,7 +17,7 @@ export const config = {
     appId: process.env.INSTAGRAM_APP_ID || "188015572670356",
     appSecret: process.env.INSTAGRAM_APP_SECRET || "0fdbc78f68ee1fb25be20c04095c403f",
     redirectUri: process.env.INSTAGRAM_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/instagram",
-    apiVersion: "v18.0",
+    apiVersion: "18.0",
   },
 
   // TikTok API Configuration
@@ -45,7 +45,7 @@ export const config = {
     appId: process.env.FACEBOOK_APP_ID || "943816434644966",
     appSecret: process.env.FACEBOOK_APP_SECRET || "106bb8fb32f22f00aa01ee0800da6cd2",
     redirectUri: process.env.FACEBOOK_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/facebook",
-    apiVersion: "v18.0",
+    apiVersion: "18.0",
     scopes: ["instagram_basic", "instagram_content_publish", "pages_show_list", "pages_read_engagement"],
   },
 
@@ -81,7 +81,7 @@ export const config = {
     appId: process.env.THREADS_APP_ID || "2277979319398653",
     appSecret: process.env.THREADS_APP_SECRET || "dd000681cfe3962c0be3f18563848fd1",
     redirectUri: process.env.THREADS_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/threads",
-    scopes: ["threads_basic", "threads_content_publish", "threads_manage_insights"],
+    scopes: ["threads_basic", "threads_content_publish", "threads_manage_insights", "threads_profile_discovery"],
   },
 
   // General app configuration

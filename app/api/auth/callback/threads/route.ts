@@ -92,16 +92,19 @@ export async function GET(request: NextRequest) {
                     const res = await fetch(`${variation.url}&access_token=${accessToken}`);
                     if (res.ok) {
                         const data = await res.json();
-                        console.log(`Threads ${variation.name} Response:`, JSON.stringify(data));
+                        console.log(`Threads ${variation.name} Success:`, JSON.stringify(data));
 
                         const fCount = data.follower_count ?? data.followers_count ?? data.threads_follower_count;
-                        if (fCount !== undefined) {
-                            followerCount = Math.max(followerCount, Number(fCount));
+                        if (fCount !== undefined && fCount !== null) {
+                            const num = Number(fCount);
+                            if (num > 0 || followerCount === 0) {
+                                followerCount = Math.max(followerCount, num);
+                                console.log(`Set Threads followers to ${followerCount} via ${variation.name}`);
+                            }
                         }
 
-                        const mCount = data.media_count;
-                        if (mCount !== undefined) {
-                            postsCount = Math.max(postsCount, Number(mCount));
+                        if (data.media_count !== undefined) {
+                            postsCount = Math.max(postsCount, Number(data.media_count));
                         }
                     }
                 } catch (e) {
@@ -109,7 +112,28 @@ export async function GET(request: NextRequest) {
                 }
             }
 
-            // 4. Try Business Insights endpoint as a strong backup
+            // 4. Try Profile Lookup (New Fallback)
+            if (followerCount === 0 && threadsUsername && threadsUsername !== "Threads User") {
+                try {
+                    console.log(`Attempting profile_lookup for ${threadsUsername}...`);
+                    const lookupUrl = `https://graph.threads.net/v1.0/profile_lookup?username=${threadsUsername}&fields=follower_count,media_count&access_token=${accessToken}`;
+                    const lookupRes = await fetch(lookupUrl);
+                    if (lookupRes.ok) {
+                        const lData = await lookupRes.json();
+                        console.log("Profile Lookup Success:", JSON.stringify(lData));
+                        if (lData.follower_count !== undefined) {
+                            followerCount = Number(lData.follower_count);
+                        }
+                        if (lData.media_count !== undefined) {
+                            postsCount = Math.max(postsCount, Number(lData.media_count));
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Profile lookup failed:", e);
+                }
+            }
+
+            // 5. Try Business Insights endpoint as a strong backup
             if (followerCount === 0 && threadsId) {
                 console.log("Follower count still 0, trying total insights node...")
                 const insightsUrl = `https://graph.threads.net/v1.0/${threadsId}/threads_insights?metric=followers_count&access_token=${accessToken}`

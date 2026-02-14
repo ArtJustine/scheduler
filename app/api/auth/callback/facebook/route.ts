@@ -146,8 +146,25 @@ export async function GET(request: NextRequest) {
             console.error("Error saving Facebook account to Firestore:", saveError)
         }
 
-        // Redirect to dashboard with handover flag
-        const response = NextResponse.redirect(new URL("/dashboard/connections?success=facebook_connected&handover=true", request.url))
+        // Redirect to dashboard with handover flag and smart success message
+        let successType = "facebook_connected"
+        try {
+            const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+            if (workspaceId && serverDb) {
+                const { getDoc } = await import("firebase/firestore")
+                const workspaceDoc = await getDoc(doc(serverDb, "workspaces", workspaceId))
+                if (workspaceDoc.exists()) {
+                    const data = workspaceDoc.data()
+                    if (data.accounts?.instagram?.connected && data.accounts?.facebook?.connected) {
+                        successType = "facebook_instagram_connected"
+                    } else if (data.accounts?.instagram?.connected) {
+                        successType = "instagram_connected"
+                    }
+                }
+            }
+        } catch (e) { console.warn("Could not determine detailed success message:", e) }
+
+        const response = NextResponse.redirect(new URL(`/dashboard/connections?success=${successType}&handover=true`, request.url))
 
         // Set handover cookie (short-lived, accessible by client)
         response.cookies.set("social_handover_data", JSON.stringify(accountData), {

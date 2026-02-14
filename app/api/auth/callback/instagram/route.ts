@@ -104,6 +104,27 @@ export async function GET(request: NextRequest) {
       console.warn("Instagram data fetch failed:", err)
     }
 
+    // 2a. Fallback: If no user_id yet, try to fetch basic profile without fancy fields
+    if (!tokenData.user_id) {
+      try {
+        console.log("Attempting emergency profile fetch for ID...")
+        const basicMeRes = await fetch(`https://graph.instagram.com/me?fields=id,username&access_token=${tokenData.access_token}`)
+        if (basicMeRes.ok) {
+          const basicMe = await basicMeRes.json()
+          tokenData.user_id = basicMe.id
+          username = basicMe.username || username
+          console.log("Emergency fetch successful:", basicMe.username)
+        } else {
+          console.error("Emergency fetch failed:", await basicMeRes.text())
+        }
+      } catch (e) { console.error("Emergency fetch error:", e) }
+    }
+
+    // Use app user ID only as specific fallback if absolutely necessary to allow debugging
+    const finalInstagramId = tokenData.user_id || `unknown_${Date.now()}`
+
+    console.log("Finalizing Instagram Connection for:", username, "ID:", finalInstagramId)
+
     // Ensure everything is a number
     followerCount = Number(followerCount) || 0
     postsCount = Number(postsCount) || 0
@@ -111,7 +132,7 @@ export async function GET(request: NextRequest) {
     // Prepare account data for handover
     const accountData = {
       platform: "instagram",
-      id: tokenData.user_id || userId,
+      id: finalInstagramId,
       username,
       profileImage: profilePicture,
       accessToken: tokenData.access_token,

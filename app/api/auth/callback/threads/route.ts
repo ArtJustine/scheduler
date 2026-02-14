@@ -76,101 +76,17 @@ export async function GET(request: NextRequest) {
             console.error("Error fetching basic profile:", err)
         }
 
-        // 3. Try fetching stats individually with redundant field names and versioned API
+        // 3. Simple and robust stats fetch via shared service
         try {
-            console.log("Attempting to fetch follower count with multiple variations...")
+            console.log("Fetching Threads stats via shared service...")
+            const { fetchThreadsStats } = await import("@/lib/threads-service")
+            const stats = await fetchThreadsStats(accessToken, threadsId, threadsUsername)
 
-            // Try different valid Threads API versions and field names
-            const fieldVariations = [
-                { url: `https://graph.threads.net/v1.0/me?fields=follower_count,followers_count,media_count,is_private`, name: "v1.0" },
-                { url: `https://graph.threads.net/me?fields=follower_count,followers_count,media_count`, name: "unversioned" },
-                { url: `https://graph.threads.net/v1.0/me?fields=threads_follower_count`, name: "explicit_threads_field" }
-            ];
-
-            for (const variation of fieldVariations) {
-                try {
-                    const res = await fetch(`${variation.url}&access_token=${accessToken}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        console.log(`Threads ${variation.name} Success:`, JSON.stringify(data));
-
-                        // Check every possible follower field variation
-                        const fCount = data.follower_count ?? data.followers_count ?? data.threads_follower_count ?? data.total_follower_count;
-                        if (fCount !== undefined && fCount !== null) {
-                            const num = Number(fCount);
-                            if (num > 0 || followerCount === 0) {
-                                followerCount = Math.max(followerCount, num);
-                                console.log(`Threads followers updated to ${followerCount} via ${variation.name}`);
-                            }
-                        }
-
-                        if (data.media_count !== undefined) {
-                            postsCount = Math.max(postsCount, Number(data.media_count));
-                        }
-                    } else {
-                        console.warn(`Variation ${variation.name} failed with status ${res.status}`);
-                    }
-                } catch (e) {
-                    console.warn(`Variation ${variation.name} error:`, e);
-                }
-            }
-
-            // 4. Try Business Insights (Followers Count Metric)
-            if (followerCount === 0 && threadsId) {
-                console.log("Follower count still 0, trying insights metrics scan...");
-                const metrics = ["followers_count", "follower_count"];
-                for (const metric of metrics) {
-                    try {
-                        const insightsUrl = `https://graph.threads.net/v1.0/${threadsId}/threads_insights?metric=${metric}&access_token=${accessToken}`;
-                        const insightsRes = await fetch(insightsUrl);
-                        if (insightsRes.ok) {
-                            const iData = await insightsRes.json();
-                            console.log(`Insights (${metric}) Success:`, JSON.stringify(iData));
-                            if (iData.data && iData.data.length > 0) {
-                                const val = iData.data[0].total_value ?? iData.data[0].values?.[0]?.value ?? 0;
-                                if (val > 0) {
-                                    followerCount = Number(val);
-                                    console.log(`Set followers to ${followerCount} via insights metric: ${metric}`);
-                                    break;
-                                }
-                            }
-                        }
-                    } catch (e) {
-                        console.warn(`Insights metric ${metric} failed:`, e);
-                    }
-                }
-            }
-
-            // 5. Try Profile Lookup (Username-based)
-            if (followerCount === 0 && threadsUsername && threadsUsername !== "Threads User") {
-                try {
-                    const lookupUrl = `https://graph.threads.net/v1.0/profile_lookup?username=${threadsUsername}&fields=follower_count&access_token=${accessToken}`;
-                    const lookupRes = await fetch(lookupUrl);
-                    if (lookupRes.ok) {
-                        const lData = await lookupRes.json();
-                        console.log("Profile Lookup Result:", JSON.stringify(lData));
-                        if (lData.follower_count !== undefined) {
-                            followerCount = Number(lData.follower_count);
-                            console.log(`Found ${followerCount} followers via Profile Lookup`);
-                        }
-                    }
-                } catch (e) {
-                    console.warn("Profile lookup fallback failed:", e);
-                }
-            }
+            followerCount = stats.followers
+            postsCount = stats.posts
+            console.log("Stats fetch complete:", stats)
         } catch (err) {
-            console.warn("Follower fetch process failed:", err)
-        }
-
-        // 5. Final fallback for post count if still missing
-        if (postsCount === 0) {
-            try {
-                const mlRes = await fetch(`https://graph.threads.net/me/threads?fields=id&access_token=${accessToken}`)
-                if (mlRes.ok) {
-                    const mlData = await mlRes.json()
-                    if (mlData.data) postsCount = mlData.data.length
-                }
-            } catch (err) { console.warn("Posts manual count failed", err) }
+            console.warn("Follower fetch process failed, using defaults:", err)
         }
 
         // Ensure clean numbers

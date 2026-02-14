@@ -52,44 +52,41 @@ export async function getUserStats(timeframe: string = "month") {
     let youtubeStats = { views: 0, videos: 0, comments: 0, likes: 0, followers: 0, engagement: 0, impressions: 0 }
     let instagramStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
     let tiktokStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
+    let threadsStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
+    let facebookStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
 
     try {
-      const userDocRef = doc(db, "users", user.uid)
-      const userDoc = await getDoc(userDocRef)
-      if (userDoc.exists()) {
-        const userData = userDoc.data()
-        if (userData.youtube) {
-          youtubeStats = {
-            views: Number(userData.youtube.views || 0),
-            videos: Number(userData.youtube.videos || 0),
-            comments: Number(userData.youtube.comments || 0),
-            likes: Number(userData.youtube.likes || 0),
-            followers: Number(userData.youtube.followers || 0),
-            engagement: Number(userData.youtube.engagement || 0),
-            impressions: Number(userData.youtube.impressions || 0),
-          }
-        }
-        if (userData.instagram) {
-          instagramStats = {
-            engagement: Number(userData.instagram.engagement || 0),
-            followers: Number(userData.instagram.followers || 0),
-            impressions: Number(userData.instagram.impressions || 0),
-            growth: Number(userData.instagram.growth || 0),
-            likes: Number(userData.instagram.likes || 0),
-            comments: Number(userData.instagram.comments || 0),
-          }
-        }
-        if (userData.tiktok) {
-          tiktokStats = {
-            engagement: Number(userData.tiktok.engagement || 0),
-            followers: Number(userData.tiktok.followers || 0),
-            impressions: Number(userData.tiktok.impressions || 0),
-            growth: Number(userData.tiktok.growth || 0),
-            likes: Number(userData.tiktok.likes || 0),
-            comments: Number(userData.tiktok.comments || 0),
-          }
+      const { getActiveWorkspace } = await import("./workspaces")
+      const workspace = await getActiveWorkspace(user.uid)
+      let accounts: any = {}
+
+      if (workspace && workspace.accounts) {
+        accounts = workspace.accounts
+      } else {
+        const userDocRef = doc(db, "users", user.uid)
+        const userDoc = await getDoc(userDocRef)
+        if (userDoc.exists()) {
+          accounts = userDoc.data()
         }
       }
+
+      const normalize = (plat: any) => ({
+        views: Number(plat?.views || 0),
+        videos: Number(plat?.videos || plat?.posts || 0),
+        comments: Number(plat?.comments || 0),
+        likes: Number(plat?.likes || 0),
+        followers: Number(plat?.followers || plat?.follower_count || plat?.followers_count || 0),
+        engagement: Number(plat?.engagement || 0),
+        impressions: Number(plat?.impressions || 0),
+        growth: Number(plat?.growth || 0),
+      })
+
+      if (accounts.youtube) youtubeStats = normalize(accounts.youtube)
+      if (accounts.instagram) instagramStats = normalize(accounts.instagram)
+      if (accounts.tiktok) tiktokStats = normalize(accounts.tiktok)
+      if (accounts.threads) threadsStats = normalize(accounts.threads)
+      if (accounts.facebook) facebookStats = normalize(accounts.facebook)
+
     } catch (e) {
       console.error("Error fetching social stats:", e)
     }
@@ -98,8 +95,8 @@ export async function getUserStats(timeframe: string = "month") {
     const data: any = {
       overview: {
         totalPosts: socialPosts + totalBlogPosts,
-        totalEngagement: ((youtubeStats.engagement + instagramStats.engagement + tiktokStats.engagement) / 3).toFixed(1),
-        totalImpressions: youtubeStats.impressions + instagramStats.impressions + tiktokStats.impressions,
+        totalEngagement: ((youtubeStats.engagement + instagramStats.engagement + tiktokStats.engagement + threadsStats.engagement) / 4).toFixed(1),
+        totalImpressions: youtubeStats.impressions + instagramStats.impressions + tiktokStats.impressions + threadsStats.impressions,
         scheduledPosts: 0, // Placeholder for now
         youtubeVideos: youtubeStats.videos,
         youtubeViews: youtubeStats.views,
@@ -114,7 +111,9 @@ export async function getUserStats(timeframe: string = "month") {
       platforms: {
         instagram: instagramStats,
         youtube: youtubeStats,
-        tiktok: tiktokStats
+        tiktok: tiktokStats,
+        threads: threadsStats,
+        facebook: facebookStats
       }
     }
 
@@ -129,7 +128,9 @@ export async function getUserStats(timeframe: string = "month") {
       platforms: {
         instagram: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 },
         youtube: { views: 0, videos: 0, comments: 0, likes: 0, followers: 0, engagement: 0, impressions: 0 },
-        tiktok: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
+        tiktok: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 },
+        threads: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 },
+        facebook: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
       }
     }
   }

@@ -51,27 +51,22 @@ async function hydrateThreadsFollowers(accounts: any, workspaceId?: string, user
   if (currentFollowers > 0 || !token) return accounts
 
   try {
-    const response = await fetch("/api/threads/followers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accessToken: token,
-        username: String(threads.username || "").replace(/^@+/, ""),
-        threadsId: threads.id,
-      }),
-    })
+    // Call the service directly instead of using fetch (avoids relative URL issues on server)
+    const { fetchThreadsStats } = await import("@/lib/threads-service")
+    const { followers, posts } = await fetchThreadsStats(
+      token,
+      threads.id,
+      String(threads.username || "").replace(/^@+/, "")
+    )
 
-    if (!response.ok) return accounts
-    const data = await response.json()
-    const followers = Number(data?.followers ?? 0) || 0
-    const posts = Number(data?.posts ?? threads.posts ?? 0) || 0
     if (followers <= 0) return accounts
 
+    const updatedAt = new Date().toISOString()
     const updatedThreads = {
       ...threads,
       followers,
       posts,
-      updatedAt: new Date().toISOString(),
+      updatedAt,
     }
 
     if (workspaceId) {
@@ -79,15 +74,15 @@ async function hydrateThreadsFollowers(accounts: any, workspaceId?: string, user
       await updateDoc(workspaceRef, {
         "accounts.threads.followers": followers,
         "accounts.threads.posts": posts,
-        "accounts.threads.updatedAt": updatedThreads.updatedAt,
-        updatedAt: updatedThreads.updatedAt,
+        "accounts.threads.updatedAt": updatedAt,
+        updatedAt: updatedAt,
       })
     } else if (userId) {
       const userRef = doc(firebaseDb!, "users", userId)
       await updateDoc(userRef, {
         "threads.followers": followers,
         "threads.posts": posts,
-        "threads.updatedAt": updatedThreads.updatedAt,
+        "threads.updatedAt": updatedAt,
       })
     }
 
@@ -95,7 +90,8 @@ async function hydrateThreadsFollowers(accounts: any, workspaceId?: string, user
       ...accounts,
       threads: updatedThreads,
     }
-  } catch {
+  } catch (err) {
+    console.warn("hydrateThreadsFollowers: Failed to hydrate:", err)
     return accounts
   }
 }

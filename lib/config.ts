@@ -46,7 +46,15 @@ export const config = {
     appSecret: process.env.FACEBOOK_APP_SECRET || "106bb8fb32f22f00aa01ee0800da6cd2",
     redirectUri: process.env.FACEBOOK_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/facebook",
     apiVersion: "18.0",
-    scopes: ["instagram_basic", "instagram_content_publish", "pages_show_list", "pages_read_engagement"],
+    scopes: [
+      "instagram_basic",
+      "instagram_content_publish",
+      "instagram_manage_insights",
+      "instagram_manage_comments",
+      "pages_show_list",
+      "pages_read_engagement",
+      "business_management"
+    ],
   },
 
   // Twitter/X API Configuration

@@ -28,8 +28,11 @@ export async function GET(request: NextRequest) {
     // Generate state for CSRF protection
     const state = oauthHelpers.generateState()
 
-    // Always use the live request origin to avoid stale domain/config mismatches.
-    const redirectUri = `${request.nextUrl.origin}/api/auth/callback/instagram`
+    // Use INSTAGRAM_REDIRECT_URI if set (must match Meta app's Valid OAuth Redirect URIs exactly).
+    // Otherwise use request origin so localhost and production work without env changes.
+    const redirectUri =
+      process.env.INSTAGRAM_REDIRECT_URI ||
+      `${request.nextUrl.origin}/api/auth/callback/instagram`
 
     // Build Instagram OAuth URL from shared helper to keep endpoint/scope consistent.
     const instagramAuthUrl = instagramOAuth.getAuthUrl(state, redirectUri)

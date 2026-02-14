@@ -3,6 +3,8 @@
 ## Issues Found:
 1. **YouTube**: `redirect_uri_mismatch` error
 2. **TikTok**: `code_challenge` error (now fixed with PKCE implementation)
+3. **Instagram**: `Invalid redirect_uri` (redirect URI must be whitelisted in Meta)
+4. **Threads**: Follower count may show 0 (Insights API response format)
 
 ## YouTube Configuration Fix
 
@@ -52,6 +54,42 @@ Make sure your app has these permissions:
 
 ### Step 4: Save Changes
 Save your app configuration.
+
+## Instagram Configuration Fix
+
+### Invalid redirect_uri
+
+Instagram (Meta) requires the **exact** redirect URI used in the OAuth request to be whitelisted in your app. The error "Invalid Request: Request parameters are invalid: Invalid redirect_uri" means the URL your app sends does not match any Valid OAuth Redirect URI in Meta.
+
+### Step 1: Meta for Developers
+1. Go to [Meta for Developers](https://developers.facebook.com/)
+2. Open your app (or create one and add "Instagram Basic Display" or "Instagram Graph API" product)
+3. Go to **Instagram** product → **Basic Display** or **Instagram API with Instagram Login** → **Settings**
+
+### Step 2: Add Valid OAuth Redirect URIs
+In **Valid OAuth Redirect URIs**, add the **exact** URL your app uses:
+
+- **Local:** `http://localhost:3000/api/auth/callback/instagram`
+- **Production:** `https://chiyusocial.com/api/auth/callback/instagram` (or your production domain)
+
+No trailing slash. Protocol (http vs https) and domain must match exactly.
+
+### Step 3: Optional – Pin redirect via env
+To force one redirect URI (e.g. production only), set in `.env`:
+
+```
+INSTAGRAM_REDIRECT_URI=https://chiyusocial.com/api/auth/callback/instagram
+```
+
+If unset, the app uses the current request origin (so localhost and production work if both URIs are added in Meta).
+
+### Step 4: Save
+Save the Instagram app settings in Meta.
+
+## Threads (and Threads followers)
+
+- **Redirect URI:** Add your callback URL in the [Meta App](https://developers.facebook.com/) under Threads product settings (e.g. `http://localhost:3000/api/auth/callback/threads` and your production URL).
+- **Followers showing 0:** The app now correctly reads the Threads Insights API `followers_count` metric. Ensure your app has `threads_manage_insights` permission; follower count comes from the User Insights endpoint `/{user-id}/threads_insights?metric=followers_count`.
 
 ## Testing the Fixes
 

@@ -75,15 +75,17 @@ export async function GET(request: NextRequest) {
           }
         }
       } else {
-        // Basic Display Flow
-        const userInfoResponse = await fetch(
-          `https://graph.instagram.com/me?fields=id,username,account_type,media_count,followers_count,follower_count&access_token=${tokenData.access_token}`
-        )
-        if (userInfoResponse.ok) {
-          const userInfo = await userInfoResponse.json()
-          username = userInfo.username || username
-          followerCount = Number(userInfo.followers_count ?? userInfo.follower_count) || 0
-          postsCount = Number(userInfo.media_count) || 0
+        // "Instagram Login" Flow (Business/Consumer with direct login)
+        // Tokens from this flow work with graph.instagram.com but need a separate call for user ID/Username
+        if (!tokenData.user_id) {
+          const meRes = await fetch(`https://graph.instagram.com/v${config.instagram.apiVersion}/me?fields=id,username,account_type,media_count,followers_count&access_token=${tokenData.access_token}`)
+          if (meRes.ok) {
+            const meData = await meRes.json()
+            tokenData.user_id = meData.id
+            username = meData.username
+            followerCount = Number(meData.followers_count) || 0
+            postsCount = Number(meData.media_count) || 0
+          }
         }
       }
 

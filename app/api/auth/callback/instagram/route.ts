@@ -79,7 +79,8 @@ export async function GET(request: NextRequest) {
       // FORCE use of the same hardcoded URI as the Auth route used
       // We ignore the cookie here because it might be stale or from a weird redirect (www vs non-www)
       // Since we hardcoded it in config.ts and Auth route, we must match it here.
-      const exchangeRedirectUri = config.instagram.redirectUri
+      // Reverting to non-www based on "Invalid redirect_uri" error from previous attempt
+      const exchangeRedirectUri = "https://chiyusocial.com/api/auth/callback/instagram"
 
       console.log("Using FORCED Config URI for exchange:", exchangeRedirectUri)
       tokenData = await instagramOAuth.exchangeCodeForToken(code, exchangeRedirectUri)

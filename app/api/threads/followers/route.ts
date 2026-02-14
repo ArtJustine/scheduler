@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 export async function POST(request: NextRequest) {
   try {
     const { accessToken, username, threadsId } = await request.json()
-    const normalizedUsername = String(username || "").replace(/^@+/, "").trim()
+    let normalizedUsername = String(username || "").replace(/^@+/, "").trim()
 
     if (!accessToken) {
       return NextResponse.json({ error: "Missing accessToken" }, { status: 400 })
@@ -28,6 +28,9 @@ export async function POST(request: NextRequest) {
           data.follower_count ?? data.followers_count ?? data.threads_follower_count ?? data.total_follower_count ?? 0
         ) || 0
         const parsedPosts = Number(data.media_count ?? 0) || 0
+        if (!normalizedUsername && data.username) {
+          normalizedUsername = String(data.username).replace(/^@+/, "").trim()
+        }
 
         followerCount = Math.max(followerCount, parsedFollowers)
         postsCount = Math.max(postsCount, parsedPosts)

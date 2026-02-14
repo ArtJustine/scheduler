@@ -34,6 +34,21 @@ export async function GET(request: NextRequest) {
     // Build Instagram OAuth URL from shared helper to keep endpoint/scope consistent.
     const instagramAuthUrl = instagramOAuth.getAuthUrl(state, redirectUri)
 
+    // Lightweight runtime check to validate production env values quickly.
+    if (request.nextUrl.searchParams.get("debug") === "1") {
+      return NextResponse.json({
+        platform: "instagram",
+        runtime: {
+          origin: request.nextUrl.origin,
+          redirectUri,
+          appId: (process.env.INSTAGRAM_APP_ID || "").slice(0, 6),
+          usingEnvAppId: Boolean(process.env.INSTAGRAM_APP_ID),
+          usingEnvSecret: Boolean(process.env.INSTAGRAM_APP_SECRET),
+        },
+        authUrlPreview: instagramAuthUrl,
+      })
+    }
+
     // Store state, userId, and redirectUri in cookies
     const response = NextResponse.redirect(instagramAuthUrl)
     response.cookies.set("oauth_state", state, {

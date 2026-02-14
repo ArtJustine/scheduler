@@ -77,11 +77,12 @@ export async function GET(request: NextRequest) {
       } else {
         // Basic Display Flow
         const userInfoResponse = await fetch(
-          `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${tokenData.access_token}`
+          `https://graph.instagram.com/me?fields=id,username,account_type,media_count,followers_count,follower_count&access_token=${tokenData.access_token}`
         )
         if (userInfoResponse.ok) {
           const userInfo = await userInfoResponse.json()
           username = userInfo.username || username
+          followerCount = Number(userInfo.followers_count ?? userInfo.follower_count) || 0
           postsCount = Number(userInfo.media_count) || 0
         }
       }

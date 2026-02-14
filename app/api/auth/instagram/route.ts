@@ -31,12 +31,21 @@ export async function GET(request: NextRequest) {
     // Always use the live request origin to avoid stale domain/config mismatches.
     const redirectUri = `${request.nextUrl.origin}/api/auth/callback/instagram`
 
-    // Build Instagram OAuth URL (Using Facebook Login Flow for Business Accounts)
-    // This avoids "Invalid platform app" and is required for professional accounts.
-    const instagramAuthUrl = new URL(`https://www.facebook.com/v${config.facebook.apiVersion}/dialog/oauth`)
-    instagramAuthUrl.searchParams.set("client_id", config.facebook.appId)
+    // Build Instagram OAuth URL using Instagram Login.
+    // This avoids Facebook App Domain gate issues when the app is configured for Instagram Login.
+    const instagramAuthUrl = new URL("https://www.instagram.com/oauth/authorize")
+    instagramAuthUrl.searchParams.set("client_id", config.instagram.appId)
     instagramAuthUrl.searchParams.set("redirect_uri", redirectUri)
-    instagramAuthUrl.searchParams.set("scope", config.facebook.scopes.join(","))
+    instagramAuthUrl.searchParams.set(
+      "scope",
+      [
+        "instagram_business_basic",
+        "instagram_business_manage_comments",
+        "instagram_business_manage_messages",
+        "user_profile",
+        "user_media",
+      ].join(",")
+    )
     instagramAuthUrl.searchParams.set("state", state)
     instagramAuthUrl.searchParams.set("response_type", "code")
 

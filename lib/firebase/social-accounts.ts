@@ -34,6 +34,69 @@ function normalizeAccount(account: any) {
   }
 }
 
+async function hydrateThreadsFollowers(accounts: any, workspaceId?: string, userId?: string) {
+  const threads = accounts?.threads
+  if (!threads || !threads.connected) return accounts
+
+  const currentFollowers = Number(
+    threads.followers ??
+    threads.follower_count ??
+    threads.followers_count ??
+    0
+  ) || 0
+
+  if (currentFollowers > 0 || !threads.accessToken) return accounts
+
+  try {
+    const response = await fetch("/api/threads/followers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accessToken: threads.accessToken,
+        username: threads.username,
+        threadsId: threads.id,
+      }),
+    })
+
+    if (!response.ok) return accounts
+    const data = await response.json()
+    const followers = Number(data?.followers ?? 0) || 0
+    const posts = Number(data?.posts ?? threads.posts ?? 0) || 0
+    if (followers <= 0) return accounts
+
+    const updatedThreads = {
+      ...threads,
+      followers,
+      posts,
+      updatedAt: new Date().toISOString(),
+    }
+
+    if (workspaceId) {
+      const workspaceRef = doc(firebaseDb!, "workspaces", workspaceId)
+      await updateDoc(workspaceRef, {
+        "accounts.threads.followers": followers,
+        "accounts.threads.posts": posts,
+        "accounts.threads.updatedAt": updatedThreads.updatedAt,
+        updatedAt: updatedThreads.updatedAt,
+      })
+    } else if (userId) {
+      const userRef = doc(firebaseDb!, "users", userId)
+      await updateDoc(userRef, {
+        "threads.followers": followers,
+        "threads.posts": posts,
+        "threads.updatedAt": updatedThreads.updatedAt,
+      })
+    }
+
+    return {
+      ...accounts,
+      threads: updatedThreads,
+    }
+  } catch {
+    return accounts
+  }
+}
+
 export async function getSocialAccounts(userId?: string) {
   const uid = userId || firebaseAuth?.currentUser?.uid
 
@@ -63,7 +126,7 @@ export async function getSocialAccounts(userId?: string) {
 
     const hasWorkspaceAccounts = Object.values(workspaceAccounts).some((account: any) => Boolean(account))
     if (hasWorkspaceAccounts) {
-      return {
+      const normalized = {
         ...emptyAccounts,
         instagram: normalizeAccount(workspaceAccounts.instagram),
         youtube: normalizeAccount(workspaceAccounts.youtube),
@@ -74,6 +137,7 @@ export async function getSocialAccounts(userId?: string) {
         pinterest: normalizeAccount(workspaceAccounts.pinterest),
         linkedin: normalizeAccount(workspaceAccounts.linkedin),
       }
+      return await hydrateThreadsFollowers(normalized, workspace?.id, uid)
     }
 
     // Fallback for legacy data stored directly in users/{uid}
@@ -84,7 +148,7 @@ export async function getSocialAccounts(userId?: string) {
     }
 
     const userData = userDoc.data()
-    return {
+    const normalized = {
       ...emptyAccounts,
       instagram: normalizeAccount(userData.instagram),
       youtube: normalizeAccount(userData.youtube),
@@ -95,6 +159,7 @@ export async function getSocialAccounts(userId?: string) {
       pinterest: normalizeAccount(userData.pinterest),
       linkedin: normalizeAccount(userData.linkedin),
     }
+    return await hydrateThreadsFollowers(normalized, undefined, uid)
   } catch (error) {
     console.error("Error getting social accounts:", error)
     throw error

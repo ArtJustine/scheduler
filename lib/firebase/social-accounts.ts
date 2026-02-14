@@ -56,7 +56,7 @@ async function hydrateThreadsFollowers(accounts: any, workspaceId?: string, user
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         accessToken: token,
-        username: threads.username,
+        username: String(threads.username || "").replace(/^@+/, ""),
         threadsId: threads.id,
       }),
     })

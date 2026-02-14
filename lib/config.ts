@@ -14,7 +14,7 @@ export const config = {
 
   // Instagram API Configuration
   instagram: {
-    appId: process.env.INSTAGRAM_APP_ID || "188015572670356",
+    appId: process.env.INSTAGRAM_APP_ID || "1880155572670356",
     appSecret: process.env.INSTAGRAM_APP_SECRET || "0fdbc78f68ee1fb25be20c04095c403f",
     redirectUri: process.env.INSTAGRAM_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/instagram",
     apiVersion: "18.0",

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 export async function POST(request: NextRequest) {
   try {
     const { accessToken, username, threadsId } = await request.json()
+    const normalizedUsername = String(username || "").replace(/^@+/, "").trim()
 
     if (!accessToken) {
       return NextResponse.json({ error: "Missing accessToken" }, { status: 400 })
@@ -57,9 +58,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (followerCount === 0 && username) {
+    if (followerCount === 0 && normalizedUsername) {
       try {
-        const lookupUrl = `https://graph.threads.net/v1.0/profile_lookup?username=${encodeURIComponent(username)}&fields=follower_count&access_token=${accessToken}`
+        const lookupUrl = `https://graph.threads.net/v1.0/profile_lookup?username=${encodeURIComponent(normalizedUsername)}&fields=follower_count&access_token=${accessToken}`
         const lookupRes = await fetch(lookupUrl)
         if (lookupRes.ok) {
           const lData = await lookupRes.json()
@@ -71,9 +72,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Final fallback: parse public Threads profile metadata.
-    if (followerCount === 0 && username) {
+    if (followerCount === 0 && normalizedUsername) {
       try {
-        const profileRes = await fetch(`https://www.threads.net/@${encodeURIComponent(username)}`, {
+        const profileRes = await fetch(`https://www.threads.net/@${encodeURIComponent(normalizedUsername)}`, {
           headers: { "User-Agent": "Mozilla/5.0" },
         })
         if (profileRes.ok) {

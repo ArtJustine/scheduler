@@ -1,6 +1,6 @@
 // Instagram OAuth Authentication Route
 import { NextRequest, NextResponse } from "next/server"
-import { isPlatformConfigured } from "@/lib/config"
+import { isPlatformConfigured, config } from "@/lib/config"
 import { cookies } from "next/headers"
 import { oauthHelpers, instagramOAuth } from "@/lib/oauth-utils"
 
@@ -30,9 +30,9 @@ export async function GET(request: NextRequest) {
 
     // Use INSTAGRAM_REDIRECT_URI if set (must match Meta app's Valid OAuth Redirect URIs exactly).
     // Otherwise use request origin so localhost and production work without env changes.
-    const redirectUri =
-      process.env.INSTAGRAM_REDIRECT_URI ||
-      `${request.nextUrl.origin}/api/auth/callback/instagram`
+    // Use the unified config redirect URI to ensure it matches the callback's fallback
+    // This prevents "Error validating verification code" due to origin mismatches (www vs non-www)
+    const redirectUri = config.instagram.redirectUri
 
     // Build Instagram OAuth URL from shared helper to keep endpoint/scope consistent.
     const instagramAuthUrl = instagramOAuth.getAuthUrl(state, redirectUri)

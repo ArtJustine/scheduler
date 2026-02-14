@@ -40,10 +40,7 @@ export async function GET(request: NextRequest) {
       "scope",
       [
         "instagram_business_basic",
-        "instagram_business_manage_comments",
-        "instagram_business_manage_messages",
-        "user_profile",
-        "user_media",
+        "instagram_business_content_publish",
       ].join(",")
     )
     instagramAuthUrl.searchParams.set("state", state)

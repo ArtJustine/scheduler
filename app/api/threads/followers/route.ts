@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     const tryUrls = [
       `https://graph.threads.net/v1.0/me?fields=id,username,follower_count,followers_count,media_count&access_token=${accessToken}`,
       `https://graph.threads.net/me?fields=id,username,follower_count,followers_count,media_count&access_token=${accessToken}`,
+      `https://graph.threads.net/v1.0/me?fields=id,username,threads_follower_count,total_follower_count,media_count&access_token=${accessToken}`,
     ]
 
     for (const url of tryUrls) {
@@ -37,13 +38,19 @@ export async function POST(request: NextRequest) {
     if (followerCount === 0 && threadsId) {
       for (const metric of ["followers_count", "follower_count"]) {
         try {
-          const insightsUrl = `https://graph.threads.net/v1.0/${threadsId}/threads_insights?metric=${metric}&access_token=${accessToken}`
-          const insightsRes = await fetch(insightsUrl)
-          if (!insightsRes.ok) continue
+          const insightsUrls = [
+            `https://graph.threads.net/v1.0/${threadsId}/threads_insights?metric=${metric}&access_token=${accessToken}`,
+            `https://graph.threads.net/v1.0/me/threads_insights?metric=${metric}&access_token=${accessToken}`,
+          ]
 
-          const iData = await insightsRes.json()
-          const val = iData?.data?.[0]?.total_value ?? iData?.data?.[0]?.values?.[0]?.value ?? 0
-          followerCount = Math.max(followerCount, Number(val) || 0)
+          for (const insightsUrl of insightsUrls) {
+            const insightsRes = await fetch(insightsUrl)
+            if (!insightsRes.ok) continue
+
+            const iData = await insightsRes.json()
+            const val = iData?.data?.[0]?.total_value ?? iData?.data?.[0]?.values?.[0]?.value ?? 0
+            followerCount = Math.max(followerCount, Number(val) || 0)
+          }
         } catch {
           // Continue to next metric.
         }

@@ -10,6 +10,7 @@ function normalizeAccount(account: any) {
 
   const normalizedFollowers = Number(
     account.followers ??
+    account.followersCount ??
     account.follower_count ??
     account.followers_count ??
     account.threads_follower_count ??
@@ -40,6 +41,7 @@ async function hydrateThreadsFollowers(accounts: any, workspaceId?: string, user
 
   const currentFollowers = Number(
     threads.followers ??
+    threads.followersCount ??
     threads.follower_count ??
     threads.followers_count ??
     0

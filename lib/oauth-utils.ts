@@ -24,42 +24,56 @@ export interface OAuthError {
 // Instagram OAuth utilities
 export const instagramOAuth = {
   getAuthUrl: (state: string = "instagram_auth", redirectUri?: string) => {
-    const url = new URL("https://api.instagram.com/oauth/authorize")
+    const url = new URL("https://www.instagram.com/oauth/authorize")
     url.searchParams.set("client_id", config.instagram.appId)
     url.searchParams.set("redirect_uri", redirectUri || config.instagram.redirectUri)
-    url.searchParams.set("scope", "user_profile,user_media")
+    url.searchParams.set("scope", "instagram_business_basic,instagram_business_content_publish")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
     return url.toString()
   },
 
   exchangeCodeForToken: async (code: string, redirectUri?: string): Promise<OAuthToken> => {
-    const response = await fetch("https://api.instagram.com/oauth/access_token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
+    // Instagram Login uses graph.instagram.com; older Basic Display used api.instagram.com.
+    const endpoints = [
+      "https://graph.instagram.com/oauth/access_token",
+      "https://api.instagram.com/oauth/access_token",
+    ]
+
+    let lastError = "Unknown Instagram token exchange error"
+    for (const endpoint of endpoints) {
+      const body = new URLSearchParams({
         client_id: config.instagram.appId,
         client_secret: config.instagram.appSecret,
         grant_type: "authorization_code",
         redirect_uri: redirectUri || config.instagram.redirectUri,
         code: code,
-      }),
-    })
+      })
 
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(`Instagram token exchange failed: ${error.error_message || error.error}`)
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body,
+      })
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({} as any))
+        lastError = error.error_message || error.error?.message || error.error || lastError
+        continue
+      }
+
+      const data = await response.json()
+      return {
+        access_token: data.access_token,
+        user_id: data.user_id || data.id,
+        platform: "instagram",
+        created_at: Date.now(),
+      }
     }
 
-    const data = await response.json()
-    return {
-      access_token: data.access_token,
-      user_id: data.user_id,
-      platform: "instagram",
-      created_at: Date.now(),
-    }
+    throw new Error(`Instagram token exchange failed: ${lastError}`)
   },
 }
 

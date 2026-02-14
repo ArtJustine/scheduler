@@ -47,13 +47,10 @@ export const config = {
     redirectUri: process.env.FACEBOOK_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/facebook",
     apiVersion: "18.0",
     scopes: [
-      "instagram_business_basic",
-      "instagram_business_content_publish",
-      "instagram_business_manage_insights",
-      "instagram_business_manage_comments",
+      "instagram_basic",
+      "instagram_content_publish",
       "pages_show_list",
-      "pages_read_engagement",
-      "business_management"
+      "pages_read_engagement"
     ],
   },
 

@@ -1,6 +1,6 @@
 // Threads OAuth Authentication Route
 import { NextRequest, NextResponse } from "next/server"
-import { config, isPlatformConfigured } from "@/lib/config"
+import { isPlatformConfigured } from "@/lib/config"
 import { threadsOAuth, oauthHelpers } from "@/lib/oauth-utils"
 import { cookies } from "next/headers"
 
@@ -28,13 +28,8 @@ export async function GET(request: NextRequest) {
         // Generate a unique state parameter for security
         const state = oauthHelpers.generateState()
 
-        // Determine the host for dynamic redirect URI
-        let redirectUri = config.threads.redirectUri
-
-        // In development environments that aren't production
-        if (process.env.NODE_ENV !== "production" && request.nextUrl.origin.includes("localhost")) {
-            redirectUri = `${request.nextUrl.origin}/api/auth/callback/threads`
-        }
+        // Always use the live request origin to avoid stale domain/config mismatches.
+        const redirectUri = `${request.nextUrl.origin}/api/auth/callback/threads`
 
         console.log("Threads OAuth Redirect URI being used:", redirectUri)
 

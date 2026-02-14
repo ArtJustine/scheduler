@@ -5,6 +5,35 @@ import { getActiveWorkspace } from "./workspaces"
 
 // Remove all mock data, preview mode, and offline fallback logic. Only use real Firestore data for all social account functions.
 
+function normalizeAccount(account: any) {
+  if (!account) return null
+
+  const normalizedFollowers = Number(
+    account.followers ??
+    account.follower_count ??
+    account.followers_count ??
+    account.threads_follower_count ??
+    account.total_follower_count ??
+    0
+  ) || 0
+
+  const normalizedPosts = Number(
+    account.posts ??
+    account.media_count ??
+    account.video_count ??
+    0
+  ) || 0
+
+  return {
+    ...account,
+    username: account.username || account.name || account.display_name || "User",
+    profileImage: account.profileImage || account.profile_picture_url || account.threads_profile_picture_url || account.avatar_url || null,
+    followers: normalizedFollowers,
+    posts: normalizedPosts,
+    connected: Boolean(account.connected ?? account.accessToken ?? account.access_token),
+  }
+}
+
 export async function getSocialAccounts(userId?: string) {
   const uid = userId || firebaseAuth?.currentUser?.uid
 
@@ -36,14 +65,14 @@ export async function getSocialAccounts(userId?: string) {
     if (hasWorkspaceAccounts) {
       return {
         ...emptyAccounts,
-        instagram: workspaceAccounts.instagram || null,
-        youtube: workspaceAccounts.youtube || null,
-        tiktok: workspaceAccounts.tiktok || null,
-        threads: workspaceAccounts.threads || null,
-        facebook: workspaceAccounts.facebook || null,
-        twitter: workspaceAccounts.twitter || null,
-        pinterest: workspaceAccounts.pinterest || null,
-        linkedin: workspaceAccounts.linkedin || null,
+        instagram: normalizeAccount(workspaceAccounts.instagram),
+        youtube: normalizeAccount(workspaceAccounts.youtube),
+        tiktok: normalizeAccount(workspaceAccounts.tiktok),
+        threads: normalizeAccount(workspaceAccounts.threads),
+        facebook: normalizeAccount(workspaceAccounts.facebook),
+        twitter: normalizeAccount(workspaceAccounts.twitter),
+        pinterest: normalizeAccount(workspaceAccounts.pinterest),
+        linkedin: normalizeAccount(workspaceAccounts.linkedin),
       }
     }
 
@@ -57,14 +86,14 @@ export async function getSocialAccounts(userId?: string) {
     const userData = userDoc.data()
     return {
       ...emptyAccounts,
-      instagram: userData.instagram || null,
-      youtube: userData.youtube || null,
-      tiktok: userData.tiktok || null,
-      threads: userData.threads || null,
-      facebook: userData.facebook || null,
-      twitter: userData.twitter || null,
-      pinterest: userData.pinterest || null,
-      linkedin: userData.linkedin || null,
+      instagram: normalizeAccount(userData.instagram),
+      youtube: normalizeAccount(userData.youtube),
+      tiktok: normalizeAccount(userData.tiktok),
+      threads: normalizeAccount(userData.threads),
+      facebook: normalizeAccount(userData.facebook),
+      twitter: normalizeAccount(userData.twitter),
+      pinterest: normalizeAccount(userData.pinterest),
+      linkedin: normalizeAccount(userData.linkedin),
     }
   } catch (error) {
     console.error("Error getting social accounts:", error)

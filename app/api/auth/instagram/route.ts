@@ -28,11 +28,8 @@ export async function GET(request: NextRequest) {
     // Generate state for CSRF protection
     const state = oauthHelpers.generateState()
 
-    // Determine the host for dynamic redirect URI
-    let redirectUri = config.instagram.redirectUri
-    if (process.env.NODE_ENV !== "production" || !redirectUri.startsWith(request.nextUrl.origin)) {
-      redirectUri = `${request.nextUrl.origin}/api/auth/callback/instagram`
-    }
+    // Always use the live request origin to avoid stale domain/config mismatches.
+    const redirectUri = `${request.nextUrl.origin}/api/auth/callback/instagram`
 
     // Build Instagram OAuth URL (Using Facebook Login Flow for Business Accounts)
     // This avoids "Invalid platform app" and is required for professional accounts.

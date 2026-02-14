@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
                                     username: ig.username,
                                     name: ig.name,
                                     profileImage: ig.profile_picture_url,
-                                    followers: Number(ig.followers_count) || 0,
+                                    followers: Number(ig.followers_count ?? ig.follower_count) || 0,
                                     posts: Number(ig.media_count) || 0,
                                     accessToken: page.access_token, // Page token can often act on behalf of IG
                                     connected: true,

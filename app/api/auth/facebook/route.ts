@@ -1,6 +1,6 @@
 // Facebook OAuth Authentication Route
 import { NextRequest, NextResponse } from "next/server"
-import { config, isPlatformConfigured } from "@/lib/config"
+import { isPlatformConfigured } from "@/lib/config"
 import { facebookOAuth, oauthHelpers } from "@/lib/oauth-utils"
 import { cookies } from "next/headers"
 
@@ -28,13 +28,8 @@ export async function GET(request: NextRequest) {
         // Generate a unique state parameter for security
         const state = oauthHelpers.generateState()
 
-        // Determine the host for dynamic redirect URI
-        let redirectUri = config.facebook.redirectUri
-
-        // In development environments that aren't production, we might want to use the request origin
-        if (process.env.NODE_ENV !== "production" && request.nextUrl.origin.includes("localhost")) {
-            redirectUri = `${request.nextUrl.origin}/api/auth/callback/facebook`
-        }
+        // Always use the live request origin to avoid stale domain/config mismatches.
+        const redirectUri = `${request.nextUrl.origin}/api/auth/callback/facebook`
 
         console.log("Facebook OAuth Redirect URI being used:", redirectUri)
 

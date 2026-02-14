@@ -85,7 +85,13 @@ export default function ConnectionsPage() {
           // Read the handover cookie
           const cookieMatch = document.cookie.match(/social_handover_data=([^;]+)/)
           if (cookieMatch) {
-            const data = JSON.parse(decodeURIComponent(cookieMatch[1]))
+            toast({
+              title: "Processing connection...",
+              description: "Finalizing your account setup.",
+            })
+
+            const rawCookie = decodeURIComponent(cookieMatch[1])
+            const data = JSON.parse(rawCookie)
             const { connectSocialAccount } = await import("@/lib/firebase/social-accounts")
 
             // Save to Firestore using client-side auth
@@ -101,9 +107,16 @@ export default function ConnectionsPage() {
               title: "Update Successful",
               description: `Synchronized your ${data.platform} account details.`,
             })
+          } else {
+            console.warn("No handover cookie found despite handover=true param")
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error("Handover processing error:", err)
+          toast({
+            title: "Connection Error",
+            description: `Failed to save connection: ${err.message || "Unknown error"}`,
+            variant: "destructive"
+          })
         }
       }
       processHandover()

@@ -61,9 +61,6 @@ export async function fetchThreadsStats(accessToken: string, threadsId?: string,
 
             followerCount = Math.max(followerCount, parsedFollowers)
             postsCount = Math.max(postsCount, parsedPosts)
-
-            // If we got a positive follower count, we can stop trying basic profile urls
-            if (followerCount > 0) break
         } catch (err) {
             console.warn("Threads profile fetch variation failed")
         }

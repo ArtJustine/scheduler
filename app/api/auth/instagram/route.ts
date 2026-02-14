@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { config, isPlatformConfigured } from "@/lib/config"
 import { cookies } from "next/headers"
-import { oauthHelpers, instagramOAuth } from "@/lib/oauth-utils"
+import { oauthHelpers } from "@/lib/oauth-utils"
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     // Determine the host for dynamic redirect URI
     let redirectUri = config.instagram.redirectUri
-    if (process.env.NODE_ENV !== "production" || redirectUri.includes("localhost")) {
+    if (process.env.NODE_ENV !== "production" || !redirectUri.startsWith(request.nextUrl.origin)) {
       redirectUri = `${request.nextUrl.origin}/api/auth/callback/instagram`
     }
 
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     // This avoids "Invalid platform app" and is required for professional accounts.
     const instagramAuthUrl = new URL(`https://www.facebook.com/v${config.facebook.apiVersion}/dialog/oauth`)
     instagramAuthUrl.searchParams.set("client_id", config.facebook.appId)
-    instagramAuthUrl.searchParams.set("redirect_uri", config.facebook.redirectUri)
+    instagramAuthUrl.searchParams.set("redirect_uri", redirectUri)
     instagramAuthUrl.searchParams.set("scope", config.facebook.scopes.join(","))
     instagramAuthUrl.searchParams.set("state", state)
     instagramAuthUrl.searchParams.set("response_type", "code")

@@ -17,20 +17,54 @@ export async function getSocialAccounts(userId?: string) {
     console.log("getSocialAccounts: Fetching for user", uid)
     if (!firebaseDb) throw new Error("Database not initialized")
 
-    // Get active workspace
-    const workspace = await getActiveWorkspace(uid)
-    if (!workspace) return {}
+    const emptyAccounts = {
+      instagram: null,
+      youtube: null,
+      tiktok: null,
+      threads: null,
+      facebook: null,
+      twitter: null,
+      pinterest: null,
+      linkedin: null,
+    }
 
-    const accounts = workspace.accounts || {}
+    // Prefer active workspace accounts
+    const workspace = await getActiveWorkspace(uid)
+    const workspaceAccounts = workspace?.accounts || {}
+
+    const hasWorkspaceAccounts = Object.values(workspaceAccounts).some((account: any) => Boolean(account))
+    if (hasWorkspaceAccounts) {
+      return {
+        ...emptyAccounts,
+        instagram: workspaceAccounts.instagram || null,
+        youtube: workspaceAccounts.youtube || null,
+        tiktok: workspaceAccounts.tiktok || null,
+        threads: workspaceAccounts.threads || null,
+        facebook: workspaceAccounts.facebook || null,
+        twitter: workspaceAccounts.twitter || null,
+        pinterest: workspaceAccounts.pinterest || null,
+        linkedin: workspaceAccounts.linkedin || null,
+      }
+    }
+
+    // Fallback for legacy data stored directly in users/{uid}
+    const userDocRef = doc(firebaseDb, "users", uid)
+    const userDoc = await getDoc(userDocRef)
+    if (!userDoc.exists()) {
+      return emptyAccounts
+    }
+
+    const userData = userDoc.data()
     return {
-      instagram: accounts.instagram || null,
-      youtube: accounts.youtube || null,
-      tiktok: accounts.tiktok || null,
-      threads: accounts.threads || null,
-      facebook: accounts.facebook || null,
-      twitter: accounts.twitter || null,
-      pinterest: accounts.pinterest || null,
-      linkedin: accounts.linkedin || null,
+      ...emptyAccounts,
+      instagram: userData.instagram || null,
+      youtube: userData.youtube || null,
+      tiktok: userData.tiktok || null,
+      threads: userData.threads || null,
+      facebook: userData.facebook || null,
+      twitter: userData.twitter || null,
+      pinterest: userData.pinterest || null,
+      linkedin: userData.linkedin || null,
     }
   } catch (error) {
     console.error("Error getting social accounts:", error)

@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
             console.log("Found Linked Instagram Business Account:", igAccount.username)
             username = igAccount.username || username
             profilePicture = igAccount.profile_picture_url
-            followerCount = Number(igAccount.followers_count) || 0
+            followerCount = Number(igAccount.followers_count ?? igAccount.follower_count) || 0
             postsCount = Number(igAccount.media_count) || 0
           }
         }

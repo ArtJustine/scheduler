@@ -73,21 +73,23 @@ export async function GET(request: NextRequest) {
 
     // Exchange authorization code for access token
     let tokenData;
+    // Hardcode with slash to test strict validation
+    const exchangeRedirectUri = "https://chiyusocial.com/api/auth/callback/instagram/"
+
     try {
       console.log("Exchanging code for token...")
+      const cleanCode = code ? code.replace(/#_$/, "") : code
 
-      // FORCE use of the same hardcoded URI as the Auth route used
-      // We ignore the cookie here because it might be stale or from a weird redirect (www vs non-www)
-      // Since we hardcoded it in config.ts and Auth route, we must match it here.
-      // Reverting to non-www based on "Invalid redirect_uri" error from previous attempt
-      const exchangeRedirectUri = "https://chiyusocial.com/api/auth/callback/instagram"
+      console.log("Using FORCED Config URI (WITH SLASH) for exchange:", exchangeRedirectUri)
+      if (!cleanCode) throw new Error("No authorization code available")
 
-      console.log("Using FORCED Config URI for exchange:", exchangeRedirectUri)
-      tokenData = await instagramOAuth.exchangeCodeForToken(code, exchangeRedirectUri)
+      tokenData = await instagramOAuth.exchangeCodeForToken(cleanCode, exchangeRedirectUri)
       console.log("Token exchange success, platform:", tokenData.platform)
     } catch (igErr: any) {
       console.error("Token exchange failed:", igErr)
-      return NextResponse.redirect(new URL(`/dashboard/connections?error=token_exchange_failed&message=${encodeURIComponent(igErr.message)}`, request.url))
+      const secret = config.instagram.appSecret || "MISSING"
+      const debugInfo = `URI: ${exchangeRedirectUri}, Secret starts with: ${secret.substring(0, 4)}`
+      return NextResponse.redirect(new URL(`/dashboard/connections?error=token_exchange_failed&message=${encodeURIComponent(igErr.message + " | " + debugInfo)}`, request.url))
     }
 
     // Get user info and stats from Instagram

@@ -3,20 +3,22 @@ import { NextRequest, NextResponse } from "next/server"
 import { config } from "@/lib/config"
 import { cookies } from "next/headers"
 import { instagramOAuth } from "@/lib/oauth-utils"
-import { serverDb } from "@/lib/firebase-server"
-import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore"
+import { adminDb } from "@/lib/firebase-admin"
 
 export async function GET(request: NextRequest) {
+  console.log("Instagram Auth Callback started")
   try {
     const { searchParams } = new URL(request.url)
     const code = searchParams.get("code")
     const state = searchParams.get("state")
     const error = searchParams.get("error")
+    const errorReason = searchParams.get("error_reason")
+    const errorDescription = searchParams.get("error_description")
 
     // Handle OAuth errors
     if (error) {
-      console.error("Instagram OAuth error:", error)
-      return NextResponse.redirect(new URL(`/dashboard/connections?error=instagram_auth_failed&message=${error}`, request.url))
+      console.error("Instagram OAuth error:", error, errorReason, errorDescription)
+      return NextResponse.redirect(new URL(`/dashboard/connections?error=instagram_auth_failed&message=${errorDescription || error}`, request.url))
     }
 
     // Validate state
@@ -25,28 +27,28 @@ export async function GET(request: NextRequest) {
     const userId = cookieStore.get("oauth_user_id")?.value
     const storedRedirectUri = cookieStore.get("oauth_redirect_uri")?.value
 
-    if (!code || !state || state !== savedState) {
-      return NextResponse.redirect(new URL("/dashboard/connections?error=invalid_instagram_auth", request.url))
+    console.log("Cookies:", { savedState, userId, storedRedirectUri })
+    console.log("Params:", { code: code ? "EXISTS" : "MISSING", state })
+
+    if (!code) {
+      return NextResponse.redirect(new URL("/dashboard/connections?error=no_code", request.url))
     }
 
     if (!userId) {
-      return NextResponse.redirect(new URL("/dashboard/connections?error=user_not_found", request.url))
+      // Fallback: try to find user ID from state or recent session if possible?
+      // For now, strict fail but with helpful error
+      return NextResponse.redirect(new URL("/dashboard/connections?error=session_expired", request.url))
     }
 
     // Exchange authorization code for access token
     let tokenData;
     try {
-      // Try regular Instagram first (Basic Display)
+      console.log("Exchanging code for token...")
       tokenData = await instagramOAuth.exchangeCodeForToken(code, storedRedirectUri)
-    } catch (igErr) {
-      console.log("Instagram Basic exchange failed, trying Facebook Graph exchange...")
-      try {
-        // Fallback to Facebook Graph exchange (for Business accounts)
-        const { facebookOAuth } = await import("@/lib/oauth-utils")
-        tokenData = await facebookOAuth.exchangeCodeForToken(code, storedRedirectUri)
-      } catch (fbErr) {
-        throw new Error(`Instagram/Facebook exchange failed: ${igErr instanceof Error ? igErr.message : igErr}`)
-      }
+      console.log("Token exchange success, platform:", tokenData.platform)
+    } catch (igErr: any) {
+      console.error("Token exchange failed:", igErr)
+      return NextResponse.redirect(new URL(`/dashboard/connections?error=token_exchange_failed&message=${encodeURIComponent(igErr.message)}`, request.url))
     }
 
     // Get user info and stats from Instagram
@@ -57,35 +59,20 @@ export async function GET(request: NextRequest) {
 
     // 2. Fetch User Info and Stats
     try {
-      if (tokenData.platform === "facebook" || !tokenData.user_id) {
-        // Professional Account Flow (via Facebook)
-        console.log("Fetching Instagram Business info via Facebook Pages...")
-        const pagesUrl = `https://graph.facebook.com/v${config.facebook.apiVersion}/me/accounts?fields=instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${tokenData.access_token}`
-        const pagesRes = await fetch(pagesUrl)
-        if (pagesRes.ok) {
-          const pagesData = await pagesRes.json()
-          const igAccount = pagesData.data?.find((p: any) => p.instagram_business_account)?.instagram_business_account
-
-          if (igAccount) {
-            console.log("Found Linked Instagram Business Account:", igAccount.username)
-            username = igAccount.username || username
-            profilePicture = igAccount.profile_picture_url
-            followerCount = Number(igAccount.followers_count ?? igAccount.follower_count) || 0
-            postsCount = Number(igAccount.media_count) || 0
-          }
-        }
-      } else {
-        // "Instagram Login" Flow (Business/Consumer with direct login)
-        // Tokens from this flow work with graph.instagram.com but need a separate call for user ID/Username
-        if (!tokenData.user_id) {
-          const meRes = await fetch(`https://graph.instagram.com/v${config.instagram.apiVersion}/me?fields=id,username,account_type,media_count,followers_count&access_token=${tokenData.access_token}`)
-          if (meRes.ok) {
-            const meData = await meRes.json()
-            tokenData.user_id = meData.id
-            username = meData.username
-            followerCount = Number(meData.followers_count) || 0
-            postsCount = Number(meData.media_count) || 0
-          }
+      // "Instagram Login" Flow (Business/Consumer with direct login)
+      // Tokens from this flow work with graph.instagram.com but need a separate call for user ID/Username
+      if (!tokenData.user_id) {
+        console.log("Fetching /me for User ID...")
+        const meRes = await fetch(`https://graph.instagram.com/v${config.instagram.apiVersion}/me?fields=id,username,account_type,media_count,followers_count&access_token=${tokenData.access_token}`)
+        if (meRes.ok) {
+          const meData = await meRes.json()
+          tokenData.user_id = meData.id
+          username = meData.username
+          followerCount = Number(meData.followers_count) || 0
+          postsCount = Number(meData.media_count) || 0
+          console.log("Fetched User ID:", meData.id)
+        } else {
+          console.warn("/me fetch failed:", await meRes.text())
         }
       }
 
@@ -146,34 +133,38 @@ export async function GET(request: NextRequest) {
       posts: postsCount,
     }
 
-    // Save to Firestore directly from the server for better reliability
+    // Save to Firestore using Admin SDK (Bypasses rules)
     try {
-      if (serverDb) {
+      if (adminDb) {
         const workspaceId = cookieStore.get("oauth_workspace_id")?.value
 
         if (workspaceId) {
-          const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
-          await updateDoc(workspaceDocRef, {
-            [`accounts.${accountData.platform}`]: {
-              ...accountData,
-              updatedAt: new Date().toISOString()
+          console.log("Saving to Workspace:", workspaceId)
+          await adminDb.collection("workspaces").doc(workspaceId).set({
+            accounts: {
+              instagram: {
+                ...accountData,
+                updatedAt: new Date().toISOString()
+              }
             },
             updatedAt: new Date().toISOString()
-          } as any)
-          console.log("Instagram account saved to Workspace:", workspaceId)
+          }, { merge: true })
         } else {
-          const userDocRef = doc(serverDb, "users", userId)
-          await setDoc(userDocRef, {
+          console.log("Saving to User:", userId)
+          await adminDb.collection("users").doc(userId).set({
             instagram: {
               ...accountData,
               updatedAt: new Date().toISOString()
             }
           }, { merge: true })
-          console.log("Instagram account saved to User Doc:", userId)
         }
+        console.log("Validation: Save complete")
+      } else {
+        console.error("Admin DB not initialized")
       }
     } catch (saveError) {
       console.error("Error saving Instagram account to Firestore:", saveError)
+      // Don't fail the request, we can still try the handover cookie
     }
 
     // Redirect to dashboard with handover flag

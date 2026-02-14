@@ -1,8 +1,8 @@
 // Instagram OAuth Authentication Route
 import { NextRequest, NextResponse } from "next/server"
-import { config, isPlatformConfigured } from "@/lib/config"
+import { isPlatformConfigured } from "@/lib/config"
 import { cookies } from "next/headers"
-import { oauthHelpers } from "@/lib/oauth-utils"
+import { oauthHelpers, instagramOAuth } from "@/lib/oauth-utils"
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,20 +31,8 @@ export async function GET(request: NextRequest) {
     // Always use the live request origin to avoid stale domain/config mismatches.
     const redirectUri = `${request.nextUrl.origin}/api/auth/callback/instagram`
 
-    // Build Instagram OAuth URL using Instagram Login.
-    // This avoids Facebook App Domain gate issues when the app is configured for Instagram Login.
-    const instagramAuthUrl = new URL("https://www.instagram.com/oauth/authorize")
-    instagramAuthUrl.searchParams.set("client_id", config.instagram.appId)
-    instagramAuthUrl.searchParams.set("redirect_uri", redirectUri)
-    instagramAuthUrl.searchParams.set(
-      "scope",
-      [
-        "instagram_business_basic",
-        "instagram_business_content_publish",
-      ].join(",")
-    )
-    instagramAuthUrl.searchParams.set("state", state)
-    instagramAuthUrl.searchParams.set("response_type", "code")
+    // Build Instagram OAuth URL from shared helper to keep endpoint/scope consistent.
+    const instagramAuthUrl = instagramOAuth.getAuthUrl(state, redirectUri)
 
     // Store state, userId, and redirectUri in cookies
     const response = NextResponse.redirect(instagramAuthUrl)

@@ -47,14 +47,15 @@ async function hydrateThreadsFollowers(accounts: any, workspaceId?: string, user
     0
   ) || 0
 
-  if (currentFollowers > 0 || !threads.accessToken) return accounts
+  const token = threads.accessToken || threads.access_token
+  if (currentFollowers > 0 || !token) return accounts
 
   try {
     const response = await fetch("/api/threads/followers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        accessToken: threads.accessToken,
+        accessToken: token,
         username: threads.username,
         threadsId: threads.id,
       }),

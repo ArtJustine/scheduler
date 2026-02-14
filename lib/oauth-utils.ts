@@ -24,7 +24,7 @@ export interface OAuthError {
 // Instagram OAuth utilities
 export const instagramOAuth = {
   getAuthUrl: (state: string = "instagram_auth", redirectUri?: string) => {
-    const url = new URL("https://www.instagram.com/oauth/authorize")
+    const url = new URL("https://api.instagram.com/oauth/authorize")
     url.searchParams.set("client_id", config.instagram.appId)
     url.searchParams.set("redirect_uri", redirectUri || config.instagram.redirectUri)
     url.searchParams.set("scope", "instagram_business_basic,instagram_business_content_publish")

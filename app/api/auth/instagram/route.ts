@@ -25,11 +25,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Generate state for CSRF protection
-    const state = oauthHelpers.generateState()
+    // Generate state with embedded metadata for "Stateless" recovery if cookies fail
+    // Format: "random:userId:workspaceId" (Base64 encoded)
+    const randomNonce = oauthHelpers.generateState()
+    const statePayload = JSON.stringify({
+      nonce: randomNonce,
+      uid: userId,
+      wid: workspaceId || ""
+    })
+    const state = Buffer.from(statePayload).toString("base64")
 
-    // Use INSTAGRAM_REDIRECT_URI if set (must match Meta app's Valid OAuth Redirect URIs exactly).
-    // Otherwise use request origin so localhost and production work without env changes.
     // Use the unified config redirect URI to ensure it matches the callback's fallback
     // This prevents "Error validating verification code" due to origin mismatches (www vs non-www)
     const redirectUri = config.instagram.redirectUri
@@ -52,34 +57,36 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Determine cookie domain (lax logic for root domain sharing)
+    // If usage is on "www.chiyusocial.com", we want to set cookie on ".chiyusocial.com"
+    // so it persists if redirected to "chiyusocial.com"
+    const hostname = request.nextUrl.hostname
+    const isProduction = process.env.NODE_ENV === "production"
+
+    // Simple heuristic for root domain: take last 2 parts (co.uk handled poorly, but com/net/org fine)
+    // For specific custom domain "chiyusocial.com", this works.
+    let cookieDomain = undefined
+    if (isProduction && hostname.includes("chiyusocial.com")) {
+      cookieDomain = ".chiyusocial.com"
+    }
+
     // Store state, userId, and redirectUri in cookies
     const response = NextResponse.redirect(instagramAuthUrl)
-    response.cookies.set("oauth_state", state, {
+
+    const cookieOptions = {
       httpOnly: true,
       secure: true, // Always true for SameSite=None
       maxAge: 600, // 10 minutes
-      sameSite: "none",
-    })
-    response.cookies.set("oauth_user_id", userId, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 600,
-      sameSite: "none",
-    })
-    response.cookies.set("oauth_redirect_uri", redirectUri, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 600,
-      sameSite: "none",
-    })
+      sameSite: "none" as const,
+      domain: cookieDomain
+    }
+
+    response.cookies.set("oauth_state", state, cookieOptions)
+    response.cookies.set("oauth_user_id", userId, cookieOptions)
+    response.cookies.set("oauth_redirect_uri", redirectUri, cookieOptions)
 
     if (workspaceId) {
-      response.cookies.set("oauth_workspace_id", workspaceId, {
-        httpOnly: true,
-        secure: true,
-        maxAge: 600,
-        sameSite: "none",
-      })
+      response.cookies.set("oauth_workspace_id", workspaceId, cookieOptions)
     }
 
     return response

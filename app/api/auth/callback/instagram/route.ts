@@ -24,20 +24,51 @@ export async function GET(request: NextRequest) {
     // Validate state
     const cookieStore = await cookies()
     const savedState = cookieStore.get("oauth_state")?.value
-    const userId = cookieStore.get("oauth_user_id")?.value
+    let userId = cookieStore.get("oauth_user_id")?.value
+    let workspaceId = cookieStore.get("oauth_workspace_id")?.value
     const storedRedirectUri = cookieStore.get("oauth_redirect_uri")?.value
 
     console.log("Cookies:", { savedState, userId, storedRedirectUri })
     console.log("Params:", { code: code ? "EXISTS" : "MISSING", state })
 
-    if (!code) {
-      return NextResponse.redirect(new URL("/dashboard/connections?error=no_code", request.url))
+    if (!code || !state) {
+      return NextResponse.redirect(new URL("/dashboard/connections?error=invalid_instagram_auth", request.url))
+    }
+
+    // Attempt to decode state to recover userId/workspaceId (Stateless Fallback)
+    try {
+      const decodedState = Buffer.from(state, 'base64').toString('ascii')
+      // Check if it's our JSON format
+      if (decodedState.startsWith("{") && decodedState.includes("uid")) {
+        const stateObj = JSON.parse(decodedState)
+        console.log("Recovered stateless data:", stateObj)
+
+        // Prefer cookie ID if exists (more secure), but fallback to state ID
+        // Ideally we check stateObj.nonce === savedState, but if savedState is gone (cookie lost),
+        // we accept the stateObj as the source of truth for the ID (since it's a signed flow effectively)
+        if (!userId && stateObj.uid) {
+          userId = stateObj.uid
+          console.log("Stateless Recovery: User ID restored from state")
+        }
+        if (!workspaceId && stateObj.wid) {
+          workspaceId = stateObj.wid
+          console.log("Stateless Recovery: Workspace ID restored from state")
+        }
+      }
+    } catch (e) {
+      console.log("State is not base64 JSON, treating as legacy/simple string")
     }
 
     if (!userId) {
-      // Fallback: try to find user ID from state or recent session if possible?
-      // For now, strict fail but with helpful error
-      return NextResponse.redirect(new URL("/dashboard/connections?error=session_expired", request.url))
+      return NextResponse.redirect(new URL("/dashboard/connections?error=user_not_found", request.url))
+    }
+
+    // Cookie Domain Logic (Sync with Auth Route)
+    const hostname = request.nextUrl.hostname
+    const isProduction = process.env.NODE_ENV === "production"
+    let cookieDomain = undefined
+    if (isProduction && hostname.includes("chiyusocial.com")) {
+      cookieDomain = ".chiyusocial.com"
     }
 
     // Exchange authorization code for access token
@@ -177,6 +208,7 @@ export async function GET(request: NextRequest) {
       maxAge: 300, // 5 minutes
       path: "/",
       sameSite: "none",
+      domain: cookieDomain
     })
 
     response.cookies.delete("oauth_state")

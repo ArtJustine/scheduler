@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Info, CheckCircle, XCircle } from "lucide-react"
+import { Info, CheckCircle, XCircle, AlertCircle } from "lucide-react"
 import { SocialConnect } from "@/components/dashboard/social-connect"
 import { useToast } from "@/components/ui/use-toast"
 type SocialAccount = {
@@ -155,6 +155,16 @@ export default function ConnectionsPage() {
 
   return (
     <div className="space-y-6">
+      {searchParams.get("error") && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Connection Error: {searchParams.get("error")}</AlertTitle>
+          <AlertDescription>
+            {searchParams.get("message") ? decodeURIComponent(searchParams.get("message")!) : "Please try connecting again."}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex items-center gap-2">
         {isMobile && (
           <button

@@ -56,29 +56,29 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(instagramAuthUrl)
     response.cookies.set("oauth_state", state, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true, // Always true for SameSite=None
       maxAge: 600, // 10 minutes
-      sameSite: "lax",
+      sameSite: "none",
     })
     response.cookies.set("oauth_user_id", userId, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       maxAge: 600,
-      sameSite: "lax",
+      sameSite: "none",
     })
     response.cookies.set("oauth_redirect_uri", redirectUri, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       maxAge: 600,
-      sameSite: "lax",
+      sameSite: "none",
     })
 
     if (workspaceId) {
       response.cookies.set("oauth_workspace_id", workspaceId, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: true,
         maxAge: 600,
-        sameSite: "lax",
+        sameSite: "none",
       })
     }
 

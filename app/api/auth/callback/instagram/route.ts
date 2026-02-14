@@ -173,10 +173,10 @@ export async function GET(request: NextRequest) {
 
     response.cookies.set("social_handover_data", cookiePayload, {
       httpOnly: false, // Must be accessible by client-side JS
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       maxAge: 300, // 5 minutes
       path: "/",
-      sameSite: "lax",
+      sameSite: "none",
     })
 
     response.cookies.delete("oauth_state")

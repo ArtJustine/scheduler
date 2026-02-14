@@ -18,7 +18,7 @@ export const config = {
     appSecret: process.env.INSTAGRAM_APP_SECRET || "635b9db8bb41c5714ef523db4291884",
     redirectUri: process.env.INSTAGRAM_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/instagram",
     apiVersion: "18.0",
-    scopes: ["instagram_business_basic", "instagram_business_content_publish"],
+    scopes: ["instagram_business_basic"],
   },
 
   // TikTok API Configuration

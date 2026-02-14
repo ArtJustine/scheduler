@@ -109,6 +109,11 @@ export default function ConnectionsPage() {
             })
           } else {
             console.warn("No handover cookie found despite handover=true param")
+            toast({
+              title: "Connection Error",
+              description: "Connection data missing. Please try again or contact support.",
+              variant: "destructive"
+            })
           }
         } catch (err: any) {
           console.error("Handover processing error:", err)

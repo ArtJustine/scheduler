@@ -147,7 +147,9 @@ export async function GET(request: NextRequest) {
         }
 
         // Redirect to dashboard with handover flag and smart success message
-        let successType = "facebook_connected"
+        const isInstagramInitiated = cookieStore.get("oauth_redirect_uri")?.value?.includes("instagram")
+        let successType = isInstagramInitiated ? "instagram_connected" : "facebook_connected"
+
         try {
             const workspaceId = cookieStore.get("oauth_workspace_id")?.value
             if (workspaceId && serverDb) {
@@ -157,7 +159,7 @@ export async function GET(request: NextRequest) {
                     const data = workspaceDoc.data()
                     if (data.accounts?.instagram?.connected && data.accounts?.facebook?.connected) {
                         successType = "facebook_instagram_connected"
-                    } else if (data.accounts?.instagram?.connected) {
+                    } else if (data.accounts?.instagram?.connected && isInstagramInitiated) {
                         successType = "instagram_connected"
                     }
                 }

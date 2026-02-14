@@ -44,7 +44,9 @@ export async function GET(request: NextRequest) {
     let tokenData;
     try {
       console.log("Exchanging code for token...")
-      tokenData = await instagramOAuth.exchangeCodeForToken(code, storedRedirectUri)
+      const exchangeRedirectUri = storedRedirectUri || config.instagram.redirectUri
+      console.log("Using Redirect URI for exchange:", exchangeRedirectUri)
+      tokenData = await instagramOAuth.exchangeCodeForToken(code, exchangeRedirectUri)
       console.log("Token exchange success, platform:", tokenData.platform)
     } catch (igErr: any) {
       console.error("Token exchange failed:", igErr)
@@ -117,11 +119,13 @@ export async function GET(request: NextRequest) {
     postsCount = Number(postsCount) || 0
 
     // Prepare account data for handover
+    // CRITICIAL: Exclude profileImage from cookie to ensure it fits within 4KB limit
+    // The client can fetch the image or we rely on the serverDb save
     const accountData = {
       platform: "instagram",
       id: finalInstagramId,
       username,
-      profileImage: profilePicture,
+      // profileImage: profilePicture, // Removed to save space in cookie
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token || null,
       expiresAt: tokenData.expires_in
@@ -133,29 +137,21 @@ export async function GET(request: NextRequest) {
       posts: postsCount,
     }
 
-    // Save to Firestore using Admin SDK (Bypasses rules)
+    // Save to Firestore using Admin SDK (Main persist method)
     try {
       if (adminDb) {
-        const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+        // We CAN save the profile picture here in the DB
+        const dbData = { ...accountData, profileImage: profilePicture, updatedAt: new Date().toISOString() }
 
+        const workspaceId = cookieStore.get("oauth_workspace_id")?.value
         if (workspaceId) {
-          console.log("Saving to Workspace:", workspaceId)
           await adminDb.collection("workspaces").doc(workspaceId).set({
-            accounts: {
-              instagram: {
-                ...accountData,
-                updatedAt: new Date().toISOString()
-              }
-            },
+            accounts: { instagram: dbData },
             updatedAt: new Date().toISOString()
           }, { merge: true })
         } else {
-          console.log("Saving to User:", userId)
           await adminDb.collection("users").doc(userId).set({
-            instagram: {
-              ...accountData,
-              updatedAt: new Date().toISOString()
-            }
+            instagram: dbData
           }, { merge: true })
         }
         console.log("Validation: Save complete")
@@ -171,7 +167,11 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(new URL("/dashboard/connections?success=instagram_connected&handover=true", request.url))
 
     // Set handover cookie (short-lived, accessible by client)
-    response.cookies.set("social_handover_data", JSON.stringify(accountData), {
+    // We stringify the lighter payload (without image)
+    const cookiePayload = JSON.stringify(accountData)
+    console.log("Handover Cookie Size:", cookiePayload.length)
+
+    response.cookies.set("social_handover_data", cookiePayload, {
       httpOnly: false, // Must be accessible by client-side JS
       secure: process.env.NODE_ENV === "production",
       maxAge: 300, // 5 minutes

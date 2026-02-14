@@ -34,7 +34,20 @@ export async function GET(request: NextRequest) {
     }
 
     // Exchange authorization code for access token
-    const tokenData = await instagramOAuth.exchangeCodeForToken(code, storedRedirectUri)
+    let tokenData;
+    try {
+      // Try regular Instagram first (Basic Display)
+      tokenData = await instagramOAuth.exchangeCodeForToken(code, storedRedirectUri)
+    } catch (igErr) {
+      console.log("Instagram Basic exchange failed, trying Facebook Graph exchange...")
+      try {
+        // Fallback to Facebook Graph exchange (for Business accounts)
+        const { facebookOAuth } = await import("@/lib/oauth-utils")
+        tokenData = await facebookOAuth.exchangeCodeForToken(code, storedRedirectUri)
+      } catch (fbErr) {
+        throw new Error(`Instagram/Facebook exchange failed: ${igErr instanceof Error ? igErr.message : igErr}`)
+      }
+    }
 
     // Get user info and stats from Instagram
     let username = "instagram_user"
@@ -42,32 +55,50 @@ export async function GET(request: NextRequest) {
     let followerCount = 0
     let postsCount = 0
 
+    // 2. Fetch User Info and Stats
     try {
-      // 1. Fetch basic profile and counts
-      const userInfoResponse = await fetch(
-        `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${tokenData.access_token}`
-      )
-      if (userInfoResponse.ok) {
-        const userInfo = await userInfoResponse.json()
-        console.log("Instagram Profile Data:", JSON.stringify(userInfo))
-        username = userInfo.username || username
-        postsCount = Number(userInfo.media_count) || 0
+      if (tokenData.platform === "facebook" || !tokenData.user_id) {
+        // Professional Account Flow (via Facebook)
+        console.log("Fetching Instagram Business info via Facebook Pages...")
+        const pagesUrl = `https://graph.facebook.com/v${config.facebook.apiVersion}/me/accounts?fields=instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${tokenData.access_token}`
+        const pagesRes = await fetch(pagesUrl)
+        if (pagesRes.ok) {
+          const pagesData = await pagesRes.json()
+          const igAccount = pagesData.data?.find((p: any) => p.instagram_business_account)?.instagram_business_account
+
+          if (igAccount) {
+            console.log("Found Linked Instagram Business Account:", igAccount.username)
+            username = igAccount.username || username
+            profilePicture = igAccount.profile_picture_url
+            followerCount = Number(igAccount.followers_count) || 0
+            postsCount = Number(igAccount.media_count) || 0
+          }
+        }
+      } else {
+        // Basic Display Flow
+        const userInfoResponse = await fetch(
+          `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${tokenData.access_token}`
+        )
+        if (userInfoResponse.ok) {
+          const userInfo = await userInfoResponse.json()
+          username = userInfo.username || username
+          postsCount = Number(userInfo.media_count) || 0
+        }
       }
 
-      // 2. Fetch media list to verify count if 0
+      // Check media list as final fallback for post count
       if (postsCount === 0) {
+        const platformHost = tokenData.platform === "facebook" ? "graph.facebook.com" : "graph.instagram.com"
         const mediaListResponse = await fetch(
-          `https://graph.instagram.com/me/media?access_token=${tokenData.access_token}`
+          `https://${platformHost}/me/media?access_token=${tokenData.access_token}`
         )
         if (mediaListResponse.ok) {
           const mediaList = await mediaListResponse.json()
-          if (mediaList.data) {
-            postsCount = mediaList.data.length
-          }
+          if (mediaList.data) postsCount = mediaList.data.length
         }
       }
     } catch (err) {
-      console.warn("Could not fetch Instagram user info:", err)
+      console.warn("Instagram data fetch failed:", err)
     }
 
     // Ensure everything is a number

@@ -78,38 +78,46 @@ export async function GET(request: NextRequest) {
 
         // 3. Try fetching stats individually with redundant field names and versioned API
         try {
-            console.log("Attempting to fetch follower count via v1.0...")
-            // Try user fields variations with versioned API
-            const vUrl = `https://graph.threads.net/v1.0/me?fields=follower_count,followers_count,media_count,is_private&access_token=${accessToken}`
-            const vRes = await fetch(vUrl)
+            console.log("Attempting to fetch follower count with multiple variations...")
 
-            if (vRes.ok) {
-                const vData = await vRes.json()
-                console.log("Threads v1.0 API Response:", JSON.stringify(vData))
-                followerCount = vData.follower_count ?? vData.followers_count ?? vData.threads_follower_count ?? 0
-                postsCount = vData.media_count ?? postsCount
-                if (vData.is_private) console.log("Threads account is private, followers might be hidden")
-            } else {
-                // Try without version prefix as fallback
-                const fallbackUrl = `https://graph.threads.net/me?fields=follower_count,followers_count&access_token=${accessToken}`
-                const fallbackRes = await fetch(fallbackUrl)
-                if (fallbackRes.ok) {
-                    const fbData = await fallbackRes.json()
-                    followerCount = fbData.follower_count ?? fbData.followers_count ?? followerCount
+            // Try different valid Threads API versions and field names
+            const fieldVariations = [
+                { url: `https://graph.threads.net/v1.0/me?fields=follower_count,followers_count,media_count,is_private`, name: "v1.0" },
+                { url: `https://graph.threads.net/me?fields=follower_count,followers_count,media_count`, name: "unversioned" },
+                { url: `https://graph.threads.net/v1.0/me?fields=threads_follower_count`, name: "explicit_threads_field" }
+            ];
+
+            for (const variation of fieldVariations) {
+                try {
+                    const res = await fetch(`${variation.url}&access_token=${accessToken}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        console.log(`Threads ${variation.name} Response:`, JSON.stringify(data));
+
+                        const fCount = data.follower_count ?? data.followers_count ?? data.threads_follower_count;
+                        if (fCount !== undefined) {
+                            followerCount = Math.max(followerCount, Number(fCount));
+                        }
+
+                        const mCount = data.media_count;
+                        if (mCount !== undefined) {
+                            postsCount = Math.max(postsCount, Number(mCount));
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`Variation ${variation.name} failed:`, e);
                 }
             }
 
             // 4. Try Business Insights endpoint as a strong backup
             if (followerCount === 0 && threadsId) {
-                console.log("Follower count 0, trying total insights...")
-                // Note: period=lifetime is the default for followers_count
+                console.log("Follower count still 0, trying total insights node...")
                 const insightsUrl = `https://graph.threads.net/v1.0/${threadsId}/threads_insights?metric=followers_count&access_token=${accessToken}`
                 const insightsRes = await fetch(insightsUrl)
                 if (insightsRes.ok) {
                     const iData = await insightsRes.json()
-                    console.log("Insights Response:", JSON.stringify(iData))
+                    console.log("Insights Response (followers_count):", JSON.stringify(iData))
                     if (iData.data && iData.data.length > 0) {
-                        // Some endpoints return total_value, some return values array
                         followerCount = iData.data[0].total_value ?? iData.data[0].values?.[0]?.value ?? 0
                     }
                 }

@@ -34,8 +34,14 @@ export async function GET(request: NextRequest) {
       redirectUri = `${request.nextUrl.origin}/api/auth/callback/instagram`
     }
 
-    // Build Instagram OAuth URL
-    const instagramAuthUrl = instagramOAuth.getAuthUrl(state, redirectUri)
+    // Build Instagram OAuth URL (Using Facebook Login Flow for Business Accounts)
+    // This avoids "Invalid platform app" and is required for professional accounts.
+    const instagramAuthUrl = new URL(`https://www.facebook.com/v${config.facebook.apiVersion}/dialog/oauth`)
+    instagramAuthUrl.searchParams.set("client_id", config.facebook.appId)
+    instagramAuthUrl.searchParams.set("redirect_uri", config.facebook.redirectUri)
+    instagramAuthUrl.searchParams.set("scope", config.facebook.scopes.join(","))
+    instagramAuthUrl.searchParams.set("state", state)
+    instagramAuthUrl.searchParams.set("response_type", "code")
 
     // Store state, userId, and redirectUri in cookies
     const response = NextResponse.redirect(instagramAuthUrl)

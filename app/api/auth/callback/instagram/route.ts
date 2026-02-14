@@ -75,8 +75,13 @@ export async function GET(request: NextRequest) {
     let tokenData;
     try {
       console.log("Exchanging code for token...")
-      const exchangeRedirectUri = storedRedirectUri || config.instagram.redirectUri
-      console.log("Using Redirect URI for exchange:", exchangeRedirectUri)
+
+      // FORCE use of the same hardcoded URI as the Auth route used
+      // We ignore the cookie here because it might be stale or from a weird redirect (www vs non-www)
+      // Since we hardcoded it in config.ts and Auth route, we must match it here.
+      const exchangeRedirectUri = config.instagram.redirectUri
+
+      console.log("Using FORCED Config URI for exchange:", exchangeRedirectUri)
       tokenData = await instagramOAuth.exchangeCodeForToken(code, exchangeRedirectUri)
       console.log("Token exchange success, platform:", tokenData.platform)
     } catch (igErr: any) {

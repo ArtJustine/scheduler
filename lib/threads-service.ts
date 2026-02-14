@@ -69,6 +69,23 @@ export async function fetchThreadsStats(accessToken: string, threadsId?: string,
         }
     }
 
+    // 2.5 New Fallback: If postsCount is 0, try to count them manually from /me/threads
+    if (postsCount === 0) {
+        try {
+            const threadsListUrl = `https://graph.threads.net/v1.0/me/threads?fields=id&access_token=${accessToken}`
+            const threadsRes = await fetch(threadsListUrl)
+            if (threadsRes.ok) {
+                const threadsData = await threadsRes.json()
+                if (threadsData.data) {
+                    postsCount = threadsData.data.length
+                    console.log(`Manually counted ${postsCount} threads`)
+                }
+            }
+        } catch (err) {
+            console.warn("Threads manual post count failed:", err)
+        }
+    }
+
     // 3. Fallback: Profile Lookup (Username-based)
     if (followerCount === 0 && normalizedUsername) {
         try {

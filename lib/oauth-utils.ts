@@ -24,8 +24,8 @@ export interface OAuthError {
 // Instagram OAuth utilities (Using Direct Instagram Login for Business)
 export const instagramOAuth = {
   getAuthUrl: (state: string = "instagram_auth", redirectUri?: string) => {
-    // "Instagram Login" uses api.instagram.com for authorize, matching the token endpoint
-    const url = new URL("https://api.instagram.com/oauth/authorize")
+    // Reverting to correct user-facing authorize URL (api.instagram.com is for backend only sometimes)
+    const url = new URL("https://www.instagram.com/oauth/authorize")
     url.searchParams.set("client_id", config.instagram.appId)
     url.searchParams.set("redirect_uri", redirectUri || config.instagram.redirectUri)
     url.searchParams.set("scope", config.instagram.scopes?.join(",") || "user_profile,user_media")

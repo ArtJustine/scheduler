@@ -30,9 +30,7 @@ export const instagramOAuth = {
     url.searchParams.set("scope", config.instagram.scopes?.join(",") || "user_profile,user_media")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
-    // Direct IG login settings
-    url.searchParams.set("force_authentication", "1")
-    url.searchParams.set("enable_fb_login", "0")
+    // Removed legacy parameters to comply with new product flow
     return url.toString()
   },
 

@@ -27,8 +27,12 @@ export const instagramOAuth = {
     const url = new URL("https://api.instagram.com/oauth/authorize")
     url.searchParams.set("client_id", config.instagram.appId)
     url.searchParams.set("redirect_uri", redirectUri || config.instagram.redirectUri)
-    url.searchParams.set("scope", "instagram_business_basic,instagram_business_content_publish")
+    // Keep scope minimal for connection reliability; expand later after baseline auth works.
+    url.searchParams.set("scope", "instagram_business_basic")
     url.searchParams.set("response_type", "code")
+    // Reduce meta-side login routing variability.
+    url.searchParams.set("force_authentication", "1")
+    url.searchParams.set("enable_fb_login", "0")
     url.searchParams.set("state", state)
     return url.toString()
   },

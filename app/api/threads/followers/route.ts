@@ -70,6 +70,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Final fallback: parse public Threads profile metadata.
+    if (followerCount === 0 && username) {
+      try {
+        const profileRes = await fetch(`https://www.threads.net/@${encodeURIComponent(username)}`, {
+          headers: { "User-Agent": "Mozilla/5.0" },
+        })
+        if (profileRes.ok) {
+          const html = await profileRes.text()
+          const match =
+            html.match(/"follower_count"\s*:\s*(\d+)/) ||
+            html.match(/"followers_count"\s*:\s*(\d+)/) ||
+            html.match(/"followers"\s*:\s*(\d+)/)
+          if (match?.[1]) {
+            followerCount = Math.max(followerCount, Number(match[1]) || 0)
+          }
+        }
+      } catch {
+        // Ignore public profile fallback failures.
+      }
+    }
+
     return NextResponse.json({ followers: followerCount, posts: postsCount })
   } catch (error: any) {
     return NextResponse.json(

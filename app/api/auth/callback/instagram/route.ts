@@ -111,14 +111,14 @@ export async function GET(request: NextRequest) {
         const pagesData = await pagesRes.json()
         const foundCount = pagesData.data?.length || 0
         const pageNames = pagesData.data?.map((p: any) => p.name).join(", ")
-        console.log(`Found ${foundCount} pages: [${pageNames}]`)
+        console.log(`Step 1: Found ${foundCount} Pages: [${pageNames}]`)
 
         // Find the first page that has a linked Instagram Business account
         const pageWithIg = pagesData.data?.find((page: any) => page.instagram_business_account)
 
         if (pageWithIg) {
           const igAccount = pageWithIg.instagram_business_account
-          console.log(`Found linked Instagram account: @${igAccount.username} on Page: ${pageWithIg.name}`)
+          console.log(`Step 1 Success: Found IG @${igAccount.username} on Page: ${pageWithIg.name}`)
 
           tokenData.user_id = igAccount.id
           username = igAccount.username
@@ -126,13 +126,25 @@ export async function GET(request: NextRequest) {
           followerCount = Number(igAccount.followers_count) || 0
           postsCount = Number(igAccount.media_count) || 0
         } else {
-          console.warn(`No pages (out of ${foundCount}) has a linked Instagram Business account visible.`)
-          // Fallback to searching /me for consumer accounts just in case
-          const meRes = await fetch(`https://graph.instagram.com/me?fields=id,username&access_token=${tokenData.access_token}`)
-          if (meRes.ok) {
-            const meData = await meRes.json()
-            tokenData.user_id = meData.id
-            username = meData.username
+          console.log("Step 1 Failed: Checking Step 2 (Direct User-linked accounts)...")
+
+          // Step 2 Fallback: Check for accounts linked directly to the user profile
+          // This often works for professional accounts that are linked via Account Center
+          const userRes = await fetch(
+            `https://graph.facebook.com/v${config.instagram.apiVersion}/me/instagram_accounts?fields=id,username,profile_pic&access_token=${tokenData.access_token}`
+          )
+
+          if (userRes.ok) {
+            const userData = await userRes.json()
+            if (userData.data && userData.data.length > 0) {
+              const ig = userData.data[0]
+              console.log("Step 2 Success: Found IG via user-linked accounts:", ig.username)
+              tokenData.user_id = ig.id
+              username = ig.username
+              profilePicture = ig.profile_pic || null
+            } else {
+              console.warn(`Discovery: All ${foundCount} pages and direct user profile checked, no linked account found.`)
+            }
           }
         }
       } else {

@@ -16,7 +16,7 @@ export const config = {
   instagram: {
     appId: process.env.INSTAGRAM_APP_ID || "1880155572670356",
     // Force the correct secret visible in screenshot, ignoring potential stale Vercel env var
-    appSecret: "635b9db8bb41c5714ef523db4291884",
+    appSecret: "635b9db8bb41c5714ef523db42918844",
     // Hardcode Redirect URI to ensure exact match between Auth and Callback, ignoring Vercel env
     // Adding trailing slash to test if strict validation requires it
     redirectUri: "https://chiyusocial.com/api/auth/callback/instagram/",

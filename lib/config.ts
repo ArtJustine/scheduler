@@ -12,13 +12,13 @@ export const config = {
     appId: "1:974176191059:web:4b29d837e57c00a97abca6",
   },
 
-  // Instagram API Configuration
+  // Instagram API Configuration (matching Meta dashboard exactly)
   instagram: {
     appId: process.env.INSTAGRAM_APP_ID || "1880155572670356",
     // Force the correct secret visible in screenshot, ignoring potential stale Vercel env var
     appSecret: "635b9db8bb41c5714ef523db42918844",
     // Hardcode Redirect URI to ensure exact match between Auth and Callback, ignoring Vercel env
-    // NO trailing slash - Meta requires exact match
+    // NO trailing slash - must match Meta App Dashboard configuration exactly
     redirectUri: "https://chiyusocial.com/api/auth/callback/instagram",
     apiVersion: "18.0",
     scopes: ["instagram_business_basic"],

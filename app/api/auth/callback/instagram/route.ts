@@ -109,14 +109,16 @@ export async function GET(request: NextRequest) {
 
       if (pagesRes.ok) {
         const pagesData = await pagesRes.json()
-        console.log(`Found ${pagesData.data?.length || 0} pages.`)
+        const foundCount = pagesData.data?.length || 0
+        const pageNames = pagesData.data?.map((p: any) => p.name).join(", ")
+        console.log(`Found ${foundCount} pages: [${pageNames}]`)
 
         // Find the first page that has a linked Instagram Business account
         const pageWithIg = pagesData.data?.find((page: any) => page.instagram_business_account)
 
         if (pageWithIg) {
           const igAccount = pageWithIg.instagram_business_account
-          console.log("Found linked Instagram account:", igAccount.username)
+          console.log(`Found linked Instagram account: @${igAccount.username} on Page: ${pageWithIg.name}`)
 
           tokenData.user_id = igAccount.id
           username = igAccount.username
@@ -124,7 +126,7 @@ export async function GET(request: NextRequest) {
           followerCount = Number(igAccount.followers_count) || 0
           postsCount = Number(igAccount.media_count) || 0
         } else {
-          console.warn("No pages found with a linked Instagram Business account.")
+          console.warn(`No pages (out of ${foundCount}) has a linked Instagram Business account visible.`)
           // Fallback to searching /me for consumer accounts just in case
           const meRes = await fetch(`https://graph.instagram.com/me?fields=id,username&access_token=${tokenData.access_token}`)
           if (meRes.ok) {

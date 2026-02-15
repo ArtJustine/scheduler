@@ -27,7 +27,8 @@ export const config = {
       "pages_show_list",
       "pages_read_engagement",
       "public_profile",
-      "email"
+      "email",
+      "business_management"
     ],
   },
 

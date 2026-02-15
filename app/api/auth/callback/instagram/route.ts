@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     // Exchange authorization code for access token
     let tokenData;
     // Use the same config URI as the auth request to ensure they match exactly
-    const exchangeRedirectUri = config.instagram.redirectUri
+    const exchangeRedirectUri = new URL("/api/auth/callback/instagram", request.url).toString()
 
     try {
       console.log("Exchanging code for token...")

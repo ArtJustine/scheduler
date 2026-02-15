@@ -73,8 +73,8 @@ export async function GET(request: NextRequest) {
 
     // Exchange authorization code for access token
     let tokenData;
-    // Hardcode with slash to test strict validation
-    const exchangeRedirectUri = "https://chiyusocial.com/api/auth/callback/instagram/"
+    // Must match exactly what was sent in auth request - NO trailing slash
+    const exchangeRedirectUri = "https://chiyusocial.com/api/auth/callback/instagram"
 
     try {
       console.log("Exchanging code for token...")

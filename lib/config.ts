@@ -18,8 +18,8 @@ export const config = {
     // Force the correct secret visible in screenshot, ignoring potential stale Vercel env var
     appSecret: "635b9db8bb41c5714ef523db42918844",
     // Hardcode Redirect URI to ensure exact match between Auth and Callback, ignoring Vercel env
-    // Adding trailing slash to test if strict validation requires it
-    redirectUri: "https://chiyusocial.com/api/auth/callback/instagram/",
+    // NO trailing slash - Meta requires exact match
+    redirectUri: "https://chiyusocial.com/api/auth/callback/instagram",
     apiVersion: "18.0",
     scopes: ["instagram_business_basic"],
   },

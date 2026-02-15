@@ -73,14 +73,14 @@ export async function GET(request: NextRequest) {
 
     // Exchange authorization code for access token
     let tokenData;
-    // Must match exactly what was sent in auth request - NO trailing slash
-    const exchangeRedirectUri = "https://chiyusocial.com/api/auth/callback/instagram"
+    // Use the same config URI as the auth request to ensure they match exactly
+    const exchangeRedirectUri = config.instagram.redirectUri
 
     try {
       console.log("Exchanging code for token...")
       const cleanCode = code ? code.replace(/#_$/, "") : code
 
-      console.log("Using FORCED Config URI (WITH SLASH) for exchange:", exchangeRedirectUri)
+      console.log("Using redirect URI for token exchange:", exchangeRedirectUri)
       if (!cleanCode) throw new Error("No authorization code available")
 
       tokenData = await instagramOAuth.exchangeCodeForToken(cleanCode, exchangeRedirectUri)

@@ -31,6 +31,7 @@ export const instagramOAuth = {
     url.searchParams.set("scope", config.instagram.scopes?.join(",") || "instagram_business_basic")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
+    url.searchParams.set("auth_type", "rerequest")
     return url.toString()
   },
 

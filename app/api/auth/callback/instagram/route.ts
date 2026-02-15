@@ -98,54 +98,51 @@ export async function GET(request: NextRequest) {
     let followerCount = 0
     let postsCount = 0
 
-    // 2. Fetch User Info and Stats
+    // 2. Fetch Linked Instagram Business Account Discovery
     try {
-      // "Instagram Login" Flow (Business/Consumer with direct login)
-      // Tokens from this flow work with graph.instagram.com but need a separate call for user ID/Username
-      if (!tokenData.user_id) {
-        console.log("Fetching /me for User ID...")
-        const meRes = await fetch(`https://graph.instagram.com/v${config.instagram.apiVersion}/me?fields=id,username,account_type,media_count,followers_count&access_token=${tokenData.access_token}`)
-        if (meRes.ok) {
-          const meData = await meRes.json()
-          tokenData.user_id = meData.id
-          username = meData.username
-          followerCount = Number(meData.followers_count) || 0
-          postsCount = Number(meData.media_count) || 0
-          console.log("Fetched User ID:", meData.id)
-        } else {
-          console.warn("/me fetch failed:", await meRes.text())
-        }
-      }
+      console.log("Discovering linked Instagram Business accounts...")
+      // For Meta-based apps, we first get the user's Facebook Pages
+      // then check which page has an 'instagram_business_account' linked to it.
+      const pagesRes = await fetch(
+        `https://graph.facebook.com/v${config.instagram.apiVersion}/me/accounts?fields=instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count},name&access_token=${tokenData.access_token}`
+      )
 
-      // Check media list as final fallback for post count
-      if (postsCount === 0) {
-        const platformHost = tokenData.platform === "facebook" ? "graph.facebook.com" : "graph.instagram.com"
-        const mediaListResponse = await fetch(
-          `https://${platformHost}/me/media?access_token=${tokenData.access_token}`
-        )
-        if (mediaListResponse.ok) {
-          const mediaList = await mediaListResponse.json()
-          if (mediaList.data) postsCount = mediaList.data.length
+      if (pagesRes.ok) {
+        const pagesData = await pagesRes.json()
+        console.log(`Found ${pagesData.data?.length || 0} pages.`)
+
+        // Find the first page that has a linked Instagram Business account
+        const pageWithIg = pagesData.data?.find((page: any) => page.instagram_business_account)
+
+        if (pageWithIg) {
+          const igAccount = pageWithIg.instagram_business_account
+          console.log("Found linked Instagram account:", igAccount.username)
+
+          tokenData.user_id = igAccount.id
+          username = igAccount.username
+          profilePicture = igAccount.profile_picture_url || null
+          followerCount = Number(igAccount.followers_count) || 0
+          postsCount = Number(igAccount.media_count) || 0
+        } else {
+          console.warn("No pages found with a linked Instagram Business account.")
+          // Fallback to searching /me for consumer accounts just in case
+          const meRes = await fetch(`https://graph.instagram.com/me?fields=id,username&access_token=${tokenData.access_token}`)
+          if (meRes.ok) {
+            const meData = await meRes.json()
+            tokenData.user_id = meData.id
+            username = meData.username
+          }
         }
+      } else {
+        console.error("Failed to fetch pages:", await pagesRes.text())
       }
     } catch (err) {
-      console.warn("Instagram data fetch failed:", err)
+      console.warn("Instagram account discovery failed:", err)
     }
 
-    // 2a. Fallback: If no user_id yet, try to fetch basic profile without fancy fields
+    // 2a. Final Emergency Fallback if still no user ID found
     if (!tokenData.user_id) {
-      try {
-        console.log("Attempting emergency profile fetch for ID...")
-        const basicMeRes = await fetch(`https://graph.instagram.com/me?fields=id,username&access_token=${tokenData.access_token}`)
-        if (basicMeRes.ok) {
-          const basicMe = await basicMeRes.json()
-          tokenData.user_id = basicMe.id
-          username = basicMe.username || username
-          console.log("Emergency fetch successful:", basicMe.username)
-        } else {
-          console.error("Emergency fetch failed:", await basicMeRes.text())
-        }
-      } catch (e) { console.error("Emergency fetch error:", e) }
+      console.warn("Emergency: No Instagram account discovered. Using fallback ID.")
     }
 
     // Use app user ID only as specific fallback if absolutely necessary to allow debugging

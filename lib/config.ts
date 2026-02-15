@@ -21,7 +21,13 @@ export const config = {
     // NO trailing slash - must match Meta App Dashboard configuration exactly
     redirectUri: "https://chiyusocial.com/api/auth/callback/instagram",
     apiVersion: "18.0",
-    scopes: ["instagram_business_basic", "instagram_business_content_publish"],
+    scopes: [
+      "instagram_basic",
+      "instagram_content_publish",
+      "pages_show_list",
+      "pages_read_engagement",
+      "public_profile"
+    ],
   },
 
   // TikTok API Configuration
@@ -51,8 +57,13 @@ export const config = {
     redirectUri: process.env.FACEBOOK_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/facebook",
     apiVersion: "18.0",
     scopes: [
+      "instagram_basic",
       "instagram_business_basic",
-      "instagram_business_content_publish"
+      "instagram_business_content_publish",
+      "instagram_content_publish",
+      "pages_show_list",
+      "pages_read_engagement",
+      "public_profile"
     ],
   },
 

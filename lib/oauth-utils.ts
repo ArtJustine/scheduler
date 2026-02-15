@@ -21,44 +21,38 @@ export interface OAuthError {
   error_reason?: string
 }
 
-// Instagram OAuth utilities (Using Direct Instagram Login for Business)
+// Instagram OAuth utilities (Using Meta App for Instagram Login)
 export const instagramOAuth = {
   getAuthUrl: (state: string = "instagram_auth", redirectUri?: string) => {
-    // Reverting to correct user-facing authorize URL (api.instagram.com is for backend only sometimes)
-    const url = new URL("https://www.instagram.com/oauth/authorize")
+    // For Meta-based Instagram Login, we use the Facebook dialog URL
+    const url = new URL(`https://www.facebook.com/v${config.instagram.apiVersion}/dialog/oauth`)
     url.searchParams.set("client_id", config.instagram.appId)
     url.searchParams.set("redirect_uri", redirectUri || config.instagram.redirectUri)
-    url.searchParams.set("scope", config.instagram.scopes?.join(",") || "user_profile,user_media")
+    url.searchParams.set("scope", config.instagram.scopes?.join(",") || "instagram_business_basic")
     url.searchParams.set("response_type", "code")
     url.searchParams.set("state", state)
-    // Removed legacy parameters to comply with new product flow
     return url.toString()
   },
 
   exchangeCodeForToken: async (code: string, redirectUri?: string): Promise<OAuthToken> => {
-    const body = new URLSearchParams({
-      client_id: config.instagram.appId,
-      client_secret: config.instagram.appSecret,
-      grant_type: "authorization_code",
-      redirect_uri: redirectUri || config.instagram.redirectUri,
-      code: code,
-    })
+    const url = new URL(`https://graph.facebook.com/v${config.instagram.apiVersion}/oauth/access_token`)
+    url.searchParams.set("client_id", config.instagram.appId)
+    url.searchParams.set("client_secret", config.instagram.appSecret)
+    url.searchParams.set("redirect_uri", redirectUri || config.instagram.redirectUri)
+    url.searchParams.set("code", code)
 
-    const response = await fetch("https://api.instagram.com/oauth/access_token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
-    })
+    const response = await fetch(url.toString())
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({} as any))
-      throw new Error(`Instagram token exchange failed: ${error.error_message || error.error?.message || "Internal error"}`)
+      throw new Error(`Instagram token exchange failed: ${error.error?.message || error.error_description || "Internal error"}`)
     }
 
     const data = await response.json()
     return {
       access_token: data.access_token,
-      user_id: data.user_id || data.id,
+      expires_in: data.expires_in,
+      user_id: data.user_id, // For Instagram Login, this might be present or we fetch it from /me
       platform: "instagram",
       created_at: Date.now(),
     }

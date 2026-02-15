@@ -14,14 +14,14 @@ export const config = {
 
   // Instagram API Configuration (matching Meta dashboard exactly)
   instagram: {
-    appId: process.env.INSTAGRAM_APP_ID || "1880155572670356",
-    // Force the correct secret visible in screenshot, ignoring potential stale Vercel env var
-    appSecret: "635b9db8bb41c5714ef523db42918844",
+    appId: process.env.INSTAGRAM_APP_ID || "943816434644966",
+    // Use the Meta App Secret that corresponds with the App ID above
+    appSecret: process.env.INSTAGRAM_APP_SECRET || "106bb8fb32f22f00aa01ee0800da6cd2",
     // Hardcode Redirect URI to ensure exact match between Auth and Callback, ignoring Vercel env
     // NO trailing slash - must match Meta App Dashboard configuration exactly
     redirectUri: "https://chiyusocial.com/api/auth/callback/instagram",
     apiVersion: "18.0",
-    scopes: ["instagram_business_basic"],
+    scopes: ["instagram_business_basic", "instagram_business_content_publish"],
   },
 
   // TikTok API Configuration

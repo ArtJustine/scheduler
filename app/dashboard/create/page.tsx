@@ -99,6 +99,19 @@ export default function CreatePostPage() {
   const [youtubeTags, setYoutubeTags] = useState<string>("")
   const [success, setSuccess] = useState(false)
   const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Instagram Specific Options
+  const [instagramPostType, setInstagramPostType] = useState<"post" | "reel" | "story">("post")
+
+  // TikTok Specific Options
+  const [tiktokPrivacy, setTiktokPrivacy] = useState<"public" | "friends" | "self">("public")
+  const [tiktokAllowComments, setTiktokAllowComments] = useState(true)
+  const [tiktokAllowDuet, setTiktokAllowDuet] = useState(true)
+  const [tiktokAllowStitch, setTiktokAllowStitch] = useState(true)
+
+  // Threads Specific Options
+  const [threadsReplyPolicy, setThreadsReplyPolicy] = useState<"everyone" | "followed" | "mentioned">("everyone")
 
   const timezoneOffset = (() => {
     try {
@@ -165,6 +178,50 @@ export default function CreatePostPage() {
 
   const handleMediaUpload = (url: string) => {
     setMediaUrl(url)
+
+    // Auto-detect post type based on media
+    if (url) {
+      const isVideo = url.match(/\.(mp4|mov|webm)$/i)
+      if (isVideo) {
+        if (selectedPlatforms.includes("instagram")) setInstagramPostType("reel")
+        if (selectedPlatforms.includes("youtube") && youtubeAspectRatio === "9:16") setYoutubeAspectRatio("9:16")
+      } else {
+        if (selectedPlatforms.includes("instagram")) setInstagramPostType("post")
+      }
+    }
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsSubmitting(true)
+    try {
+      if (!user || !firebaseStorage) return
+
+      const timestamp = Date.now()
+      const fileName = `${timestamp}_${file.name}`
+      const storageRef = ref(firebaseStorage, `media/${user.uid}/${fileName}`)
+
+      await uploadBytes(storageRef, file)
+      const downloadURL = await getDownloadURL(storageRef)
+
+      await registerMediaMetadata({
+        url: downloadURL,
+        title: file.name,
+        type: file.type.startsWith("video/") ? "video" : "image",
+        fileName: file.name,
+        fileSize: file.size,
+        storagePath: storageRef.fullPath,
+      })
+
+      handleMediaUpload(downloadURL)
+    } catch (err) {
+      console.error("Manual upload failed:", err)
+      setError("Failed to upload media")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const captureFrame = async () => {
@@ -260,6 +317,26 @@ export default function CreatePostPage() {
         color: "bg-primary/10 text-primary"
       })
     }
+    if (selectedPlatforms.includes("instagram")) {
+      guidelines.push({
+        id: "instagram",
+        title: "Instagram Guidelines",
+        content: instagramPostType === "reel"
+          ? "Reels should be 9:16 aspect ratio and under 90 seconds for best engagement."
+          : "Posts work best as square (1:1) or portrait (4:5) images.",
+        icon: <Instagram className="h-5 w-5" />,
+        color: "bg-pink-50 text-pink-600"
+      })
+    }
+    if (selectedPlatforms.includes("threads")) {
+      guidelines.push({
+        id: "threads",
+        title: "Threads Posting",
+        content: "Threads is great for text-first content. Images and videos up to 5 minutes are supported.",
+        icon: <Share2 className="h-5 w-5" />,
+        color: "bg-slate-100 text-slate-800"
+      })
+    }
     if (selectedPlatforms.includes("youtube")) {
       if (youtubeAspectRatio === "9:16") {
         guidelines.push({
@@ -331,9 +408,9 @@ export default function CreatePostPage() {
         timezone
       }
 
-      // Only add YouTube specific fields if YouTube is selected to avoid 'undefined' field values in Firestore
+      // Add Platform Specific Fields
       if (selectedPlatforms.includes("youtube")) {
-        postData.youtubePostType = youtubeAspectRatio === "community" ? "community" : (mediaUrl ? "video" : "community")
+        postData.youtubePostType = youtubeAspectRatio === "community" ? "community" : (mediaUrl ? (youtubeAspectRatio === "9:16" ? "short" : "video") : "community")
         postData.youtubeOptions = {
           playlist: youtubePlaylist,
           madeForKids: youtubeMadeForKids,
@@ -341,6 +418,25 @@ export default function CreatePostPage() {
           alteredContent: youtubeAlteredContent,
           tags: youtubeTags.split(",").map(t => t.trim()).filter(t => t),
           category: youtubeCategory
+        }
+      }
+
+      if (selectedPlatforms.includes("instagram")) {
+        postData.instagramPostType = instagramPostType
+      }
+
+      if (selectedPlatforms.includes("tiktok")) {
+        postData.tiktokOptions = {
+          privacy: tiktokPrivacy,
+          allowComments: tiktokAllowComments,
+          allowDuet: tiktokAllowDuet,
+          allowStitch: tiktokAllowStitch
+        }
+      }
+
+      if (selectedPlatforms.includes("threads")) {
+        postData.threadsOptions = {
+          replyPolicy: threadsReplyPolicy
         }
       }
 
@@ -549,7 +645,7 @@ export default function CreatePostPage() {
                       <div className="flex flex-col gap-1">
                         <DropdownMenuItem
                           className="cursor-pointer py-3 px-3 rounded-xl transition-all group/item focus:bg-primary/10 focus:text-primary data-[highlighted]:bg-primary/10"
-                          onClick={() => setShowMediaUploader(true)}
+                          onClick={() => fileInputRef.current?.click()}
                         >
                           <div className="flex items-center gap-3 w-full">
                             <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-primary-foreground transition-colors shrink-0">
@@ -557,10 +653,17 @@ export default function CreatePostPage() {
                             </div>
                             <div className="flex flex-col gap-0.5 flex-1">
                               <span className="text-sm font-semibold leading-none">Upload New Media</span>
-                              <span className="text-xs text-muted-foreground leading-none">Drag & drop or select file</span>
+                              <span className="text-xs text-muted-foreground leading-none">Select from your device</span>
                             </div>
                           </div>
                         </DropdownMenuItem>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept="image/*,video/*"
+                          onChange={handleFileChange}
+                        />
 
                         {mediaItems.length > 0 && (
                           <>
@@ -934,6 +1037,115 @@ export default function CreatePostPage() {
             </Card>
           )}
 
+          {/* Instagram Specific Options */}
+          {selectedPlatforms.includes("instagram") && (
+            <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+              <CardContent className="p-8 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-2xl bg-pink-500/10 flex items-center justify-center text-pink-600">
+                    <Instagram className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm">Instagram Settings</h3>
+                    <p className="text-[10px] text-muted-foreground font-medium">Choose your post format</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 p-1 bg-muted/20 rounded-2xl border border-muted/20">
+                  {(["post", "reel", "story"] as const).map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setInstagramPostType(type)}
+                      className={cn(
+                        "flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all",
+                        instagramPostType === type
+                          ? "bg-white dark:bg-slate-800 shadow-sm text-pink-600"
+                          : "text-muted-foreground hover:bg-white/50 dark:hover:bg-slate-800/50"
+                      )}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* TikTok Specific Options */}
+          {selectedPlatforms.includes("tiktok") && (
+            <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+              <CardContent className="p-8 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-2xl bg-slate-900/10 dark:bg-white/10 flex items-center justify-center text-slate-900 dark:text-white">
+                    <Music2 className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm">TikTok Settings</h3>
+                    <p className="text-[10px] text-muted-foreground font-medium">Privacy and interactions</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Privacy</Label>
+                    <Select value={tiktokPrivacy} onValueChange={(val: any) => setTiktokPrivacy(val)}>
+                      <SelectTrigger className="rounded-2xl h-11 border-muted/20">
+                        <SelectValue placeholder="Who can watch?" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-white/20">
+                        <SelectItem value="public">Everyone</SelectItem>
+                        <SelectItem value="friends">Friends Only</SelectItem>
+                        <SelectItem value="self">Only Me</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between p-3 border border-muted/10 rounded-2xl bg-muted/5 group">
+                      <Label htmlFor="tt-comments" className="text-[10px] font-bold cursor-pointer">Comments</Label>
+                      <Switch id="tt-comments" checked={tiktokAllowComments} onCheckedChange={setTiktokAllowComments} />
+                    </div>
+                    <div className="flex items-center justify-between p-3 border border-muted/10 rounded-2xl bg-muted/5 group">
+                      <Label htmlFor="tt-duet" className="text-[10px] font-bold cursor-pointer">Duet</Label>
+                      <Switch id="tt-duet" checked={tiktokAllowDuet} onCheckedChange={setTiktokAllowDuet} />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Threads Specific Options */}
+          {selectedPlatforms.includes("threads") && (
+            <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+              <CardContent className="p-8 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-2xl bg-slate-900/10 dark:bg-white/10 flex items-center justify-center text-slate-900 dark:text-white">
+                    <Share2 className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm">Threads Settings</h3>
+                    <p className="text-[10px] text-muted-foreground font-medium">Thread interaction policy</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Who can reply?</Label>
+                  <Select value={threadsReplyPolicy} onValueChange={(val: any) => setThreadsReplyPolicy(val)}>
+                    <SelectTrigger className="rounded-2xl h-11 border-muted/20">
+                      <SelectValue placeholder="Select policy" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-white/20">
+                      <SelectItem value="everyone">Anyone</SelectItem>
+                      <SelectItem value="followed">Profiles you follow</SelectItem>
+                      <SelectItem value="mentioned">Only mentioned profiles</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
 
           {/* Guidelines Section */}
           <Collapsible className="w-full">
@@ -1008,7 +1220,7 @@ export default function CreatePostPage() {
             <TabsContent value="tiktok" className="mt-0">
               <div className={cn(
                 "relative mx-auto border-[8px] border-gray-900 rounded-[3rem] overflow-hidden shadow-2xl transition-all duration-300",
-                previewView === "mobile" ? "w-[320px] h-[640px]" : "w-full h-[500px] border-none rounded-xl"
+                previewView === "mobile" ? "w-[320px] h-[640px]" : "w-full min-h-[500px] border-none rounded-xl bg-black"
               )}>
                 <div className="absolute inset-0 bg-black flex items-center justify-center">
                   {mediaUrl && !mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
@@ -1090,6 +1302,91 @@ export default function CreatePostPage() {
                     <div className="space-y-1">
                       <div className="h-3 bg-gray-100 rounded w-24"></div>
                       <div className="h-2 bg-gray-50 rounded w-16"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="instagram" className="mt-0">
+              <div className={cn(
+                "relative mx-auto border-[10px] border-slate-900 rounded-[3rem] overflow-hidden shadow-2xl transition-all duration-300 bg-white",
+                previewView === "mobile" ? "w-[320px] h-[640px]" : "w-full min-h-[500px]"
+              )}>
+                {/* IG Header */}
+                <div className="p-4 flex items-center justify-between border-b">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 p-[1.5px]">
+                      <div className="h-full w-full rounded-full bg-white p-[1.5px]">
+                        <div className="h-full w-full rounded-full bg-slate-100" />
+                      </div>
+                    </div>
+                    <p className="text-xs font-bold">youraccount</p>
+                  </div>
+                  <Plus className="h-4 w-4" />
+                </div>
+
+                <div className={cn(
+                  "relative bg-slate-50",
+                  instagramPostType === "reel" ? "h-[450px]" : "aspect-square"
+                )}>
+                  {mediaUrl ? (
+                    mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ?
+                      <img src={mediaUrl} className="w-full h-full object-cover" /> :
+                      <video src={mediaUrl} className="w-full h-full object-cover" controls />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center opacity-10">
+                      <Instagram className="h-20 w-20" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 space-y-2">
+                  <div className="flex items-center gap-4">
+                    <Heart className="h-5 w-5" />
+                    <MessageCircle className="h-5 w-5" />
+                    <Send className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs">
+                    <span className="font-bold mr-2">youraccount</span>
+                    {content || "Your caption here..."}
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="threads" className="mt-0">
+              <div className={cn(
+                "mx-auto border rounded-2xl p-6 shadow-lg bg-card",
+                previewView === "mobile" ? "w-[320px]" : "w-full"
+              )}>
+                <div className="flex gap-4">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="h-10 w-10 rounded-full bg-slate-100" />
+                    <div className="w-[2px] grow bg-slate-100 rounded-full" />
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-bold">youraccount</p>
+                      <p className="text-xs text-muted-foreground">30s</p>
+                    </div>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{content || "Start a thread..."}</p>
+
+                    {mediaUrl && (
+                      <div className="rounded-xl overflow-hidden border border-muted/20">
+                        {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                          <img src={mediaUrl} className="w-full h-auto" />
+                        ) : (
+                          <video src={mediaUrl} className="w-full h-auto" controls />
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-4 text-muted-foreground">
+                      <Heart className="h-4 w-4" />
+                      <MessageCircle className="h-4 w-4" />
+                      <Repeat2 className="h-4 w-4" />
+                      <Send className="h-4 w-4" />
                     </div>
                   </div>
                 </div>

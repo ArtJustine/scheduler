@@ -29,7 +29,8 @@ import {
   FileText,
   Hash,
   Image as ImageIconLucide,
-  Upload
+  Upload,
+  User
 } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -112,6 +113,9 @@ export default function CreatePostPage() {
 
   // Threads Specific Options
   const [threadsReplyPolicy, setThreadsReplyPolicy] = useState<"everyone" | "followed" | "mentioned">("everyone")
+
+  // LinkedIn Specific Options
+  const [linkedinVisibility, setLinkedinVisibility] = useState<"PUBLIC" | "CONNECTIONS">("PUBLIC")
 
   const timezoneOffset = (() => {
     try {
@@ -286,24 +290,12 @@ export default function CreatePostPage() {
   }
 
   const getPlatformIcon = (plat: string, className?: string) => {
-    switch (plat.toLowerCase()) {
-      case "tiktok":
-        return <Music2 className={cn("h-5 w-5", className)} />
-      case "youtube":
-        return <Youtube className={cn("h-5 w-5 text-red-600", className)} />
-      case "instagram":
-        return <Instagram className={cn("h-5 w-5 text-pink-600", className)} />
-      case "facebook":
-        return <Facebook className={cn("h-5 w-5 text-blue-600", className)} />
-      case "linkedin":
-        return <Linkedin className={cn("h-5 w-5 text-blue-700", className)} />
-      case "twitter":
-        return <Twitter className={cn("h-5 w-5 text-sky-500", className)} />
-      case "threads":
-        return <Share2 className={cn("h-5 w-5", className)} />
-      default:
-        return <Share2 className={cn("h-5 w-5", className)} />
-    }
+    const iconPath = `/${plat.toLowerCase()}.webp`
+    return (
+      <div className={cn("h-6 w-6 rounded-lg overflow-hidden flex items-center justify-center bg-slate-100", className)}>
+        <img src={iconPath} alt={plat} className="h-full w-full object-cover" />
+      </div>
+    )
   }
 
   const getGuidelines = () => {
@@ -363,6 +355,15 @@ export default function CreatePostPage() {
           color: "bg-red-50 text-red-600"
         })
       }
+    }
+    if (selectedPlatforms.includes("linkedin")) {
+      guidelines.push({
+        id: "linkedin",
+        title: "LinkedIn Professional Tips",
+        content: "Professional and educational content performs best. Use 3-5 relevant hashtags and keep the tone professional.",
+        icon: <Linkedin className="h-5 w-5" />,
+        color: "bg-blue-50 text-blue-700"
+      })
     }
     return guidelines
   }
@@ -437,6 +438,12 @@ export default function CreatePostPage() {
       if (selectedPlatforms.includes("threads")) {
         postData.threadsOptions = {
           replyPolicy: threadsReplyPolicy
+        }
+      }
+
+      if (selectedPlatforms.includes("linkedin")) {
+        postData.linkedinOptions = {
+          visibility: linkedinVisibility
         }
       }
 
@@ -1146,6 +1153,36 @@ export default function CreatePostPage() {
             </Card>
           )}
 
+          {/* LinkedIn Specific Options */}
+          {selectedPlatforms.includes("linkedin") && (
+            <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+              <CardContent className="p-8 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-700">
+                    <Linkedin className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm">LinkedIn Settings</h3>
+                    <p className="text-[10px] text-muted-foreground font-medium">Post visibility options</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Visibility</Label>
+                  <Select value={linkedinVisibility} onValueChange={(val: any) => setLinkedinVisibility(val)}>
+                    <SelectTrigger className="rounded-2xl h-11 border-muted/20">
+                      <SelectValue placeholder="Who can see your post?" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-white/20">
+                      <SelectItem value="PUBLIC">Anyone (Public)</SelectItem>
+                      <SelectItem value="CONNECTIONS">Connections only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
 
           {/* Guidelines Section */}
           <Collapsible className="w-full">
@@ -1214,6 +1251,15 @@ export default function CreatePostPage() {
                 {getPlatformIcon(platform, cn("h-4 w-4", previewPlatform === platform ? "text-primary-foreground" : ""))}
               </button>
             ))}
+            {!connectedPlatforms.includes("linkedin") && (
+              <button
+                disabled
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-muted/20 border border-border/50 opacity-40 cursor-not-allowed"
+                title="LinkedIn (Not connected)"
+              >
+                <Linkedin className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           <Tabs value={previewPlatform} onValueChange={setPreviewPlatform} className="w-full">
@@ -1387,6 +1433,53 @@ export default function CreatePostPage() {
                       <MessageCircle className="h-4 w-4" />
                       <Repeat2 className="h-4 w-4" />
                       <Send className="h-4 w-4" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="linkedin" className="mt-0">
+              <div className={cn(
+                "mx-auto border rounded-xl overflow-hidden shadow-lg bg-card",
+                previewView === "mobile" ? "w-[320px]" : "w-full"
+              )}>
+                <div className="p-4 border-b flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
+                      <User className="h-6 w-6 text-slate-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold leading-none">Your Name</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Professional Title • 1st</p>
+                    </div>
+                  </div>
+                  <Plus className="h-4 w-4 text-primary" />
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{content || "What do you want to talk about?"}</p>
+                </div>
+                {mediaUrl && (
+                  <div className="bg-slate-50 border-y border-muted/10">
+                    {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                      <img src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" />
+                    ) : (
+                      <video src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" controls />
+                    )}
+                  </div>
+                )}
+                <div className="p-3 flex items-center justify-between border-t mt-2">
+                  <div className="flex gap-4">
+                    <div className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                      <Heart className="h-4 w-4" />
+                      <span className="text-[10px] font-bold">Like</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                      <MessageCircle className="h-4 w-4" />
+                      <span className="text-[10px] font-bold">Comment</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                      <Repeat2 className="h-4 w-4" />
+                      <span className="text-[10px] font-bold">Repost</span>
                     </div>
                   </div>
                 </div>

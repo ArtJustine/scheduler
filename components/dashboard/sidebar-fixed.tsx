@@ -109,6 +109,13 @@ const socialChannels = [
     href: "/dashboard/platform/threads",
     color: "text-slate-900 dark:text-white",
   },
+  {
+    title: "LinkedIn",
+    icon: Share2,
+    image: "/linkedin.webp",
+    href: "/dashboard/platform/linkedin",
+    color: "text-blue-700",
+  },
 ]
 
 const settingsItems = [
@@ -192,18 +199,21 @@ export function DashboardSidebar() {
     const platform = channel.title?.toLowerCase()
     const connected = connectedAccounts[platform]
 
+    // Use synced icons from public folder
+    const syncedIconPath = `/${platform}.webp`
+
     if (connected) {
       return {
         title: connected.username || channel.title,
-        icon: connected.profileImage || channel.image ? null : channel.icon,
-        image: connected.profileImage || channel.image,
+        icon: null,
+        image: connected.profileImage || syncedIconPath,
       }
     }
 
     return {
       title: channel.title,
-      icon: channel.image ? null : channel.icon,
-      image: channel.image,
+      icon: null,
+      image: syncedIconPath,
     }
   }
 

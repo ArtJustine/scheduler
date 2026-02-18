@@ -292,9 +292,7 @@ export default function CreatePostPage() {
   const getPlatformIcon = (plat: string, className?: string) => {
     const iconPath = `/${plat.toLowerCase()}.webp`
     return (
-      <div className={cn("h-6 w-6 rounded-lg overflow-hidden flex items-center justify-center bg-slate-100", className)}>
-        <img src={iconPath} alt={plat} className="h-full w-full object-cover" />
-      </div>
+      <img src={iconPath} alt={plat} className={cn("h-6 w-6 object-contain", className)} />
     )
   }
 
@@ -486,38 +484,37 @@ export default function CreatePostPage() {
         {/* Left Column - Main Content */}
         <div className="space-y-6">
           {/* Platform Selection */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {connectedPlatforms.map((platform) => (
-              <div key={platform} className="relative">
-                <Button
-                  variant={isPlatformSelected(platform) ? "default" : "outline"}
-                  size="icon"
-                  className={cn(
-                    "rounded-full h-12 w-12 transition-all shadow-sm",
-                    isPlatformSelected(platform) && "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                  )}
-                  onClick={() => togglePlatform(platform)}
-                  title={platform.charAt(0).toUpperCase() + platform.slice(1)}
-                >
-                  {getPlatformIcon(platform)}
-                </Button>
+              <button
+                key={platform}
+                onClick={() => togglePlatform(platform)}
+                className={cn(
+                  "relative flex items-center justify-center w-12 h-12 transition-all duration-300",
+                  isPlatformSelected(platform)
+                    ? "ring-2 ring-primary ring-offset-2 dark:ring-offset-black rounded-xl p-0.5 shadow-sm"
+                    : "opacity-40 hover:opacity-100 grayscale hover:grayscale-0"
+                )}
+                title={platform.charAt(0).toUpperCase() + platform.slice(1)}
+              >
+                {getPlatformIcon(platform, "h-11 w-11")}
                 {isPlatformSelected(platform) && (
-                  <div className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-background flex items-center justify-center">
-                    <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  <div className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full border-2 border-background flex items-center justify-center shadow-md">
+                    <svg className="h-2 w-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                 )}
-              </div>
+              </button>
             ))}
             <Button
-              variant="default"
+              variant="outline"
               size="icon"
-              className="rounded-full h-12 w-12 bg-primary text-white shadow-md hover:scale-105 transition-transform"
+              className="rounded-xl h-12 w-12 border-dashed border-2 hover:border-primary hover:text-primary transition-all group"
               title="Add platform"
               onClick={() => router.push("/dashboard/connections")}
             >
-              <Plus className="h-6 w-6" />
+              <Plus className="h-6 w-6 group-hover:scale-110 transition-transform" />
             </Button>
           </div>
 
@@ -1241,23 +1238,23 @@ export default function CreatePostPage() {
                 key={platform}
                 onClick={() => setPreviewPlatform(platform)}
                 className={cn(
-                  "flex items-center justify-center w-9 h-9 rounded-full transition-all border shadow-sm",
+                  "flex items-center justify-center w-10 h-10 transition-all duration-300",
                   previewPlatform === platform
-                    ? "bg-primary border-primary scale-110 ring-2 ring-primary/20"
-                    : "bg-card border-border hover:border-primary/50 hover:bg-accent"
+                    ? "ring-2 ring-primary ring-offset-2 dark:ring-offset-black rounded-lg p-1"
+                    : "opacity-40 hover:opacity-100 grayscale hover:grayscale-0"
                 )}
                 title={platform.charAt(0).toUpperCase() + platform.slice(1)}
               >
-                {getPlatformIcon(platform, cn("h-4 w-4", previewPlatform === platform ? "text-primary-foreground" : ""))}
+                {getPlatformIcon(platform, "h-6 w-6")}
               </button>
             ))}
             {!connectedPlatforms.includes("linkedin") && (
               <button
                 disabled
-                className="flex items-center justify-center w-9 h-9 rounded-full bg-muted/20 border border-border/50 opacity-40 cursor-not-allowed"
+                className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted/10 border border-border/20 opacity-30 cursor-not-allowed grayscale"
                 title="LinkedIn (Not connected)"
               >
-                <Linkedin className="h-4 w-4" />
+                <img src="/linkedin.webp" className="h-4 w-4 object-contain" />
               </button>
             )}
           </div>
@@ -1562,6 +1559,6 @@ export default function CreatePostPage() {
           )}
         </div>
       </div>
-    </div >
+    </div>
   )
 }

@@ -207,6 +207,7 @@ export function DashboardSidebar() {
         title: connected.username || channel.title,
         icon: null,
         image: connected.profileImage || syncedIconPath,
+        platformIcon: syncedIconPath, // Store for badge
       }
     }
 
@@ -214,6 +215,7 @@ export function DashboardSidebar() {
       title: channel.title,
       icon: null,
       image: syncedIconPath,
+      platformIcon: syncedIconPath,
     }
   }
 
@@ -375,15 +377,16 @@ export function DashboardSidebar() {
             <div className="flex -space-x-2 overflow-hidden">
               {socialChannels
                 .filter(channel => connectedAccounts[channel.title.toLowerCase()]?.connected)
-                .map((channel) => (
+                .map((channel, i) => (
                   <div
                     key={channel.title}
-                    className="h-5 w-5 rounded-full border-2 border-background bg-slate-100 flex items-center justify-center overflow-hidden z-10 hover:z-20 transition-all"
+                    className="h-4 w-4 rounded-sm bg-white/10 flex items-center justify-center overflow-hidden z-10 translate-x-[4px] border border-white/5 backdrop-blur-sm"
+                    style={{ marginLeft: i === 0 ? 0 : -6 }}
                   >
                     <img
-                      src={connectedAccounts[channel.title.toLowerCase()]?.profileImage || channel.image}
+                      src={`/${channel.title.toLowerCase()}.webp`}
                       alt=""
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain"
                     />
                   </div>
                 ))}
@@ -394,34 +397,38 @@ export function DashboardSidebar() {
               socialChannels
                 .filter(channel => channel?.title && connectedAccounts[channel.title.toLowerCase()])
                 .map((channel) => {
-                  const display = getChannelDisplay(channel)
+                  const { title, icon: Icon, image, platformIcon } = getChannelDisplay(channel)
+                  const active = pathname === channel.href
+
                   return (
-                    <SidebarMenuItem key={channel.href} onMouseEnter={handleMouseEnter}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pathname === channel.href}
-                        tooltip={display.title}
-                        className="h-10 rounded-xl px-4"
-                      >
-                        <Link href={channel.href} className="flex items-center gap-3">
-                          <div className="h-6 w-6 rounded-lg bg-slate-100/50 flex items-center justify-center overflow-hidden flex-shrink-0">
-                            {display.image ? (
-                              <img
-                                src={display.image}
-                                alt=""
-                                className="h-full w-full object-cover"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = channel.image;
-                                }}
-                              />
-                            ) : (
-                              <channel.icon className={cn("h-4 w-4", channel.color)} />
-                            )}
+                    <Link
+                      key={channel.title}
+                      href={channel.href}
+                      className={cn(
+                        "flex items-center gap-3 px-2 py-2 rounded-xl transition-all duration-200 group relative",
+                        active
+                          ? "bg-primary/10 text-primary shadow-[inset_0px_0px_12px_rgba(var(--primary-rgb),0.05)]"
+                          : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-muted/50 hover:text-foreground"
+                      )}
+                      onMouseEnter={handleMouseEnter}
+                    >
+                      <div className="relative h-8 w-8 flex-shrink-0">
+                        {image ? (
+                          <img src={image} alt={title} className="h-full w-full rounded-full object-cover border border-white/10" />
+                        ) : (
+                          <div className={cn("h-full w-full rounded-full flex items-center justify-center bg-muted", channel.color)}>
+                            {Icon && <Icon className="h-4 w-4" />}
                           </div>
-                          <span className="truncate font-medium text-sm">{display.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                        )}
+                        {/* Platform Badge */}
+                        {platformIcon && (
+                          <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-white dark:bg-slate-900 border border-white/20 p-0.5 shadow-sm">
+                            <img src={platformIcon} alt="" className="h-full w-full object-contain" />
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium truncate">{title}</span>
+                    </Link>
                   )
                 })
             ) : (

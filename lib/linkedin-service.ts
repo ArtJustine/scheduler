@@ -5,7 +5,10 @@ export async function fetchLinkedInStats(accessToken: string, personId: string) 
         // LinkedIn API for follower count (network size)
         // Note: This requires the correct permissions/scopes
         // personId should be the URN like 'urn:li:person:XXXX'
-        const response = await fetch(`https://api.linkedin.com/v2/networkSizes/${personId}?edgeType=CompanyFollower`, {
+        const isOrganization = personId.includes(":organization:");
+        const edgeType = isOrganization ? "CompanyFollower" : "FirstDegreeConnection";
+
+        const response = await fetch(`https://api.linkedin.com/v2/networkSizes/${personId}?edgeType=${edgeType}`, {
             headers: {
                 "Authorization": `Bearer ${accessToken}`,
                 "X-Restli-Protocol-Version": "2.0.0"
@@ -13,16 +16,14 @@ export async function fetchLinkedInStats(accessToken: string, personId: string) 
         })
 
         if (!response.ok) {
-            // If the above fails, try a different endpoint or return 0
-            // Many LinkedIn apps might not have access to networkSizes
-            // Alternative: get basic profile info which some apps use for display
+            console.warn(`LinkedIn networkSizes failed for ${edgeType}:`, await response.text());
             return { followers: 0, posts: 0 }
         }
 
         const data = await response.json()
         return {
             followers: data.firstDegreeSize || 0,
-            posts: 0 // LinkedIn doesn't easily give post counts in one call
+            posts: 0
         }
     } catch (error) {
         console.error("Error fetching LinkedIn stats:", error)

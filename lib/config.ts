@@ -65,6 +65,7 @@ export const config = {
       "instagram_content_publish",
       "pages_show_list",
       "pages_read_engagement",
+      "pages_manage_posts",
       "public_profile"
     ],
   },

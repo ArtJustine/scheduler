@@ -75,18 +75,44 @@ export async function GET(request: NextRequest) {
             if (serverDb) {
                 const workspaceId = cookieStore.get("oauth_workspace_id")?.value
 
-                // Fetch linked Instagram Business Accounts from Facebook Pages
+                // Fetch linked Instagram Business Accounts and Page info from Facebook Pages
                 try {
-                    console.log("Checking for linked Instagram Business accounts...")
+                    console.log("Checking for Facebook Pages and linked Instagram accounts...")
                     const pagesResponse = await fetch(
-                        `https://graph.facebook.com/v${config.facebook.apiVersion}/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${tokenData.access_token}`
+                        `https://graph.facebook.com/v${config.facebook.apiVersion}/me/accounts?fields=id,name,access_token,link,picture,followers_count,fan_count,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${tokenData.access_token}`
                     )
 
                     if (pagesResponse.ok) {
                         const pagesData = await pagesResponse.json()
-                        console.log("Found Pages:", pagesData.data?.length || 0)
+                        const pages = pagesData.data || []
+                        console.log("Found Pages:", pages.length)
 
-                        for (const page of (pagesData.data || [])) {
+                        if (pages.length > 0) {
+                            // Use the first page as the primary Facebook account if none selected
+                            const primaryPage = pages[0]
+                            const fbPageData = {
+                                platform: "facebook",
+                                id: primaryPage.id,
+                                username: primaryPage.name,
+                                profileImage: primaryPage.picture?.data?.url || accountData.profileImage,
+                                followers: Number(primaryPage.followers_count ?? primaryPage.fan_count ?? 0),
+                                accessToken: primaryPage.access_token,
+                                connected: true,
+                                connectedAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString()
+                            }
+
+                            if (workspaceId) {
+                                const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
+                                await updateDoc(workspaceDocRef, {
+                                    [`accounts.facebook`]: fbPageData,
+                                    updatedAt: new Date().toISOString()
+                                } as any)
+                                console.log("Facebook Page saved to Workspace:", workspaceId)
+                            }
+                        }
+
+                        for (const page of pages) {
                             if (page.instagram_business_account) {
                                 const ig = page.instagram_business_account
                                 const igAccountData = {
@@ -101,16 +127,15 @@ export async function GET(request: NextRequest) {
                                     connected: true,
                                     connectedAt: new Date().toISOString(),
                                     pageId: page.id,
-                                    pageName: page.name
+                                    pageName: page.name,
+                                    updatedAt: new Date().toISOString()
                                 }
 
                                 if (workspaceId) {
                                     const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
                                     await updateDoc(workspaceDocRef, {
-                                        [`accounts.instagram`]: {
-                                            ...igAccountData,
-                                            updatedAt: new Date().toISOString()
-                                        }
+                                        [`accounts.instagram`]: igAccountData,
+                                        updatedAt: new Date().toISOString()
                                     } as any)
                                     console.log("Linked Instagram account saved to Workspace:", workspaceId)
                                 }
@@ -118,20 +143,11 @@ export async function GET(request: NextRequest) {
                         }
                     }
                 } catch (igErr) {
-                    console.warn("Could not fetch linked Instagram accounts:", igErr)
+                    console.warn("Could not fetch Facebook pages/linked IG accounts:", igErr)
                 }
 
-                if (workspaceId) {
-                    const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
-                    await updateDoc(workspaceDocRef, {
-                        [`accounts.${accountData.platform}`]: {
-                            ...accountData,
-                            updatedAt: new Date().toISOString()
-                        },
-                        updatedAt: new Date().toISOString()
-                    } as any)
-                    console.log("Facebook account saved to Workspace:", workspaceId)
-                } else {
+                // If no workspaceId, fall back to saving the basic user-based Facebook account
+                if (!workspaceId) {
                     const userDocRef = doc(serverDb, "users", userId)
                     await setDoc(userDocRef, {
                         facebook: {
@@ -139,7 +155,7 @@ export async function GET(request: NextRequest) {
                             updatedAt: new Date().toISOString()
                         }
                     }, { merge: true })
-                    console.log("Facebook account saved to User Doc:", userId)
+                    console.log("Basic Facebook login saved to User Doc:", userId)
                 }
             }
         } catch (saveError) {

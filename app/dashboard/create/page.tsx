@@ -1485,6 +1485,49 @@ export default function CreatePostPage() {
                 </div>
               </div>
             </TabsContent>
+            <TabsContent value="facebook" className="mt-0">
+              <div className={cn(
+                "mx-auto border rounded-xl overflow-hidden shadow-lg bg-card",
+                previewView === "mobile" ? "w-[320px]" : "w-full"
+              )}>
+                <div className="p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
+                    <User className="h-6 w-6 text-slate-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-bold leading-none">Your Page Name</p>
+                    <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                      Just now • <Share2 className="h-2.5 w-2.5" />
+                    </p>
+                  </div>
+                </div>
+                <div className="px-4 pb-3">
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{content || "What's on your mind?"}</p>
+                </div>
+                {mediaUrl && (
+                  <div className="bg-slate-50 border-y border-muted/10">
+                    {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                      <img src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" />
+                    ) : (
+                      <video src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" controls />
+                    )}
+                  </div>
+                )}
+                <div className="p-2 px-4 border-t flex items-center justify-between">
+                  <div className="flex gap-6 py-1">
+                    <div className="flex items-center gap-2 text-muted-foreground font-semibold text-xs cursor-pointer">
+                      <Heart className="h-4 w-4" /> Like
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground font-semibold text-xs cursor-pointer">
+                      <MessageCircle className="h-4 w-4" /> Comment
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground font-semibold text-xs cursor-pointer">
+                      <Share2 className="h-4 w-4" /> Share
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
           </Tabs>
 
           <Button
@@ -1519,6 +1562,6 @@ export default function CreatePostPage() {
           )}
         </div>
       </div>
-    </div>
+    </div >
   )
 }

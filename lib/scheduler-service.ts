@@ -104,6 +104,9 @@ export async function publishPost(userId: string, postId: string, post: any) {
         case "linkedin":
           publishResult = await publishToLinkedIn(userId, post)
           break
+        case "facebook":
+          publishResult = await publishToFacebook(userId, post)
+          break
         default:
           publishResult = {
             success: false,
@@ -752,6 +755,56 @@ async function publishToLinkedIn(userId: string, post: any) {
     }
   } catch (error: any) {
     console.error("Error publishing to LinkedIn:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+async function publishToFacebook(userId: string, post: any) {
+  try {
+    const facebook = await getSocialData(userId, post.workspaceId, "facebook")
+    if (!facebook || !facebook.accessToken) throw new Error("Facebook account not connected")
+
+    const accessToken = facebook.accessToken
+    const pageId = facebook.id
+
+    // Determine endpoint based on media type
+    let endpoint = `https://graph.facebook.com/v${config.facebook.apiVersion}/${pageId}/feed`
+    const body: any = {
+      message: post.content,
+      access_token: accessToken,
+    }
+
+    if (post.mediaUrl) {
+      const isVideo = post.mediaUrl.match(/\.(mp4|mov|webm)$/i)
+      if (isVideo) {
+        endpoint = `https://graph.facebook.com/v${config.facebook.apiVersion}/${pageId}/videos`
+        body.file_url = post.mediaUrl
+        body.description = post.content
+      } else {
+        endpoint = `https://graph.facebook.com/v${config.facebook.apiVersion}/${pageId}/photos`
+        body.url = post.mediaUrl
+        body.caption = post.content
+      }
+    }
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.error?.message || "Facebook publishing failed")
+    }
+
+    return {
+      success: true,
+      platformId: result.id || result.post_id,
+    }
+  } catch (error: any) {
+    console.error("Error publishing to Facebook:", error)
     return { success: false, error: error.message }
   }
 }

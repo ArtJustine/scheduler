@@ -147,6 +147,61 @@ async function hydrateLinkedInFollowers(accounts: any, workspaceId?: string, use
   }
 }
 
+async function hydrateFacebookFollowers(accounts: any, workspaceId?: string, userId?: string) {
+  const facebook = accounts?.facebook
+  if (!facebook || !facebook.connected) return accounts
+
+  const currentFollowers = Number(facebook.followers || 0)
+  const token = facebook.accessToken || facebook.access_token
+  const pageId = facebook.id
+
+  if (currentFollowers > 0 || !token || !pageId) return accounts
+
+  try {
+    const { config } = await import("@/lib/config")
+    const response = await fetch(
+      `https://graph.facebook.com/v${config.facebook.apiVersion}/${pageId}?fields=followers_count,fan_count&access_token=${token}`
+    )
+
+    if (!response.ok) return accounts
+
+    const data = await response.json()
+    const followers = data.followers_count ?? data.fan_count ?? 0
+
+    if (followers <= 0) return accounts
+
+    const updatedAt = new Date().toISOString()
+    const updatedFacebook = {
+      ...facebook,
+      followers,
+      updatedAt,
+    }
+
+    if (workspaceId) {
+      const workspaceRef = doc(firebaseDb!, "workspaces", workspaceId)
+      await updateDoc(workspaceRef, {
+        "accounts.facebook.followers": followers,
+        "accounts.facebook.updatedAt": updatedAt,
+        updatedAt: updatedAt,
+      })
+    } else if (userId) {
+      const userRef = doc(firebaseDb!, "users", userId)
+      await updateDoc(userRef, {
+        "facebook.followers": followers,
+        "facebook.updatedAt": updatedAt,
+      })
+    }
+
+    return {
+      ...accounts,
+      facebook: updatedFacebook,
+    }
+  } catch (err) {
+    console.warn("hydrateFacebookFollowers: Failed to hydrate:", err)
+    return accounts
+  }
+}
+
 export async function getSocialAccounts(userId?: string) {
   const uid = userId || firebaseAuth?.currentUser?.uid
 
@@ -188,7 +243,8 @@ export async function getSocialAccounts(userId?: string) {
         linkedin: normalizeAccount(workspaceAccounts.linkedin),
       }
       const withThreads = await hydrateThreadsFollowers(normalized, workspace?.id, uid)
-      return await hydrateLinkedInFollowers(withThreads, workspace?.id, uid)
+      const withLinkedIn = await hydrateLinkedInFollowers(withThreads, workspace?.id, uid)
+      return await hydrateFacebookFollowers(withLinkedIn, workspace?.id, uid)
     }
 
     // Fallback for legacy data stored directly in users/{uid}
@@ -211,7 +267,8 @@ export async function getSocialAccounts(userId?: string) {
       linkedin: normalizeAccount(userData.linkedin),
     }
     const withThreads = await hydrateThreadsFollowers(normalized, undefined, uid)
-    return await hydrateLinkedInFollowers(withThreads, undefined, uid)
+    const withLinkedIn = await hydrateLinkedInFollowers(withThreads, undefined, uid)
+    return await hydrateFacebookFollowers(withLinkedIn, undefined, uid)
   } catch (error) {
     console.error("Error getting social accounts:", error)
     throw error

@@ -44,49 +44,49 @@ export default function Home() {
       <section className="relative w-full min-h-[85vh] flex items-center justify-center overflow-hidden bg-white dark:bg-black transition-colors duration-500">
         {/* Floating Social Platform Icons - Desktop */}
         <div className="absolute inset-0 pointer-events-none hidden md:block">
-          <FloatingIcon initialPos={{ top: "15%", left: "10%" }} className="animate-float-slow">
+          <FloatingIcon initialPos={{ top: "15%", left: "10%" }} className="animate-float-slow animate-bounce-subtle">
             <div className="w-24 h-24 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/instagram.webp" alt="Instagram" className="w-16 h-16 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ top: "8%", left: "48%" }} className="animate-float-medium">
+          <FloatingIcon initialPos={{ top: "8%", left: "48%" }} className="animate-float-medium animate-bounce-subtle">
             <div className="w-20 h-20 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/x.webp" alt="X" className="w-10 h-10 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ top: "12%", right: "12%" }} className="animate-float-fast">
+          <FloatingIcon initialPos={{ top: "12%", right: "12%" }} className="animate-float-fast animate-bounce-subtle">
             <div className="w-28 h-28 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/youtube.webp" alt="YouTube" className="w-18 h-18 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ top: "48%", left: "8%" }} className="animate-float-medium">
+          <FloatingIcon initialPos={{ top: "48%", left: "8%" }} className="animate-float-medium animate-bounce-subtle">
             <div className="w-32 h-32 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/tiktok.webp" alt="TikTok" className="w-16 h-16 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ top: "42%", right: "8%" }} className="animate-float">
+          <FloatingIcon initialPos={{ top: "42%", right: "8%" }} className="animate-float animate-bounce-subtle">
             <div className="w-28 h-28 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-105 transition-transform duration-500">
               <img src="/facebook.webp" alt="Facebook" className="w-14 h-14 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ bottom: "12%", left: "18%" }} className="animate-float-fast">
+          <FloatingIcon initialPos={{ bottom: "12%", left: "18%" }} className="animate-float-fast animate-bounce-subtle">
             <div className="w-24 h-24 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/linkedin.webp" alt="LinkedIn" className="w-12 h-12 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ bottom: "8%", right: "22%" }} className="animate-float-medium">
+          <FloatingIcon initialPos={{ bottom: "8%", right: "22%" }} className="animate-float-medium animate-bounce-subtle">
             <div className="w-20 h-20 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/threads.webp" alt="Threads" className="w-10 h-10 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ bottom: "18%", left: "49%" }} className="animate-float">
+          <FloatingIcon initialPos={{ bottom: "18%", left: "49%" }} className="animate-float animate-bounce-subtle">
             <div className="w-24 h-24 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-105 transition-transform duration-500">
               <img src="/bluesky.webp" alt="Bluesky" className="w-12 h-12 object-contain" />
             </div>
@@ -95,22 +95,22 @@ export default function Home() {
 
         {/* Mobile Icons (Simplified overlay) */}
         <div className="absolute inset-0 pointer-events-none md:hidden opacity-[0.15] dark:opacity-[0.25] overflow-hidden">
-          <FloatingIcon initialPos={{ top: "10%", left: "10%" }} className="animate-float-slow">
+          <FloatingIcon initialPos={{ top: "10%", left: "10%" }} className="animate-float-slow animate-bounce-subtle">
             <div className="bg-white p-2 rounded-full shadow-lg border border-gray-100 flex items-center justify-center w-16 h-16">
               <img src="/instagram.webp" alt="Instagram" className="w-8 h-8 object-contain" />
             </div>
           </FloatingIcon>
-          <FloatingIcon initialPos={{ top: "15%", left: "70%" }} className="animate-float-fast">
+          <FloatingIcon initialPos={{ top: "15%", left: "70%" }} className="animate-float-fast animate-bounce-subtle">
             <div className="bg-white p-2.5 rounded-full shadow-lg border border-gray-100 flex items-center justify-center w-20 h-20">
               <img src="/youtube.webp" alt="YouTube" className="w-10 h-10 object-contain" />
             </div>
           </FloatingIcon>
-          <FloatingIcon initialPos={{ top: "60%", left: "15%" }} className="animate-float-medium">
+          <FloatingIcon initialPos={{ top: "60%", left: "15%" }} className="animate-float-medium animate-bounce-subtle">
             <div className="bg-white p-3 rounded-full shadow-lg border border-gray-100 flex items-center justify-center w-24 h-24">
               <img src="/tiktok.webp" alt="TikTok" className="w-12 h-12 object-contain" />
             </div>
           </FloatingIcon>
-          <FloatingIcon initialPos={{ top: "80%", left: "70%" }} className="animate-float-slow">
+          <FloatingIcon initialPos={{ top: "80%", left: "70%" }} className="animate-float-slow animate-bounce-subtle">
             <div className="bg-white p-2 rounded-full shadow-lg border border-gray-100 flex items-center justify-center w-16 h-16">
               <img src="/x.webp" alt="X" className="w-8 h-8 object-contain" />
             </div>

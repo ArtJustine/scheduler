@@ -108,9 +108,9 @@ async function hydrateLinkedInFollowers(accounts: any, workspaceId?: string, use
 
   try {
     const { fetchLinkedInStats } = await import("@/lib/linkedin-service")
-    const { followers, posts } = await fetchLinkedInStats(token, `urn:li:person:${personId}`)
+    const { followers, posts } = await fetchLinkedInStats(token, personId)
 
-    if (followers <= 0 && posts <= 0) return accounts
+    if (followers === 0 && posts === 0 && (linkedin.followers || 0) > 0) return accounts
 
     const updatedAt = new Date().toISOString()
     const updatedLinkedIn = {

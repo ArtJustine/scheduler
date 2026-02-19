@@ -109,20 +109,16 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
       finalPath = "/threads.webp"
     }
 
-    const img = (
-      <img
-        src={finalPath}
-        alt={alt}
-        className="h-3.5 w-3.5 object-contain"
-        onError={(e) => {
-          (e.target as HTMLImageElement).style.display = 'none';
-        }}
-      />
-    )
-
     return (
-      <div className="bg-white p-1 rounded-full shadow-sm border border-gray-100 flex items-center justify-center h-6 w-6">
-        {img}
+      <div className="bg-white rounded-full shadow-sm border border-black/5 flex items-center justify-center h-8 w-8 shrink-0">
+        <img
+          src={finalPath}
+          alt={alt}
+          className="h-[65%] w-[65%] object-contain"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
+        />
       </div>
     )
   }

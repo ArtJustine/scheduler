@@ -380,13 +380,13 @@ export function DashboardSidebar() {
                 .map((channel, i) => (
                   <div
                     key={channel.title}
-                    className="h-4 w-4 rounded-sm bg-white/10 flex items-center justify-center overflow-hidden z-10 translate-x-[4px] border border-white/5 backdrop-blur-sm"
-                    style={{ marginLeft: i === 0 ? 0 : -6 }}
+                    className="h-5 w-5 rounded-full bg-white flex items-center justify-center overflow-hidden z-10 translate-x-[4px] border border-black/5 shadow-sm"
+                    style={{ marginLeft: i === 0 ? 0 : -8 }}
                   >
                     <img
                       src={`/${channel.title.toLowerCase()}.webp`}
                       alt=""
-                      className="h-full w-full object-contain"
+                      className="h-[70%] w-[70%] object-contain"
                     />
                   </div>
                 ))}
@@ -414,7 +414,19 @@ export function DashboardSidebar() {
                     >
                       <div className="relative h-8 w-8 flex-shrink-0">
                         {image ? (
-                          <img src={image} alt={title} className="h-full w-full rounded-full object-cover border border-white/10" />
+                          <div className={cn(
+                            "h-full w-full rounded-full flex items-center justify-center overflow-hidden border border-white/10",
+                            image.endsWith('.webp') ? "bg-white" : "bg-muted"
+                          )}>
+                            <img
+                              src={image}
+                              alt={title}
+                              className={cn(
+                                "rounded-full object-cover",
+                                image.endsWith('.webp') ? "h-[65%] w-[65%] object-contain" : "h-full w-full"
+                              )}
+                            />
+                          </div>
                         ) : (
                           <div className={cn("h-full w-full rounded-full flex items-center justify-center bg-muted", channel.color)}>
                             {Icon && <Icon className="h-4 w-4" />}
@@ -422,8 +434,8 @@ export function DashboardSidebar() {
                         )}
                         {/* Platform Badge */}
                         {platformIcon && (
-                          <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-white dark:bg-slate-900 border border-white/20 p-0.5 shadow-sm">
-                            <img src={platformIcon} alt="" className="h-full w-full object-contain" />
+                          <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-white border border-black/5 p-0.5 shadow-sm flex items-center justify-center">
+                            <img src={platformIcon} alt="" className="h-[80%] w-[80%] object-contain" />
                           </div>
                         )}
                       </div>

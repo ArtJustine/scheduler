@@ -75,11 +75,11 @@ export function PlatformStats({
           {connected && profileImage ? (
             <img src={profileImage} alt={username} className="h-6 w-6 rounded-full" />
           ) : (
-            <div className={cn("p-1 h-8 w-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100")}>
+            <div className={cn("h-8 w-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 shrink-0")}>
               <img
                 src={`/${platform.toLowerCase() === 'x' ? 'x' : platform.toLowerCase()}.webp`}
                 alt={platform}
-                className="h-4 w-4 object-contain"
+                className="h-[65%] w-[65%] object-contain"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}

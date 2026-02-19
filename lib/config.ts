@@ -91,9 +91,9 @@ export const config = {
 
   // Pinterest API Configuration
   pinterest: {
-    appId: process.env.PINTEREST_APP_ID || "",
-    appSecret: process.env.PINTEREST_APP_SECRET || "",
-    redirectUri: process.env.PINTEREST_REDIRECT_URI || "http://localhost:3000/api/auth/callback/pinterest",
+    appId: process.env.PINTEREST_APP_ID || "1547648",
+    appSecret: process.env.PINTEREST_APP_SECRET || "0e07519280051ae48772ca668ba5ff3cbcb74e81",
+    redirectUri: process.env.PINTEREST_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/pinterest",
     scopes: ["boards:read", "pins:read", "pins:write", "user_accounts:read"],
   },
 

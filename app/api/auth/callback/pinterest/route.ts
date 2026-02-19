@@ -1,9 +1,9 @@
 // Pinterest OAuth Callback Route
 import { NextRequest, NextResponse } from "next/server"
 import { config } from "@/lib/config"
-import { pinterestOAuth, oauthHelpers } from "@/lib/oauth-utils"
+import { pinterestOAuth } from "@/lib/oauth-utils"
 import { cookies } from "next/headers"
-import { doc, setDoc, updateDoc } from "firebase/firestore"
+import { doc, setDoc } from "firebase/firestore"
 import { serverDb } from "@/lib/firebase-server"
 
 export async function GET(request: NextRequest) {
@@ -37,35 +37,32 @@ export async function GET(request: NextRequest) {
         const tokenData = await pinterestOAuth.exchangeCodeForToken(code, storedRedirectUri)
 
         // Get user info from Pinterest
-        let pinName = "Pinterest User"
-        let pinId = null
-        let pinPicture = null
+        let pName = "Pinterest User"
+        let pId = null
+        let pPicture = null
 
         try {
-            const pinResponse = await fetch(
-                "https://api.pinterest.com/v5/user_account",
-                {
-                    headers: {
-                        Authorization: `Bearer ${tokenData.access_token}`,
-                    },
-                }
-            )
-            if (pinResponse.ok) {
-                const pinData = await pinResponse.json()
-                pinName = pinData.username
-                pinId = pinData.username // Pinterest V5 uses username as identifier usually or id
-                pinPicture = pinData.profile_image
+            const pResponse = await fetch("https://api.pinterest.com/v5/user_account", {
+                headers: {
+                    Authorization: `Bearer ${tokenData.access_token}`,
+                },
+            })
+            if (pResponse.ok) {
+                const pData = await pResponse.json()
+                pName = pData.username || pData.full_name || "Pinterest User"
+                pId = pData.username // Pinterest V5 often uses username as primary identifier or id
+                pPicture = pData.profile_image
             }
         } catch (err) {
             console.warn("Could not fetch Pinterest user info:", err)
         }
 
-        // Prepare account data for handover
+        // Prepare account data
         const accountData = {
             platform: "pinterest",
-            id: pinId || userId,
-            username: pinName,
-            profileImage: pinPicture,
+            id: pId || userId,
+            username: pName,
+            profileImage: pPicture,
             accessToken: tokenData.access_token,
             refreshToken: tokenData.refresh_token || null,
             expiresAt: tokenData.expires_in
@@ -75,20 +72,22 @@ export async function GET(request: NextRequest) {
             connected: true,
         }
 
-        // Save to Firestore directly from the server for better reliability
+        // Save to Firestore
         try {
             if (serverDb) {
                 const workspaceId = cookieStore.get("oauth_workspace_id")?.value
 
                 if (workspaceId) {
                     const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
-                    await updateDoc(workspaceDocRef, {
-                        [`accounts.${accountData.platform}`]: {
-                            ...accountData,
-                            updatedAt: new Date().toISOString()
+                    await setDoc(workspaceDocRef, {
+                        accounts: {
+                            pinterest: {
+                                ...accountData,
+                                updatedAt: new Date().toISOString()
+                            }
                         },
                         updatedAt: new Date().toISOString()
-                    } as any)
+                    }, { merge: true })
                     console.log("Pinterest account saved to Workspace:", workspaceId)
                 } else {
                     const userDocRef = doc(serverDb, "users", userId)
@@ -108,11 +107,11 @@ export async function GET(request: NextRequest) {
         // Redirect to dashboard with handover flag
         const response = NextResponse.redirect(new URL("/dashboard/connections?success=pinterest_connected&handover=true", request.url))
 
-        // Set handover cookie (short-lived, accessible by client)
+        // Set handover cookie
         response.cookies.set("social_handover_data", JSON.stringify(accountData), {
-            httpOnly: false, // Must be accessible by client-side JS
+            httpOnly: false,
             secure: process.env.NODE_ENV === "production",
-            maxAge: 300, // 5 minutes
+            maxAge: 300,
             path: "/",
             sameSite: "lax",
         })

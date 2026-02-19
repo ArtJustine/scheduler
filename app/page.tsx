@@ -50,31 +50,31 @@ export default function Home() {
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ top: "8%", left: "48%" }} className="animate-float-medium animate-bounce-subtle-delay-2">
+          <FloatingIcon initialPos={{ top: "8%", left: "48%" }} className="animate-float-medium animate-bounce-subtle-faster">
             <div className="w-20 h-20 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/x.webp" alt="X" className="w-10 h-10 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ top: "12%", right: "12%" }} className="animate-float-fast animate-bounce-subtle-fast">
+          <FloatingIcon initialPos={{ top: "12%", right: "12%" }} className="animate-float-fast animate-bounce-subtle-delay-3">
             <div className="w-28 h-28 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/youtube.webp" alt="YouTube" className="w-18 h-18 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ top: "48%", left: "8%" }} className="animate-float-medium animate-bounce-subtle-slow">
+          <FloatingIcon initialPos={{ top: "48%", left: "8%" }} className="animate-float-medium animate-bounce-subtle-slower">
             <div className="w-32 h-32 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/tiktok.webp" alt="TikTok" className="w-16 h-16 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ top: "42%", right: "8%" }} className="animate-float animate-bounce-subtle-delay-3">
+          <FloatingIcon initialPos={{ top: "42%", right: "8%" }} className="animate-float animate-bounce-subtle-delay-5">
             <div className="w-28 h-28 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-105 transition-transform duration-500">
               <img src="/facebook.webp" alt="Facebook" className="w-14 h-14 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ bottom: "12%", left: "18%" }} className="animate-float-fast animate-bounce-subtle-delay-4">
+          <FloatingIcon initialPos={{ bottom: "12%", left: "18%" }} className="animate-float-fast animate-bounce-subtle-fast">
             <div className="w-24 h-24 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500">
               <img src="/linkedin.webp" alt="LinkedIn" className="w-12 h-12 object-contain" />
             </div>
@@ -86,13 +86,13 @@ export default function Home() {
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ bottom: "18%", left: "49%" }} className="animate-float animate-bounce-subtle-fast">
+          <FloatingIcon initialPos={{ bottom: "18%", left: "49%" }} className="animate-float animate-bounce-subtle-delay-6">
             <div className="w-24 h-24 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-105 transition-transform duration-500">
               <img src="/bluesky.webp" alt="Bluesky" className="w-12 h-12 object-contain" />
             </div>
           </FloatingIcon>
 
-          <FloatingIcon initialPos={{ top: "35%", left: "25%" }} className="animate-float-slow animate-bounce-subtle-delay-1">
+          <FloatingIcon initialPos={{ top: "35%", left: "25%" }} className="animate-float-slow animate-bounce-subtle-delay-2">
             <div className="w-22 h-22 bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center border border-gray-100 group hover:scale-110 transition-transform duration-500 p-4">
               <img src="/pinterest.webp" alt="Pinterest" className="w-12 h-12 object-contain" />
             </div>

@@ -62,8 +62,8 @@ export async function fetchLinkedInStats(accessToken: string, personId: string) 
         let posts = 0;
         try {
             // We'll use the shares API to count posts. 
-            // Note: This only gets recent ones or requires specific permissions.
-            const sharesResponse = await fetch(`https://api.linkedin.com/v2/shares?q=owners&owners=${urn}&count=1`, {
+            // Owners query usually requires List(urn) format
+            const sharesResponse = await fetch(`https://api.linkedin.com/v2/shares?q=owners&owners=List(${encodeURIComponent(urn)})&count=1`, {
                 headers: {
                     "Authorization": `Bearer ${accessToken}`,
                     "X-Restli-Protocol-Version": "2.0.0"
@@ -74,8 +74,11 @@ export async function fetchLinkedInStats(accessToken: string, personId: string) 
                 const sharesData = await sharesResponse.json();
                 posts = sharesData.paging?.total || 0;
             } else {
-                // Try UGC Posts API as fallback
-                const ugcResponse = await fetch(`https://api.linkedin.com/v2/ugcPosts?q=authors&authors=${urn}&count=1`, {
+                const sharesError = await sharesResponse.text();
+                // console.warn("LinkedIn shares count failed:", sharesError);
+
+                // Try UGC Posts API as fallback (authors query requires List format)
+                const ugcResponse = await fetch(`https://api.linkedin.com/v2/ugcPosts?q=authors&authors=List(${encodeURIComponent(urn)})&count=1`, {
                     headers: {
                         "Authorization": `Bearer ${accessToken}`,
                         "X-Restli-Protocol-Version": "2.0.0"
@@ -84,6 +87,8 @@ export async function fetchLinkedInStats(accessToken: string, personId: string) 
                 if (ugcResponse.ok) {
                     const ugcData = await ugcResponse.json();
                     posts = ugcData.paging?.total || 0;
+                } else {
+                    // console.warn("LinkedIn ugcPosts count failed:", await ugcResponse.text());
                 }
             }
         } catch (err) {

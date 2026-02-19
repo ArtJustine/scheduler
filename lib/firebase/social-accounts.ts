@@ -225,12 +225,11 @@ export async function getSocialAccounts(userId?: string) {
       linkedin: null,
     }
 
-    // Prefer active workspace accounts
+    // Use workspace accounts if a workspace is active
     const workspace = await getActiveWorkspace(uid)
-    const workspaceAccounts = workspace?.accounts || {}
 
-    const hasWorkspaceAccounts = Object.values(workspaceAccounts).some((account: any) => Boolean(account))
-    if (hasWorkspaceAccounts) {
+    if (workspace) {
+      const workspaceAccounts = workspace.accounts || {}
       const normalized = {
         ...emptyAccounts,
         instagram: normalizeAccount(workspaceAccounts.instagram),
@@ -242,12 +241,12 @@ export async function getSocialAccounts(userId?: string) {
         pinterest: normalizeAccount(workspaceAccounts.pinterest),
         linkedin: normalizeAccount(workspaceAccounts.linkedin),
       }
-      const withThreads = await hydrateThreadsFollowers(normalized, workspace?.id, uid)
-      const withLinkedIn = await hydrateLinkedInFollowers(withThreads, workspace?.id, uid)
-      return await hydrateFacebookFollowers(withLinkedIn, workspace?.id, uid)
+      const withThreads = await hydrateThreadsFollowers(normalized, workspace.id, uid)
+      const withLinkedIn = await hydrateLinkedInFollowers(withThreads, workspace.id, uid)
+      return await hydrateFacebookFollowers(withLinkedIn, workspace.id, uid)
     }
 
-    // Fallback for legacy data stored directly in users/{uid}
+    // Fallback for legacy data stored directly in users/{uid} (only if no workspace exists)
     const userDocRef = doc(firebaseDb, "users", uid)
     const userDoc = await getDoc(userDocRef)
     if (!userDoc.exists()) {

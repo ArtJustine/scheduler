@@ -37,13 +37,9 @@ export async function createWorkspace(userId: string, name: string): Promise<str
 
     const docRef = await addDoc(workspacesRef, newWorkspace)
 
-    // Update user doc with this as active workspace if they don't have one
+    // Automatically enter the newly created workspace
     const userRef = doc(firebaseDb!, "users", userId)
-    const userDoc = await getDoc(userRef)
-
-    if (!userDoc.exists() || !userDoc.data().activeWorkspaceId) {
-        await setDoc(userRef, { activeWorkspaceId: docRef.id }, { merge: true })
-    }
+    await setDoc(userRef, { activeWorkspaceId: docRef.id }, { merge: true })
 
     return docRef.id
 }

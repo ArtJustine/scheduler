@@ -42,7 +42,23 @@ export async function GET(request: NextRequest) {
         let lnPicture = null
 
         try {
-            // Trying the newest userinfo endpoint (OpenID Connect)
+            // Fetch basic profile info including the real member ID (me endpoint)
+            const meResponse = await fetch(
+                "https://api.linkedin.com/v2/me",
+                {
+                    headers: {
+                        Authorization: `Bearer ${tokenData.access_token}`,
+                    },
+                }
+            )
+
+            if (meResponse.ok) {
+                const meData = await meResponse.json()
+                lnId = meData.id
+                lnName = `${meData.localizedFirstName} ${meData.localizedLastName}`
+            }
+
+            // Also fetch from userinfo for name/picture (OpenID)
             const lnResponse = await fetch(
                 "https://api.linkedin.com/v2/userinfo",
                 {
@@ -53,24 +69,9 @@ export async function GET(request: NextRequest) {
             )
             if (lnResponse.ok) {
                 const lnData = await lnResponse.json()
-                lnName = lnData.name || `${lnData.given_name} ${lnData.family_name}`
-                lnId = lnData.sub
+                if (!lnId) lnId = lnData.sub // Fallback if me failed
+                lnName = lnData.name || lnName
                 lnPicture = lnData.picture
-            } else {
-                // Fallback to older me endpoint
-                const meResponse = await fetch(
-                    "https://api.linkedin.com/v2/me",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${tokenData.access_token}`,
-                        },
-                    }
-                )
-                if (meResponse.ok) {
-                    const meData = await meResponse.json()
-                    lnName = `${meData.localizedFirstName} ${meData.localizedLastName}`
-                    lnId = meData.id
-                }
             }
         } catch (err) {
             console.warn("Could not fetch LinkedIn user info:", err)
@@ -98,23 +99,25 @@ export async function GET(request: NextRequest) {
 
                 if (workspaceId) {
                     const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
-                    await updateDoc(workspaceDocRef, {
-                        [`accounts.${accountData.platform}`]: {
-                            ...accountData,
-                            updatedAt: new Date().toISOString()
+                    await setDoc(workspaceDocRef, {
+                        accounts: {
+                            [accountData.platform]: {
+                                ...accountData,
+                                updatedAt: new Date().toISOString()
+                            }
                         },
                         updatedAt: new Date().toISOString()
-                    } as any)
-                    console.log("LinkedIn account saved to Workspace:", workspaceId)
+                    }, { merge: true })
+                    console.log(`LinkedIn account (${lnId}) saved to Workspace:`, workspaceId)
                 } else {
                     const userDocRef = doc(serverDb, "users", userId)
                     await setDoc(userDocRef, {
-                        linkedin: {
+                        [accountData.platform]: {
                             ...accountData,
                             updatedAt: new Date().toISOString()
                         }
                     }, { merge: true })
-                    console.log("LinkedIn account saved to User Doc:", userId)
+                    console.log(`LinkedIn account (${lnId}) saved to User Doc:`, userId)
                 }
             }
         } catch (saveError) {

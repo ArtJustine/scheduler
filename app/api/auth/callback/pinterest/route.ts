@@ -58,11 +58,24 @@ export async function GET(request: NextRequest) {
         }
 
         // Prepare account data
+        let followers = 0
+        let posts = 0
+        try {
+            const { fetchPinterestStats } = await import("@/lib/pinterest-service")
+            const stats = await fetchPinterestStats(tokenData.access_token)
+            followers = stats.followers
+            posts = stats.posts
+        } catch (statsErr) {
+            console.warn("Could not fetch Pinterest stats during callback:", statsErr)
+        }
+
         const accountData = {
             platform: "pinterest",
             id: pId || userId,
             username: pName,
             profileImage: pPicture,
+            followers,
+            posts,
             accessToken: tokenData.access_token,
             refreshToken: tokenData.refresh_token || null,
             expiresAt: tokenData.expires_in

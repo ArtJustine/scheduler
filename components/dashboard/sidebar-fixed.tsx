@@ -116,6 +116,13 @@ const socialChannels = [
     href: "/dashboard/platform/linkedin",
     color: "text-blue-700",
   },
+  {
+    title: "Pinterest",
+    icon: Share2,
+    image: "/pinterest.webp",
+    href: "/dashboard/platform/pinterest",
+    color: "text-red-600",
+  },
 ]
 
 const settingsItems = [

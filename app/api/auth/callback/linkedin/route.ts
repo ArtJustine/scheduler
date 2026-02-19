@@ -78,11 +78,24 @@ export async function GET(request: NextRequest) {
         }
 
         // Prepare account data for handover
+        let followers = 0
+        let posts = 0
+        try {
+            const { fetchLinkedInStats } = await import("@/lib/linkedin-service")
+            const stats = await fetchLinkedInStats(tokenData.access_token, lnId || userId)
+            followers = stats.followers
+            posts = stats.posts
+        } catch (statsErr) {
+            console.warn("Could not fetch LinkedIn stats during callback:", statsErr)
+        }
+
         const accountData = {
             platform: "linkedin",
             id: lnId || userId,
             username: lnName,
             profileImage: lnPicture,
+            followers,
+            posts,
             accessToken: tokenData.access_token,
             refreshToken: tokenData.refresh_token || null,
             expiresAt: tokenData.expires_in

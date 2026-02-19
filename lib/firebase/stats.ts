@@ -11,7 +11,9 @@ export async function getUserStats(timeframe: string = "month") {
       platforms: {
         instagram: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 },
         youtube: { views: 0, videos: 0, comments: 0, likes: 0, followers: 0, engagement: 0, impressions: 0 },
-        tiktok: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
+        tiktok: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 },
+        pinterest: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 },
+        linkedin: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
       }
     }
   }
@@ -54,6 +56,8 @@ export async function getUserStats(timeframe: string = "month") {
     let tiktokStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
     let threadsStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
     let facebookStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
+    let pinterestStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
+    let linkedinStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
 
     try {
       const { getActiveWorkspace } = await import("./workspaces")
@@ -86,6 +90,8 @@ export async function getUserStats(timeframe: string = "month") {
       if (accounts.tiktok) tiktokStats = normalize(accounts.tiktok)
       if (accounts.threads) threadsStats = normalize(accounts.threads)
       if (accounts.facebook) facebookStats = normalize(accounts.facebook)
+      if (accounts.pinterest) pinterestStats = normalize(accounts.pinterest)
+      if (accounts.linkedin) linkedinStats = normalize(accounts.linkedin)
 
     } catch (e) {
       console.error("Error fetching social stats:", e)
@@ -113,7 +119,9 @@ export async function getUserStats(timeframe: string = "month") {
         youtube: youtubeStats,
         tiktok: tiktokStats,
         threads: threadsStats,
-        facebook: facebookStats
+        facebook: facebookStats,
+        pinterest: pinterestStats,
+        linkedin: linkedinStats
       }
     }
 

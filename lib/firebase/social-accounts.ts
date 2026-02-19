@@ -48,7 +48,12 @@ async function hydrateThreadsFollowers(accounts: any, workspaceId?: string, user
   ) || 0
 
   const token = threads.accessToken || threads.access_token
-  if (currentFollowers > 0 || !token) return accounts
+  if (!token) return accounts
+
+  const lastUpdated = threads.updatedAt ? new Date(threads.updatedAt).getTime() : 0
+  const isOld = Date.now() - lastUpdated > 3600000 // 1 hour
+
+  if (currentFollowers > 0 && !isOld) return accounts
 
   try {
     // Call the service directly instead of using fetch (avoids relative URL issues on server)
@@ -59,7 +64,7 @@ async function hydrateThreadsFollowers(accounts: any, workspaceId?: string, user
       String(threads.username || "").replace(/^@+/, "")
     )
 
-    if (followers <= 0) return accounts
+    if (followers === 0 && posts === 0 && currentFollowers > 0 && !isOld) return accounts
 
     const updatedAt = new Date().toISOString()
     const updatedThreads = {
@@ -104,35 +109,40 @@ async function hydrateLinkedInFollowers(accounts: any, workspaceId?: string, use
   const token = linkedin.accessToken || linkedin.access_token
   const personId = linkedin.id
 
-  if (currentFollowers > 0 || !token || !personId) return accounts
+  // Allow update if followers is 0 OR if it hasn't been updated in 1 hour
+  const lastUpdated = linkedin.updatedAt ? new Date(linkedin.updatedAt).getTime() : 0
+  const isOld = Date.now() - lastUpdated > 3600000 // 1 hour
+
+  if (currentFollowers > 0 && !isOld) return accounts
 
   try {
     const { fetchLinkedInStats } = await import("@/lib/linkedin-service")
     const { followers, posts } = await fetchLinkedInStats(token, personId)
 
-    if (followers === 0 && posts === 0 && (linkedin.followers || 0) > 0) return accounts
+    // Only update if we actually got some data or if it's been a while
+    if (followers === 0 && posts === 0 && currentFollowers > 0 && !isOld) return accounts
 
     const updatedAt = new Date().toISOString()
     const updatedLinkedIn = {
       ...linkedin,
-      followers: followers || linkedin.followers,
-      posts: posts || linkedin.posts,
+      followers: followers || linkedin.followers || 0,
+      posts: posts || linkedin.posts || 0,
       updatedAt,
     }
 
     if (workspaceId) {
       const workspaceRef = doc(firebaseDb!, "workspaces", workspaceId)
       await updateDoc(workspaceRef, {
-        "accounts.linkedin.followers": followers || linkedin.followers,
-        "accounts.linkedin.posts": posts || linkedin.posts,
+        "accounts.linkedin.followers": updatedLinkedIn.followers,
+        "accounts.linkedin.posts": updatedLinkedIn.posts,
         "accounts.linkedin.updatedAt": updatedAt,
         updatedAt: updatedAt,
       })
     } else if (userId) {
       const userRef = doc(firebaseDb!, "users", userId)
       await updateDoc(userRef, {
-        "linkedin.followers": followers || linkedin.followers,
-        "linkedin.posts": posts || linkedin.posts,
+        "linkedin.followers": updatedLinkedIn.followers,
+        "linkedin.posts": updatedLinkedIn.posts,
         "linkedin.updatedAt": updatedAt,
       })
     }
@@ -147,6 +157,59 @@ async function hydrateLinkedInFollowers(accounts: any, workspaceId?: string, use
   }
 }
 
+async function hydratePinterestFollowers(accounts: any, workspaceId?: string, userId?: string) {
+  const pinterest = accounts?.pinterest
+  if (!pinterest || !pinterest.connected) return accounts
+
+  const currentFollowers = Number(pinterest.followers || 0)
+  const token = pinterest.accessToken || pinterest.access_token
+
+  const lastUpdated = pinterest.updatedAt ? new Date(pinterest.updatedAt).getTime() : 0
+  const isOld = Date.now() - lastUpdated > 3600000 // 1 hour
+
+  if (currentFollowers > 0 && !isOld) return accounts
+
+  try {
+    const { fetchPinterestStats } = await import("@/lib/pinterest-service")
+    const { followers, posts } = await fetchPinterestStats(token)
+
+    if (followers === 0 && posts === 0 && currentFollowers > 0 && !isOld) return accounts
+
+    const updatedAt = new Date().toISOString()
+    const updatedPinterest = {
+      ...pinterest,
+      followers: followers || pinterest.followers || 0,
+      posts: posts || pinterest.posts || 0,
+      updatedAt,
+    }
+
+    if (workspaceId) {
+      const workspaceRef = doc(firebaseDb!, "workspaces", workspaceId)
+      await updateDoc(workspaceRef, {
+        "accounts.pinterest.followers": updatedPinterest.followers,
+        "accounts.pinterest.posts": updatedPinterest.posts,
+        "accounts.pinterest.updatedAt": updatedAt,
+        updatedAt: updatedAt,
+      })
+    } else if (userId) {
+      const userRef = doc(firebaseDb!, "users", userId)
+      await updateDoc(userRef, {
+        "pinterest.followers": updatedPinterest.followers,
+        "pinterest.posts": updatedPinterest.posts,
+        "pinterest.updatedAt": updatedAt,
+      })
+    }
+
+    return {
+      ...accounts,
+      pinterest: updatedPinterest,
+    }
+  } catch (err) {
+    console.warn("hydratePinterestFollowers: Failed to hydrate:", err)
+    return accounts
+  }
+}
+
 async function hydrateFacebookFollowers(accounts: any, workspaceId?: string, userId?: string) {
   const facebook = accounts?.facebook
   if (!facebook || !facebook.connected) return accounts
@@ -155,7 +218,12 @@ async function hydrateFacebookFollowers(accounts: any, workspaceId?: string, use
   const token = facebook.accessToken || facebook.access_token
   const pageId = facebook.id
 
-  if (currentFollowers > 0 || !token || !pageId) return accounts
+  if (!token || !pageId) return accounts
+
+  const lastUpdated = facebook.updatedAt ? new Date(facebook.updatedAt).getTime() : 0
+  const isOld = Date.now() - lastUpdated > 3600000 // 1 hour
+
+  if (currentFollowers > 0 && !isOld) return accounts
 
   try {
     const { config } = await import("@/lib/config")
@@ -168,7 +236,7 @@ async function hydrateFacebookFollowers(accounts: any, workspaceId?: string, use
     const data = await response.json()
     const followers = data.followers_count ?? data.fan_count ?? 0
 
-    if (followers <= 0) return accounts
+    if (followers === 0 && currentFollowers > 0 && !isOld) return accounts
 
     const updatedAt = new Date().toISOString()
     const updatedFacebook = {
@@ -243,7 +311,8 @@ export async function getSocialAccounts(userId?: string) {
       }
       const withThreads = await hydrateThreadsFollowers(normalized, workspace.id, uid)
       const withLinkedIn = await hydrateLinkedInFollowers(withThreads, workspace.id, uid)
-      return await hydrateFacebookFollowers(withLinkedIn, workspace.id, uid)
+      const withPinterest = await hydratePinterestFollowers(withLinkedIn, workspace.id, uid)
+      return await hydrateFacebookFollowers(withPinterest, workspace.id, uid)
     }
 
     // Fallback for legacy data stored directly in users/{uid} (only if no workspace exists)
@@ -267,7 +336,8 @@ export async function getSocialAccounts(userId?: string) {
     }
     const withThreads = await hydrateThreadsFollowers(normalized, undefined, uid)
     const withLinkedIn = await hydrateLinkedInFollowers(withThreads, undefined, uid)
-    return await hydrateFacebookFollowers(withLinkedIn, undefined, uid)
+    const withPinterest = await hydratePinterestFollowers(withLinkedIn, undefined, uid)
+    return await hydrateFacebookFollowers(withPinterest, undefined, uid)
   } catch (error) {
     console.error("Error getting social accounts:", error)
     throw error

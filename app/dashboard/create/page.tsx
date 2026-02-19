@@ -289,8 +289,15 @@ export default function CreatePostPage() {
     }
   }
 
-  const getPlatformIcon = (plat: string, className?: string) => {
+  const getPlatformIcon = (plat: string, className?: string, withBackground?: boolean) => {
     const iconPath = `/${plat.toLowerCase()}.webp`
+    if (withBackground) {
+      return (
+        <div className={cn("h-10 w-10 rounded-full bg-white dark:bg-white flex items-center justify-center shadow-sm", className)}>
+          <img src={iconPath} alt={plat} className="h-6 w-6 object-contain" />
+        </div>
+      )
+    }
     return (
       <img src={iconPath} alt={plat} className={cn("h-6 w-6 object-contain", className)} />
     )
@@ -497,7 +504,12 @@ export default function CreatePostPage() {
                 )}
                 title={platform.charAt(0).toUpperCase() + platform.slice(1)}
               >
-                {getPlatformIcon(platform, "h-11 w-11")}
+                <div className={cn(
+                  "h-10 w-10 rounded-full flex items-center justify-center shadow-sm transition-all",
+                  isPlatformSelected(platform) ? "bg-white" : "bg-white/80 dark:bg-white/90"
+                )}>
+                  {getPlatformIcon(platform, "h-6 w-6")}
+                </div>
                 {isPlatformSelected(platform) && (
                   <div className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full border-2 border-background flex items-center justify-center shadow-md">
                     <svg className="h-2 w-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -954,8 +966,8 @@ export default function CreatePostPage() {
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-600">
-                      <Youtube className="h-6 w-6" />
+                    <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
+                      {getPlatformIcon("youtube", "h-7 w-7")}
                     </div>
                     <div>
                       <h3 className="font-bold text-sm">YouTube Settings</h3>
@@ -1046,8 +1058,8 @@ export default function CreatePostPage() {
             <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-2xl bg-pink-500/10 flex items-center justify-center text-pink-600">
-                    <Instagram className="h-6 w-6" />
+                  <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
+                    {getPlatformIcon("instagram", "h-7 w-7")}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm">Instagram Settings</h3>
@@ -1080,8 +1092,8 @@ export default function CreatePostPage() {
             <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-2xl bg-slate-900/10 dark:bg-white/10 flex items-center justify-center text-slate-900 dark:text-white">
-                    <Music2 className="h-6 w-6" />
+                  <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
+                    {getPlatformIcon("tiktok", "h-7 w-7")}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm">TikTok Settings</h3>
@@ -1124,8 +1136,8 @@ export default function CreatePostPage() {
             <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-2xl bg-slate-900/10 dark:bg-white/10 flex items-center justify-center text-slate-900 dark:text-white">
-                    <Share2 className="h-6 w-6" />
+                  <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
+                    {getPlatformIcon("threads", "h-7 w-7")}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm">Threads Settings</h3>
@@ -1155,8 +1167,8 @@ export default function CreatePostPage() {
             <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-700">
-                    <Linkedin className="h-6 w-6" />
+                  <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
+                    {getPlatformIcon("linkedin", "h-7 w-7")}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm">LinkedIn Settings</h3>
@@ -1238,14 +1250,14 @@ export default function CreatePostPage() {
                 key={platform}
                 onClick={() => setPreviewPlatform(platform)}
                 className={cn(
-                  "flex items-center justify-center w-10 h-10 transition-all duration-300",
+                  "flex items-center justify-center w-10 h-10 transition-all duration-300 rounded-full",
                   previewPlatform === platform
-                    ? "ring-2 ring-primary ring-offset-2 dark:ring-offset-black rounded-lg p-1"
-                    : "opacity-40 hover:opacity-100 grayscale hover:grayscale-0"
+                    ? "ring-2 ring-primary ring-offset-2 dark:ring-offset-black p-0 blur-0"
+                    : "opacity-60 hover:opacity-100 grayscale hover:grayscale-0 shadow-sm"
                 )}
                 title={platform.charAt(0).toUpperCase() + platform.slice(1)}
               >
-                {getPlatformIcon(platform, "h-6 w-6")}
+                {getPlatformIcon(platform, "h-10 w-10", true)}
               </button>
             ))}
             {!connectedPlatforms.includes("linkedin") && (

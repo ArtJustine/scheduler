@@ -383,7 +383,10 @@ export function DashboardSidebar() {
             </h2>
             <div className="flex -space-x-2 overflow-hidden">
               {socialChannels
-                .filter(channel => connectedAccounts[channel.title.toLowerCase()]?.connected)
+                .filter(channel => {
+                  const acc = connectedAccounts[channel.title.toLowerCase()]
+                  return acc && (acc.connected || acc.accessToken || acc.access_token)
+                })
                 .map((channel, i) => (
                   <div
                     key={channel.title}
@@ -400,9 +403,15 @@ export function DashboardSidebar() {
             </div>
           </div>
           <SidebarMenu className="gap-1">
-            {socialChannels.filter(channel => channel?.title && connectedAccounts[channel.title.toLowerCase()]).length > 0 ? (
+            {socialChannels.filter(channel => {
+              const acc = connectedAccounts[channel.title.toLowerCase()]
+              return acc && (acc.connected || acc.accessToken || acc.access_token)
+            }).length > 0 ? (
               socialChannels
-                .filter(channel => channel?.title && connectedAccounts[channel.title.toLowerCase()])
+                .filter(channel => {
+                  const acc = connectedAccounts[channel.title.toLowerCase()]
+                  return acc && (acc.connected || acc.accessToken || acc.access_token)
+                })
                 .map((channel) => {
                   const { title, icon: Icon, image, platformIcon } = getChannelDisplay(channel)
                   const active = pathname === channel.href

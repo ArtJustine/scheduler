@@ -46,11 +46,11 @@ export async function fetchLinkedInStats(accessToken: string, personId: string) 
                     followers = data.firstDegreeSize || 0;
                 } else {
                     const errorText = await response.text();
-                    console.warn(`LinkedIn networkSizes failed for person ${urn}:`, errorText);
+                    console.warn(`LinkedIn networkSizes failed for person ${urn} (Status: ${response.status}):`, errorText);
 
-                    // Fallback for some profile types: maybe they need "CompanyFollower" even for persons? (Unlikely but for completeness)
-                    if (errorText.includes("Member is not a company")) {
-                        // Already handled by isOrganization check, but LinkedIn API can be weird
+                    // If we get a 403, it's likely a missing permission (r_network)
+                    if (response.status === 403) {
+                        console.info("LinkedIn: r_network permission might be missing or not approved for this app.");
                     }
                 }
             }

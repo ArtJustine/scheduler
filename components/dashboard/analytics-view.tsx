@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PlatformEngagementCard } from "@/components/dashboard/platform-engagement-card"
@@ -38,6 +39,14 @@ function AnalyticsContent() {
     const [isLoading, setIsLoading] = useState(true)
     const [timeframe, setTimeframe] = useState("month")
     const [selectedPlatform, setSelectedPlatform] = useState("all")
+    const searchParams = useSearchParams()
+
+    useEffect(() => {
+        const platformParam = searchParams.get("platform")
+        if (platformParam) {
+            setSelectedPlatform(platformParam)
+        }
+    }, [searchParams])
 
     useEffect(() => {
         const loadData = async () => {

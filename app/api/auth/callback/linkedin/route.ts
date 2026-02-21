@@ -112,25 +112,23 @@ export async function GET(request: NextRequest) {
 
                 if (workspaceId) {
                     const workspaceRef = adminDb.collection("workspaces").doc(workspaceId)
-                    await workspaceRef.set({
-                        accounts: {
-                            [accountData.platform]: {
-                                ...accountData,
-                                updatedAt: timestamp
-                            }
+                    await workspaceRef.update({
+                        [`accounts.${accountData.platform}`]: {
+                            ...accountData,
+                            updatedAt: timestamp
                         },
                         updatedAt: timestamp
-                    }, { merge: true })
+                    })
                     console.log(`LinkedIn account (${lnId}) saved to Workspace:`, workspaceId)
                 } else {
                     const userRef = adminDb.collection("users").doc(userId)
-                    await userRef.set({
+                    await userRef.update({
                         [accountData.platform]: {
                             ...accountData,
                             updatedAt: timestamp
                         },
                         updatedAt: timestamp
-                    }, { merge: true })
+                    })
                     console.log(`LinkedIn account (${lnId}) saved to User Doc:`, userId)
                 }
             }

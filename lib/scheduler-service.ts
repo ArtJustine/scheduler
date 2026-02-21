@@ -107,6 +107,9 @@ export async function publishPost(userId: string, postId: string, post: any) {
         case "facebook":
           publishResult = await publishToFacebook(userId, post)
           break
+        case "pinterest":
+          publishResult = await publishToPinterest(userId, post)
+          break
         case "bluesky":
           publishResult = await publishToBluesky(userId, post)
           break
@@ -121,6 +124,8 @@ export async function publishPost(userId: string, postId: string, post: any) {
       if (!publishResult.success) allSuccessful = false
     }
 
+    const successCount = Object.values(results).filter((r: any) => r.success).length
+
     // Update the post with individual platform status and overall status
     if (allSuccessful) {
       await postRef.update({
@@ -130,6 +135,19 @@ export async function publishPost(userId: string, postId: string, post: any) {
         error: null
       })
       console.log(`Successfully published post ${postId} to all platforms`)
+    } else if (successCount > 0) {
+      // Partial success - some platforms succeeded, some failed
+      const failedPlatforms = Object.entries(results)
+        .filter(([, r]: [string, any]) => !r.success)
+        .map(([platform, r]: [string, any]) => `${platform}: ${r.error}`)
+        .join("; ")
+      await postRef.update({
+        status: "partial",
+        publishedAt: new Date().toISOString(),
+        platformResults: results,
+        error: `Partial publish. Failed platforms — ${failedPlatforms}`
+      })
+      console.warn(`Partially published post ${postId}. Failures: ${failedPlatforms}`)
     } else {
       // Extract the first error message to show to the user
       const firstError = Object.values(results).find(r => !r.success)?.error || "One or more platforms failed to publish"
@@ -264,6 +282,11 @@ async function publishToInstagram(userId: string, post: any) {
     const instagram = await getSocialData(userId, post.workspaceId, "instagram")
     if (!instagram || !instagram.accessToken) throw new Error("Instagram account not connected")
 
+    // Instagram requires media - cannot post text-only
+    if (!post.mediaUrl) {
+      return { success: false, error: "Instagram requires an image or video. Text-only posts are not supported." }
+    }
+
     const igUserId = instagram.id || instagram.username
     const accessToken = instagram.accessToken
 
@@ -274,12 +297,13 @@ async function publishToInstagram(userId: string, post: any) {
       access_token: accessToken,
     }
 
-    const isVideo = post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i) || post.contentType === "video"
+    const isVideo = post.contentType === "video" || post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i)
     if (isVideo) {
       containerParams.video_url = post.mediaUrl
       containerParams.media_type = "VIDEO"
     } else {
       containerParams.image_url = post.mediaUrl
+      containerParams.media_type = "IMAGE"
     }
 
     const containerResponse = await fetch(containerUrl, {
@@ -778,7 +802,7 @@ async function publishToFacebook(userId: string, post: any) {
     }
 
     if (post.mediaUrl) {
-      const isVideo = post.mediaUrl.match(/\.(mp4|mov|webm)$/i)
+      const isVideo = post.contentType === "video" || post.mediaUrl.match(/\.(mp4|mov|webm)$/i)
       if (isVideo) {
         endpoint = `https://graph.facebook.com/v${config.facebook.apiVersion}/${pageId}/videos`
         body.file_url = post.mediaUrl
@@ -815,15 +839,26 @@ async function publishToFacebook(userId: string, post: any) {
 async function publishToBluesky(userId: string, post: any) {
   try {
     const bluesky = await getSocialData(userId, post.workspaceId, "bluesky")
-    if (!bluesky || !bluesky.accessToken || !bluesky.identifier) {
+    if (!bluesky || !bluesky.accessToken) {
       throw new Error("Bluesky account not connected")
     }
 
+    // Bluesky uses the identifier (handle) and accessToken (app password)
+    const identifier = bluesky.identifier || bluesky.username
+    if (!identifier) throw new Error("Bluesky identifier not found. Please reconnect your account.")
+
     const { postToBluesky } = await import("./bluesky-service")
+
+    // Bluesky has a 300 character limit
+    let content = post.content || ""
+    if (content.length > 300) {
+      content = content.substring(0, 297) + "..."
+    }
+
     const result = await postToBluesky(
-      bluesky.identifier,
+      identifier,
       bluesky.accessToken, // We store app password here
-      post.content || ""
+      content
     )
 
     if (!result.success) {
@@ -833,6 +868,72 @@ async function publishToBluesky(userId: string, post: any) {
     return { success: true }
   } catch (error: any) {
     console.error("Error publishing to Bluesky:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+async function publishToPinterest(userId: string, post: any) {
+  try {
+    const pinterest = await getSocialData(userId, post.workspaceId, "pinterest")
+    if (!pinterest || !pinterest.accessToken) throw new Error("Pinterest account not connected")
+
+    if (!post.mediaUrl) {
+      return { success: false, error: "Pinterest requires an image or video." }
+    }
+
+    const accessToken = pinterest.accessToken
+    const isVideo = post.contentType === "video" || post.mediaUrl?.match(/\.(mp4|mov|webm)$/i)
+
+    // Pinterest Pins API v5 standard access only supports image_url
+    // Video pins require a multi-step upload process (POST /media)
+    // For now, we publish videos as image pins using the thumbnail or the video URL as a static preview
+    const pinBody: any = {
+      title: post.title || post.content?.substring(0, 100) || "Scheduled Pin",
+      description: post.content || "",
+      link: post.link || null,
+      media_source: {
+        source_type: "image_url",
+        url: isVideo ? (post.thumbnailUrl || post.mediaUrl) : post.mediaUrl,
+      },
+    }
+
+    // Use a board if the account has one stored, otherwise use the first accessible board
+    if (pinterest.boardId) {
+      pinBody.board_id = pinterest.boardId
+    } else {
+      // Fetch first board
+      const boardsRes = await fetch("https://api.pinterest.com/v5/boards?page_size=1", {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+      if (boardsRes.ok) {
+        const boardsData = await boardsRes.json()
+        if (boardsData.items?.length > 0) {
+          pinBody.board_id = boardsData.items[0].id
+        }
+      }
+    }
+
+    if (!pinBody.board_id) {
+      return { success: false, error: "No Pinterest board found. Please create a board on Pinterest first." }
+    }
+
+    const response = await fetch("https://api.pinterest.com/v5/pins", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(pinBody),
+    })
+
+    const result = await response.json()
+    if (!response.ok) {
+      throw new Error(result.message || result.error || "Pinterest publishing failed")
+    }
+
+    return { success: true, platformId: result.id }
+  } catch (error: any) {
+    console.error("Error publishing to Pinterest:", error)
     return { success: false, error: error.message }
   }
 }

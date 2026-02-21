@@ -13,6 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { useToast } from "@/components/ui/use-toast"
 
 interface Post {
   id: string
@@ -22,8 +23,9 @@ interface Post {
   scheduledFor: string
   mediaUrl?: string | null
   thumbnailUrl?: string | null
-  status?: "scheduled" | "published" | "failed" | "publishing"
+  status?: "scheduled" | "published" | "failed" | "publishing" | "partial"
   error?: string | null
+  platformResults?: Record<string, { success: boolean; error?: string }> | null
 }
 
 interface CalendarPostListProps {
@@ -34,6 +36,7 @@ interface CalendarPostListProps {
 }
 
 export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPostListProps) {
+  const { toast } = useToast()
   const formattedDate = date.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -117,13 +120,31 @@ export function CalendarPostList({ date, posts, onEdit, onDelete }: CalendarPost
                                 const res = await fetch(`/api/posts/${post.id}/publish`, { method: "POST" })
                                 const data = await res.json()
                                 if (data.success) {
-                                  alert(data.message)
+                                  toast({
+                                    title: "Published!",
+                                    description: data.message || "Post published successfully.",
+                                  })
+                                  window.location.reload()
+                                } else if (data.partial) {
+                                  toast({
+                                    title: "Partially Published",
+                                    description: data.message || "Some platforms succeeded, others failed. Check the post for details.",
+                                    variant: "destructive",
+                                  })
                                   window.location.reload()
                                 } else {
-                                  alert(data.error || "Failed to publish")
+                                  toast({
+                                    title: "Publish Failed",
+                                    description: data.error || "Failed to publish. Please check your account connections.",
+                                    variant: "destructive",
+                                  })
                                 }
                               } catch (e) {
-                                alert("An error occurred while publishing")
+                                toast({
+                                  title: "Error",
+                                  description: "An unexpected error occurred while publishing.",
+                                  variant: "destructive",
+                                })
                               }
                             }}
                           >

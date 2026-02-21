@@ -68,20 +68,18 @@ export async function POST(request: NextRequest) {
 
             if (resolvedWorkspaceId) {
                 const workspaceRef = adminDb.collection("workspaces").doc(resolvedWorkspaceId)
-                await workspaceRef.set({
-                    accounts: {
-                        bluesky: accountData
-                    },
+                await workspaceRef.update({
+                    [`accounts.bluesky`]: accountData,
                     updatedAt: timestamp
-                }, { merge: true })
+                })
                 console.log(`Bluesky account (${result.handle}) saved to Workspace:`, resolvedWorkspaceId)
             } else {
                 // Fallback: save to user doc if no workspace found
                 const userRef = adminDb.collection("users").doc(userId)
-                await userRef.set({
+                await userRef.update({
                     bluesky: accountData,
                     updatedAt: timestamp
-                }, { merge: true })
+                })
                 console.log(`Bluesky account (${result.handle}) saved to User Doc:`, userId)
             }
         } else {

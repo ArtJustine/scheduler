@@ -195,14 +195,15 @@ export async function GET(request: NextRequest) {
 
         const workspaceId = cookieStore.get("oauth_workspace_id")?.value
         if (workspaceId) {
-          await adminDb.collection("workspaces").doc(workspaceId).set({
-            accounts: { instagram: dbData },
+          await adminDb.collection("workspaces").doc(workspaceId).update({
+            [`accounts.instagram`]: dbData,
             updatedAt: new Date().toISOString()
-          }, { merge: true })
+          })
         } else {
-          await adminDb.collection("users").doc(userId).set({
-            instagram: dbData
-          }, { merge: true })
+          await adminDb.collection("users").doc(userId).update({
+            instagram: dbData,
+            updatedAt: new Date().toISOString()
+          })
         }
         console.log("Validation: Save complete")
       } else {

@@ -87,29 +87,28 @@ export async function GET(request: NextRequest) {
 
         // Save to Firestore
         try {
-            if (serverDb) {
+            const { adminDb } = await import("@/lib/firebase-admin")
+            if (adminDb) {
                 const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+                const timestamp = new Date().toISOString()
 
                 if (workspaceId) {
-                    const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
-                    await setDoc(workspaceDocRef, {
-                        accounts: {
-                            pinterest: {
-                                ...accountData,
-                                updatedAt: new Date().toISOString()
-                            }
+                    await adminDb.collection("workspaces").doc(workspaceId).update({
+                        [`accounts.pinterest`]: {
+                            ...accountData,
+                            updatedAt: timestamp
                         },
-                        updatedAt: new Date().toISOString()
-                    }, { merge: true })
+                        updatedAt: timestamp
+                    })
                     console.log("Pinterest account saved to Workspace:", workspaceId)
                 } else {
-                    const userDocRef = doc(serverDb, "users", userId)
-                    await setDoc(userDocRef, {
+                    await adminDb.collection("users").doc(userId).update({
                         pinterest: {
                             ...accountData,
-                            updatedAt: new Date().toISOString()
-                        }
-                    }, { merge: true })
+                            updatedAt: timestamp
+                        },
+                        updatedAt: timestamp
+                    })
                     console.log("Pinterest account saved to User Doc:", userId)
                 }
             }

@@ -41,6 +41,12 @@ export async function POST(
 
         if (updatedPost?.status === "published") {
             return NextResponse.json({ success: true, message: "Post published successfully!" })
+        } else if (updatedPost?.status === "partial") {
+            return NextResponse.json({
+                success: false,
+                partial: true,
+                message: updatedPost.error || "Post partially published. Some platforms failed."
+            })
         } else if (updatedPost?.status === "failed") {
             return NextResponse.json({
                 success: false,

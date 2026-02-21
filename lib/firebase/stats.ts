@@ -13,7 +13,8 @@ export async function getUserStats(timeframe: string = "month") {
         youtube: { views: 0, videos: 0, comments: 0, likes: 0, followers: 0, engagement: 0, impressions: 0 },
         tiktok: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 },
         pinterest: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 },
-        linkedin: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
+        linkedin: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 },
+        bluesky: { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
       }
     }
   }
@@ -58,6 +59,7 @@ export async function getUserStats(timeframe: string = "month") {
     let facebookStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
     let pinterestStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
     let linkedinStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
+    let blueskyStats = { engagement: 0, followers: 0, impressions: 0, growth: 0, likes: 0, comments: 0 }
 
     try {
       const { getActiveWorkspace } = await import("./workspaces")
@@ -92,6 +94,7 @@ export async function getUserStats(timeframe: string = "month") {
       if (accounts.facebook) facebookStats = normalize(accounts.facebook)
       if (accounts.pinterest) pinterestStats = normalize(accounts.pinterest)
       if (accounts.linkedin) linkedinStats = normalize(accounts.linkedin)
+      if (accounts.bluesky) blueskyStats = normalize(accounts.bluesky)
 
     } catch (e) {
       console.error("Error fetching social stats:", e)
@@ -121,7 +124,8 @@ export async function getUserStats(timeframe: string = "month") {
         threads: threadsStats,
         facebook: facebookStats,
         pinterest: pinterestStats,
-        linkedin: linkedinStats
+        linkedin: linkedinStats,
+        bluesky: blueskyStats
       }
     }
 

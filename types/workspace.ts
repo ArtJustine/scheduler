@@ -14,5 +14,6 @@ export interface Workspace {
         twitter?: any;
         pinterest?: any;
         linkedin?: any;
+        bluesky?: any;
     };
 }

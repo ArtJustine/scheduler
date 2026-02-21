@@ -105,6 +105,14 @@ export const config = {
     scopes: ["threads_basic", "threads_content_publish", "threads_manage_insights", "threads_profile_discovery"],
   },
 
+  // Bluesky API Configuration
+  bluesky: {
+    // Note: Bluesky currently uses App Passwords for most simple integrations
+    identifier: process.env.BLUESKY_IDENTIFIER || "",
+    appPassword: process.env.BLUESKY_APP_PASSWORD || "",
+    service: process.env.BLUESKY_SERVICE || "https://bsky.social",
+  },
+
   // General app configuration
   app: {
     baseUrl: process.env.NEXT_PUBLIC_BASE_URL || "https://chiyusocial.com",
@@ -131,6 +139,8 @@ export const isPlatformConfigured = (platform: string): boolean => {
       return !!(config.pinterest.appId && config.pinterest.appSecret);
     case "threads":
       return !!(config.threads.appId && config.threads.appSecret);
+    case "bluesky":
+      return !!(config.bluesky.identifier && config.bluesky.appPassword);
     default:
       return false;
   }

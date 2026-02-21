@@ -59,6 +59,11 @@ PINTEREST_REDIRECT_URI=http://localhost:3000/api/auth/callback/pinterest
 THREADS_APP_ID=your_threads_app_id
 THREADS_APP_SECRET=your_threads_app_secret
 THREADS_REDIRECT_URI=http://localhost:3000/api/auth/callback/threads
+
+# Bluesky API Configuration (uses App Passwords)
+BLUESKY_IDENTIFIER=your_handle.bsky.social
+BLUESKY_APP_PASSWORD=your_app_password
+BLUESKY_SERVICE=https://bsky.social
 ```
 
 ### 2. Configuration File (lib/config.ts)
@@ -185,6 +190,17 @@ You'll need to update these files to implement actual OAuth flows:
 - `threads_basic`
 - `threads_content_publish`
 - `threads_manage_insights`
+
+### 9. Bluesky API
+**URL:** https://bsky.app/
+**Steps:**
+1. Login to your Bluesky account
+2. Go to **Settings** > **App Passwords**
+3. Create a new App Password
+4. Use your handle (e.g., `user.bsky.social`) as the identifier and the generated password
+
+**Required Scopes:**
+- Bluesky currently uses App Passwords which grant access to the account's basic functionality including posting.
 
 ## Additional Dependencies to Install
 

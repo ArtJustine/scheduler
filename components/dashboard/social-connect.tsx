@@ -60,6 +60,9 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
       // Redirect to the OAuth flow with user ID and workspace ID
       if (onConnect) {
         onConnect(platform)
+      } else if (platform.toLowerCase() === "bluesky") {
+        // Bluesky uses App Passwords, so we redirect to a local form page
+        window.location.href = `/dashboard/connections/bluesky?userId=${user.uid}&workspaceId=${workspaceId}`
       } else {
         // Use the actual OAuth endpoint with userId
         window.location.href = `/api/auth/${platform.toLowerCase()}?userId=${user.uid}&workspaceId=${workspaceId}`

@@ -291,6 +291,7 @@ export async function getSocialAccounts(userId?: string) {
       twitter: null,
       pinterest: null,
       linkedin: null,
+      bluesky: null,
     }
 
     // Use workspace accounts if a workspace is active
@@ -308,6 +309,7 @@ export async function getSocialAccounts(userId?: string) {
         twitter: normalizeAccount(workspaceAccounts.twitter),
         pinterest: normalizeAccount(workspaceAccounts.pinterest),
         linkedin: normalizeAccount(workspaceAccounts.linkedin),
+        bluesky: normalizeAccount(workspaceAccounts.bluesky),
       }
       const withThreads = await hydrateThreadsFollowers(normalized, workspace.id, uid)
       const withLinkedIn = await hydrateLinkedInFollowers(withThreads, workspace.id, uid)
@@ -333,6 +335,7 @@ export async function getSocialAccounts(userId?: string) {
       twitter: normalizeAccount(userData.twitter),
       pinterest: normalizeAccount(userData.pinterest),
       linkedin: normalizeAccount(userData.linkedin),
+      bluesky: normalizeAccount(userData.bluesky),
     }
     const withThreads = await hydrateThreadsFollowers(normalized, undefined, uid)
     const withLinkedIn = await hydrateLinkedInFollowers(withThreads, undefined, uid)

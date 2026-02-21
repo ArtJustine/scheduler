@@ -107,6 +107,9 @@ export async function publishPost(userId: string, postId: string, post: any) {
         case "facebook":
           publishResult = await publishToFacebook(userId, post)
           break
+        case "bluesky":
+          publishResult = await publishToBluesky(userId, post)
+          break
         default:
           publishResult = {
             success: false,
@@ -805,6 +808,31 @@ async function publishToFacebook(userId: string, post: any) {
     }
   } catch (error: any) {
     console.error("Error publishing to Facebook:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+async function publishToBluesky(userId: string, post: any) {
+  try {
+    const bluesky = await getSocialData(userId, post.workspaceId, "bluesky")
+    if (!bluesky || !bluesky.accessToken || !bluesky.identifier) {
+      throw new Error("Bluesky account not connected")
+    }
+
+    const { postToBluesky } = await import("./bluesky-service")
+    const result = await postToBluesky(
+      bluesky.identifier,
+      bluesky.accessToken, // We store app password here
+      post.content || ""
+    )
+
+    if (!result.success) {
+      throw new Error(result.error || "Bluesky publishing failed")
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error("Error publishing to Bluesky:", error)
     return { success: false, error: error.message }
   }
 }

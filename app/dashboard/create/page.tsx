@@ -370,6 +370,15 @@ export default function CreatePostPage() {
         color: "bg-blue-50 text-blue-700"
       })
     }
+    if (selectedPlatforms.includes("bluesky")) {
+      guidelines.push({
+        id: "bluesky",
+        title: "Bluesky Tips",
+        content: "Bluesky posts work best with concise text. You can also include up to 4 images.",
+        icon: getPlatformIcon("bluesky", "h-5 w-5"),
+        color: "bg-blue-50 text-blue-600"
+      })
+    }
     return guidelines
   }
 

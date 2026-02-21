@@ -3,13 +3,14 @@
 
 import { NextResponse } from "next/server"
 import { checkScheduledPosts } from "@/lib/scheduler-service"
+import { config } from "@/lib/config"
 
 export async function GET(request: Request) {
   try {
     // Require a secret for invoking the scheduler
     const url = new URL(request.url)
     const provided = url.searchParams.get("secret")
-    const expected = process.env.CRON_SECRET || "development"
+    const expected = config.app.cronSecret
     if (provided !== expected && (process.env.NODE_ENV === "production" || provided !== "development")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

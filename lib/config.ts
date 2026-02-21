@@ -117,6 +117,7 @@ export const config = {
   app: {
     baseUrl: process.env.NEXT_PUBLIC_BASE_URL || "https://chiyusocial.com",
     environment: process.env.NODE_ENV || "development",
+    cronSecret: process.env.NEXT_PUBLIC_CRON_SECRET || process.env.CRON_SECRET || "development",
   },
 }
 

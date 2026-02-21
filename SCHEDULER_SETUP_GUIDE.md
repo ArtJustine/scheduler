@@ -41,11 +41,11 @@ When you visit this page, it will:
 2.  Attempt to publish them.
 3.  Update their status to "published" or "failed".
 
-### Option B: Automatic Styling (Production)
+### Option B: Vercel Cron (Pro Plan)
 
-When you deploy to Vercel, you should set up a **Cron Job** to hit that URL automatically every 10 minutes.
+If you are on the Vercel Pro plan, you can use the built-in cron jobs:
 
-1.  In your project root, you might already have a `vercel.json` (if not, create one):
+1.  In your project root, check `vercel.json`:
     ```json
     {
       "crons": [
@@ -57,6 +57,16 @@ When you deploy to Vercel, you should set up a **Cron Job** to hit that URL auto
     }
     ```
 2.  **Important:** You need to set the `CRON_SECRET` environment variable in Vercel to match the secret you use in the URL.
+
+### Option C: Cron-job.org (Recommended for Hobby Plan)
+
+Since Vercel Hobby plan has strict limits on cron jobs, we recommend using **[cron-job.org](https://cron-job.org)** for free, frequent scheduling.
+
+1.  Go to **Dashboard > Settings > Scheduler** in the app.
+2.  Copy your unique **Scheduler Webhook URL**.
+3.  Create a free account at [cron-job.org](https://cron-job.org).
+4.  Create a new cron job, paste your URL, and set it to run every **1 minute**.
+5.  This ensures your posts are published exactly when they are scheduled.
 
 ## 4. Immediate Next Steps
 

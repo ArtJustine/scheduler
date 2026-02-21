@@ -74,6 +74,7 @@ export default function CreatePostPage() {
   const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([])
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
   const [mediaUrl, setMediaUrl] = useState("")
+  const [mediaType, setMediaType] = useState<"image" | "video" | null>(null)
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(new Date())
   const [scheduledTime, setScheduledTime] = useState<string>("09:02")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -180,12 +181,13 @@ export default function CreatePostPage() {
     })
   }
 
-  const handleMediaUpload = (url: string) => {
+  const handleMediaUpload = (url: string, type: "image" | "video") => {
     setMediaUrl(url)
+    setMediaType(type)
 
     // Auto-detect post type based on media
     if (url) {
-      const isVideo = url.match(/\.(mp4|mov|webm)$/i)
+      const isVideo = type === "video"
       if (isVideo) {
         if (selectedPlatforms.includes("instagram")) setInstagramPostType("reel")
         if (selectedPlatforms.includes("youtube") && youtubeAspectRatio === "9:16") setYoutubeAspectRatio("9:16")
@@ -219,7 +221,8 @@ export default function CreatePostPage() {
         storagePath: storageRef.fullPath,
       })
 
-      handleMediaUpload(downloadURL)
+      const type = file.type.startsWith("video/") ? "video" : "image"
+      handleMediaUpload(downloadURL, type)
     } catch (err) {
       console.error("Manual upload failed:", err)
       setError("Failed to upload media")
@@ -404,7 +407,8 @@ export default function CreatePostPage() {
       return
     }
 
-    const isVideo = mediaUrl?.match(/\.(mp4|mov|webm)$/i)
+    // Use tracked mediaType (set at upload time) - more reliable than URL regex for Firebase Storage URLs
+    const isVideo = mediaType === "video"
     const hasMedia = !!mediaUrl
 
     for (const platform of selectedPlatforms) {
@@ -441,7 +445,7 @@ export default function CreatePostPage() {
         content,
         platforms: selectedPlatforms,
         platform: selectedPlatforms.length === 1 ? selectedPlatforms[0] : (selectedPlatforms.length > 1 ? "multiple" : "unknown"),
-        contentType: mediaUrl ? (mediaUrl.match(/\.(mp4|mov|webm)$/i) ? "video" : "image") : "text",
+        contentType: mediaUrl ? (mediaType === "video" ? "video" : "image") : "text",
         mediaUrl,
         thumbnailUrl,
         scheduledFor: (() => {
@@ -606,7 +610,7 @@ export default function CreatePostPage() {
               {mediaUrl && (
                 <div className="px-6 pb-6">
                   <div className="border rounded-xl overflow-hidden relative group bg-black/5">
-                    {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                    {mediaType !== "video" ? (
                       <img
                         src={mediaUrl}
                         alt="Media preview"
@@ -640,6 +644,7 @@ export default function CreatePostPage() {
                       className="absolute top-4 right-4 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity rounded-full shadow-lg"
                       onClick={() => {
                         setMediaUrl("")
+                        setMediaType(null)
                         setThumbnailUrl("")
                       }}
                     >
@@ -648,7 +653,7 @@ export default function CreatePostPage() {
                   </div>
 
                   {/* Thumbnail Section */}
-                  {(thumbnailUrl || (mediaUrl && !mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i))) && (
+                  {(thumbnailUrl || mediaType === "video") && (
                     <div className="mt-6 p-4 border rounded-xl bg-muted/20 border-muted/30">
                       <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider mb-3 block">Video Thumbnail</label>
                       <div className="flex items-start gap-4">
@@ -684,7 +689,7 @@ export default function CreatePostPage() {
                               }}
                             />
                           </Button>
-                          {!mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
+                          {mediaType === "video" && (
                             <p className="text-[10px] text-muted-foreground leading-relaxed">
                               Upload a custom image or use the <span className="font-semibold">"Set Frame"</span> tool on the video preview.
                             </p>
@@ -859,6 +864,7 @@ export default function CreatePostPage() {
                       key={item.id}
                       onClick={() => {
                         setMediaUrl(item.url)
+                        setMediaType(item.type === "video" ? "video" : "image")
                         if (item.thumbnailUrl) {
                           setThumbnailUrl(item.thumbnailUrl)
                         }
@@ -1332,7 +1338,7 @@ export default function CreatePostPage() {
                 previewView === "mobile" ? "w-[320px] h-[640px]" : "w-full min-h-[500px] border-none rounded-xl bg-black"
               )}>
                 <div className="absolute inset-0 bg-black flex items-center justify-center">
-                  {mediaUrl && !mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                  {mediaUrl && mediaType === "video" ? (
                     <>
                       <video src={mediaUrl} className="w-full h-full object-cover opacity-50" />
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -1390,7 +1396,7 @@ export default function CreatePostPage() {
                   {thumbnailUrl ? (
                     <img src={thumbnailUrl} className="w-full h-full object-cover" />
                   ) : mediaUrl ? (
-                    mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ?
+                    mediaType !== "video" ?
                       <img src={mediaUrl} className="w-full h-full object-contain" /> :
                       <video src={mediaUrl} className="w-full h-full object-cover opacity-50" />
                   ) : (
@@ -1440,7 +1446,7 @@ export default function CreatePostPage() {
                   instagramPostType === "reel" ? "h-[450px]" : "aspect-square"
                 )}>
                   {mediaUrl ? (
-                    mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ?
+                    mediaType !== "video" ?
                       <img src={mediaUrl} className="w-full h-full object-cover" /> :
                       <video src={mediaUrl} className="w-full h-full object-cover" controls />
                   ) : (
@@ -1483,7 +1489,7 @@ export default function CreatePostPage() {
 
                     {mediaUrl && (
                       <div className="rounded-xl overflow-hidden border border-muted/20">
-                        {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                        {mediaType !== "video" ? (
                           <img src={mediaUrl} className="w-full h-auto" />
                         ) : (
                           <video src={mediaUrl} className="w-full h-auto" controls />
@@ -1523,7 +1529,7 @@ export default function CreatePostPage() {
                 </div>
                 {mediaUrl && (
                   <div className="bg-slate-50 border-y border-muted/10">
-                    {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                    {mediaType !== "video" ? (
                       <img src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" />
                     ) : (
                       <video src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" controls />
@@ -1569,7 +1575,7 @@ export default function CreatePostPage() {
                 </div>
                 {mediaUrl && (
                   <div className="bg-slate-50 border-y border-muted/10">
-                    {mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                    {mediaType !== "video" ? (
                       <img src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" />
                     ) : (
                       <video src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" controls />

@@ -12,7 +12,7 @@ import { Progress } from "@/components/ui/progress"
 import { registerMediaMetadata } from "@/lib/firebase/media"
 
 interface MediaUploaderProps {
-  onUpload: (url: string) => void
+  onUpload: (url: string, type: "image" | "video") => void
 }
 
 export function MediaUploader({ onUpload }: MediaUploaderProps) {
@@ -141,7 +141,7 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
                 // We still call onUpload even if library registration fails
               }
 
-              onUpload(downloadURL)
+              onUpload(downloadURL, file.type.startsWith("video/") ? "video" : "image")
               toast({
                 title: "Upload successful",
                 description: "Media uploaded and saved to library",

@@ -32,6 +32,15 @@ export default function BlueskyConnectPage() {
             return
         }
 
+        if (!userId) {
+            toast({
+                title: "Authentication Error",
+                description: "User session not found. Please sign out and sign back in.",
+                variant: "destructive",
+            })
+            return
+        }
+
         setIsLoading(true)
 
         try {
@@ -54,7 +63,7 @@ export default function BlueskyConnectPage() {
             } else {
                 toast({
                     title: "Connection Failed",
-                    description: data.error || "Failed to connect to Bluesky. Please check your credentials.",
+                    description: data.error || "Failed to connect to Bluesky. Please check your credentials and App Password.",
                     variant: "destructive",
                 })
             }

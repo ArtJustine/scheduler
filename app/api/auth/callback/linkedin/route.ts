@@ -3,8 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { config } from "@/lib/config"
 import { linkedinOAuth, oauthHelpers } from "@/lib/oauth-utils"
 import { cookies } from "next/headers"
-import { doc, setDoc, updateDoc } from "firebase/firestore"
-import { serverDb } from "@/lib/firebase-server"
+import { adminDb } from "@/lib/firebase-admin"
 
 export async function GET(request: NextRequest) {
     try {
@@ -105,30 +104,32 @@ export async function GET(request: NextRequest) {
             connected: true,
         }
 
-        // Save to Firestore directly from the server for better reliability
+        // Save to Firestore directly from the server using adminDb for reliability
         try {
-            if (serverDb) {
+            if (adminDb) {
                 const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+                const timestamp = new Date().toISOString()
 
                 if (workspaceId) {
-                    const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
-                    await setDoc(workspaceDocRef, {
+                    const workspaceRef = adminDb.collection("workspaces").doc(workspaceId)
+                    await workspaceRef.set({
                         accounts: {
                             [accountData.platform]: {
                                 ...accountData,
-                                updatedAt: new Date().toISOString()
+                                updatedAt: timestamp
                             }
                         },
-                        updatedAt: new Date().toISOString()
+                        updatedAt: timestamp
                     }, { merge: true })
                     console.log(`LinkedIn account (${lnId}) saved to Workspace:`, workspaceId)
                 } else {
-                    const userDocRef = doc(serverDb, "users", userId)
-                    await setDoc(userDocRef, {
+                    const userRef = adminDb.collection("users").doc(userId)
+                    await userRef.set({
                         [accountData.platform]: {
                             ...accountData,
-                            updatedAt: new Date().toISOString()
-                        }
+                            updatedAt: timestamp
+                        },
+                        updatedAt: timestamp
                     }, { merge: true })
                     console.log(`LinkedIn account (${lnId}) saved to User Doc:`, userId)
                 }

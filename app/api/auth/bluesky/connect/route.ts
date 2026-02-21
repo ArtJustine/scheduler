@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { loginBluesky } from "@/lib/bluesky-service"
-import { doc, setDoc } from "firebase/firestore"
-import { serverDb } from "@/lib/firebase-server"
+import { adminDb } from "@/lib/firebase-admin"
+import { FieldValue } from "firebase-admin/firestore"
 
 export async function POST(request: NextRequest) {
     try {
@@ -41,26 +41,28 @@ export async function POST(request: NextRequest) {
             updatedAt: new Date().toISOString()
         }
 
-        // 3. Save to Firestore
-        if (serverDb) {
+        // 3. Save to Firestore using Admin SDK to bypass rules
+        if (adminDb) {
+            const timestamp = new Date().toISOString()
             if (workspaceId) {
-                const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
-                await setDoc(workspaceDocRef, {
+                const workspaceRef = adminDb.collection("workspaces").doc(workspaceId)
+                await workspaceRef.set({
                     accounts: {
                         bluesky: accountData
                     },
-                    updatedAt: new Date().toISOString()
+                    updatedAt: timestamp
                 }, { merge: true })
                 console.log(`Bluesky account (${result.handle}) saved to Workspace:`, workspaceId)
             } else {
-                const userDocRef = doc(serverDb, "users", userId)
-                await setDoc(userDocRef, {
-                    bluesky: accountData
+                const userRef = adminDb.collection("users").doc(userId)
+                await userRef.set({
+                    bluesky: accountData,
+                    updatedAt: timestamp
                 }, { merge: true })
                 console.log(`Bluesky account (${result.handle}) saved to User Doc:`, userId)
             }
         } else {
-            console.warn("Firestore serverDb not available")
+            console.warn("Firestore adminDb not available")
             return NextResponse.json(
                 { success: false, error: "Database connection failed" },
                 { status: 500 }

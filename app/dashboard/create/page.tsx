@@ -389,6 +389,51 @@ export default function CreatePostPage() {
     setIsSubmitting(true)
     setError(null)
 
+    // Proactive Validation
+    if (selectedPlatforms.length === 0) {
+      setError("Please select at least one platform.")
+      setIsSubmitting(false)
+      window.scrollTo({ top: 0, behavior: "smooth" })
+      return
+    }
+
+    if (!content && !mediaUrl) {
+      setError("Please provide some content or media for your post.")
+      setIsSubmitting(false)
+      window.scrollTo({ top: 0, behavior: "smooth" })
+      return
+    }
+
+    const isVideo = mediaUrl?.match(/\.(mp4|mov|webm)$/i)
+    const hasMedia = !!mediaUrl
+
+    for (const platform of selectedPlatforms) {
+      if (platform === "instagram" && !hasMedia) {
+        setError("Instagram requires an image or video for all post types.")
+        setIsSubmitting(false)
+        window.scrollTo({ top: 0, behavior: "smooth" })
+        return
+      }
+      if (platform === "tiktok" && (!hasMedia || !isVideo)) {
+        setError("TikTok only accepts video files. Please upload a video.")
+        setIsSubmitting(false)
+        window.scrollTo({ top: 0, behavior: "smooth" })
+        return
+      }
+      if (platform === "pinterest" && !hasMedia) {
+        setError("Pinterest requires an image or video for all pins.")
+        setIsSubmitting(false)
+        window.scrollTo({ top: 0, behavior: "smooth" })
+        return
+      }
+      if (platform === "youtube" && youtubeAspectRatio !== "community" && (!hasMedia || !isVideo)) {
+        setError("YouTube video/short posts require a video file.")
+        setIsSubmitting(false)
+        window.scrollTo({ top: 0, behavior: "smooth" })
+        return
+      }
+    }
+
     try {
       const postData: any = {
         title: content.substring(0, 50) || "New Post",

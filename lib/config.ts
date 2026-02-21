@@ -115,7 +115,10 @@ export const config = {
 
   // General app configuration
   app: {
-    baseUrl: process.env.NEXT_PUBLIC_BASE_URL || "https://chiyusocial.com",
+    baseUrl:
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      (typeof window !== "undefined" ? window.location.origin : `https://${process.env.VERCEL_URL}`) ||
+      "http://localhost:3000",
     environment: process.env.NODE_ENV || "development",
     cronSecret: process.env.NEXT_PUBLIC_CRON_SECRET || process.env.CRON_SECRET || "development",
   },

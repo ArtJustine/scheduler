@@ -29,6 +29,7 @@ export async function checkScheduledPosts() {
     }
   } catch (error) {
     console.error("Error checking scheduled posts:", error)
+    throw error // Re-throw so the API returns 500
   }
 }
 // Helper to get platform credentials (workspace-aware)

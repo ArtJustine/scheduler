@@ -64,8 +64,9 @@ import {
 } from "@/components/ui/select"
 import { registerMediaMetadata, getMediaLibrary } from "@/lib/firebase/media"
 import { firebaseStorage } from "@/lib/firebase-client"
-import { ref, getDownloadURL, uploadString, uploadBytes } from "firebase/storage"
+import { ref, getDownloadURL, uploadString, uploadBytes, uploadBytesResumable } from "firebase/storage"
 import type { MediaItem } from "@/types/media"
+import { useToast } from "@/hooks/use-toast"
 
 export default function CreatePostPage() {
   const router = useRouter()
@@ -101,6 +102,7 @@ export default function CreatePostPage() {
   const [youtubeTags, setYoutubeTags] = useState<string>("")
   const [success, setSuccess] = useState(false)
   const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Instagram Specific Options
@@ -199,35 +201,104 @@ export default function CreatePostPage() {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
+    if (!file) {
+      console.log("No file selected in handleFileChange")
+      return
+    }
 
-    setIsSubmitting(true)
+    console.log("File selected for manual upload:", file.name, file.type, file.size)
+
     try {
-      if (!user || !firebaseStorage) return
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to upload media.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      if (!firebaseStorage) {
+        console.error("Firebase Storage not initialized")
+        toast({
+          title: "Upload Error",
+          description: "Storage service is not available. Please refresh and try again.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      setIsSubmitting(true)
+      toast({
+        title: "Starting Upload",
+        description: `Uploading ${file.name}...`,
+      })
 
       const timestamp = Date.now()
       const fileName = `${timestamp}_${file.name}`
       const storageRef = ref(firebaseStorage, `media/${user.uid}/${fileName}`)
 
-      await uploadBytes(storageRef, file)
-      const downloadURL = await getDownloadURL(storageRef)
+      console.log("Uploading bytes to:", storageRef.fullPath)
+      const uploadTask = uploadBytesResumable(storageRef, file)
 
-      await registerMediaMetadata({
-        url: downloadURL,
-        title: file.name,
-        type: file.type.startsWith("video/") ? "video" : "image",
-        fileName: file.name,
-        fileSize: file.size,
-        storagePath: storageRef.fullPath,
+      // Monitor upload
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          console.log(`Manual upload progress: ${Math.round(progress)}%`)
+        },
+        (error) => {
+          console.error("Upload task failed:", error)
+          toast({
+            title: "Upload Failed",
+            description: error.message || "Failed to upload media to storage.",
+            variant: "destructive"
+          })
+          setIsSubmitting(false)
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
+            console.log("Manual upload complete. URL:", downloadURL)
+
+            const type = file.type.startsWith("video/") ? "video" : "image"
+
+            await registerMediaMetadata({
+              url: downloadURL,
+              title: file.name,
+              type: type,
+              fileName: file.name,
+              fileSize: file.size,
+              storagePath: storageRef.fullPath,
+            })
+
+            handleMediaUpload(downloadURL, type)
+            toast({
+              title: "Upload Complete",
+              description: `${file.name} is ready.`,
+            })
+          } catch (err: any) {
+            console.error("Error finalizing manual upload:", err)
+            toast({
+              title: "Finalization Failed",
+              description: "Media uploaded but failed to save to library.",
+              variant: "destructive"
+            })
+          } finally {
+            setIsSubmitting(false)
+            if (e.target) e.target.value = ""
+          }
+        }
+      )
+    } catch (err: any) {
+      console.error("Manual upload process error:", err)
+      toast({
+        title: "Upload Error",
+        description: err.message || "An unexpected error occurred during upload.",
+        variant: "destructive"
       })
-
-      const type = file.type.startsWith("video/") ? "video" : "image"
-      handleMediaUpload(downloadURL, type)
-    } catch (err) {
-      console.error("Manual upload failed:", err)
-      setError("Failed to upload media")
-    } finally {
       setIsSubmitting(false)
+      if (e.target) e.target.value = ""
     }
   }
 
@@ -268,7 +339,29 @@ export default function CreatePostPage() {
   }
 
   const handleThumbnailUpload = async (file: File) => {
-    if (!user || !firebaseStorage) return
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to upload thumbnails.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!firebaseStorage) {
+      toast({
+        title: "Upload Error",
+        description: "Storage service is not available.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    toast({
+      title: "Uploading Thumbnail",
+      description: `Uploading ${file.name}...`,
+    })
+
     try {
       const timestamp = Date.now()
       const fileName = `thumb_${timestamp}_${file.name}`
@@ -287,8 +380,18 @@ export default function CreatePostPage() {
         fileSize: file.size,
         storagePath: storageRef.fullPath,
       })
-    } catch (error) {
+
+      toast({
+        title: "Thumbnail Uploaded",
+        description: "Custom thumbnail has been set.",
+      })
+    } catch (error: any) {
       console.error("Error uploading thumbnail:", error)
+      toast({
+        title: "Thumbnail Upload Failed",
+        description: error.message || "Failed to upload thumbnail.",
+        variant: "destructive",
+      })
     }
   }
 

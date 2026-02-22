@@ -385,14 +385,14 @@ export function DashboardSidebar() {
 
         <Collapsible defaultOpen={true} className="px-3 py-1 relative z-10 group/channels">
           <CollapsibleTrigger asChild>
-            <div className="flex items-center justify-between mb-2 px-4 cursor-pointer hover:bg-muted/50 py-1.5 rounded-lg transition-colors">
+            <div className="flex items-center justify-between px-4 cursor-pointer hover:bg-muted/50 py-1.5 rounded-lg transition-colors">
               <div className="flex items-center gap-2">
                 <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
                   Channels
                 </h2>
                 <ChevronRight className="h-3 w-3 text-muted-foreground/50 transition-transform duration-200 group-data-[state=open]/channels:rotate-90" />
               </div>
-              <div className="flex -space-x-2 overflow-hidden group-data-[state=open]/channels:opacity-0 transition-opacity">
+              <div className="flex -space-x-2 overflow-hidden group-data-[state=open]/channels:hidden transition-opacity">
                 {socialChannels
                   .filter(channel => {
                     const acc = connectedAccounts[channel.title.toLowerCase()]
@@ -415,7 +415,7 @@ export function DashboardSidebar() {
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent className="animate-in fade-in slide-in-from-top-1 duration-200">
-            <SidebarMenu className="gap-1 mt-1">
+            <SidebarMenu className="gap-1 mt-0">
               {socialChannels.filter(channel => {
                 const acc = connectedAccounts[channel.title.toLowerCase()]
                 return acc && (acc.connected || acc.accessToken || acc.access_token)

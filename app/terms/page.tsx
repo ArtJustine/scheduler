@@ -8,11 +8,11 @@ export default function TermsPage() {
 
             <main className="flex-1 pt-24 pb-20">
                 <section>
-                    <div className="container px-6 max-w-3xl mx-auto text-center">
+                    <div className="container px-6 max-w-3xl mx-auto text-left">
                         <h1 className="text-4xl font-bold font-heading mb-4">Terms of Service for Chiyu Social</h1>
                         <p className="text-muted-foreground mb-12 italic">Effective Date: February 22, 2026</p>
 
-                        <div className="prose prose-lg dark:prose-invert mx-auto text-center">
+                        <div className="prose prose-lg dark:prose-invert mx-auto">
                             <h2 className="text-2xl font-bold mt-10 mb-4">1. Acceptance of Terms</h2>
                             <p className="mb-8">By creating an account on Chiyu Social, you agree to these terms. If you're using Chiyu on behalf of a business or client, you represent that you have the authority to bind them to these terms.</p>
 

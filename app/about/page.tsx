@@ -10,13 +10,13 @@ export default function AboutPage() {
 
             <main className="flex-1 pt-24 pb-20">
                 <section>
-                    <div className="container px-6 max-w-3xl mx-auto text-center">
+                    <div className="container px-6 max-w-3xl mx-auto text-left">
                         <h1 className="text-4xl md:text-6xl font-bold font-heading mb-4">
                             About <span className="text-primary">Chiyu Social</span>
                         </h1>
                         <p className="text-xl text-muted-foreground mb-12 font-medium italic">Built for Creators, by a Creator</p>
 
-                        <div className="prose prose-lg dark:prose-invert mx-auto text-center">
+                        <div className="prose prose-lg dark:prose-invert mx-auto">
                             <p className="mb-8 leading-relaxed">
                                 Chiyu Social wasn’t born in a corporate boardroom. It was built at a desk cluttered with smart home gear, code editors, and the daily hustle of managing multiple clients.
                             </p>
@@ -30,7 +30,7 @@ export default function AboutPage() {
                                 The name "Chiyu" represents a sense of healing and balance. For a creator, nothing is more stressful than a disorganized feed or a clunky workflow. Our mission is to provide:
                             </p>
 
-                            <div className="grid gap-8 text-center mb-16">
+                            <div className="grid gap-8 text-left mb-16">
                                 <div>
                                     <h3 className="text-xl font-bold mb-2">Human-Centric Design</h3>
                                     <p className="text-muted-foreground text-sm leading-relaxed">A UI that feels like an extension of your creative brain, not a hurdle to jump over.</p>

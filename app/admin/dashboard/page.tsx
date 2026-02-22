@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useAuth } from "../../../lib/auth-provider"
 import { Button } from "../../../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card"
-import { PlusCircle, FileText, FolderOpen, Eye, Edit, Trash2, LogOut, Users, Mail, Lock } from "lucide-react"
+import { PlusCircle, FileText, FolderOpen, Eye, Edit, Trash2, LogOut, Users, Mail, Lock, MessageSquare } from "lucide-react"
 import type { BlogPost } from "../../../types/blog"
 import { getWaitlistSignups } from "@/lib/firebase/waitlist"
 
@@ -19,6 +19,7 @@ export default function AdminDashboardPage() {
         draftPosts: 0,
         totalViews: 0,
         totalWaitlist: 0,
+        totalHelp: 0,
     })
 
     useEffect(() => {
@@ -34,7 +35,8 @@ export default function AdminDashboardPage() {
     const fetchStats = async () => {
         try {
             const { firebaseDb } = await import("@/lib/firebase-client")
-            const { collection, getDocs } = await import("firebase/firestore")
+            const { collection, getDocs, query, where } = await import("firebase/firestore")
+            const { getWaitlistSignups } = await import("@/lib/firebase/waitlist")
 
             if (firebaseDb) {
                 // Fetch Blog Stats
@@ -47,12 +49,16 @@ export default function AdminDashboardPage() {
                 // Fetch Waitlist Stats
                 const waitlistEntries = await getWaitlistSignups()
 
+                // Fetch Help Stats
+                const helpSnapshot = await getDocs(collection(firebaseDb, "help_requests"))
+
                 setStats({
                     totalPosts: posts.length,
                     publishedPosts: posts.filter((p: BlogPost) => p.status === "published").length,
                     draftPosts: posts.filter((p: BlogPost) => p.status === "draft").length,
                     totalViews: posts.reduce((acc: number, p: BlogPost) => acc + (p.views || 0), 0),
                     totalWaitlist: waitlistEntries.length,
+                    totalHelp: helpSnapshot.size,
                 })
             }
         } catch (error) {
@@ -144,14 +150,25 @@ export default function AdminDashboardPage() {
                             <p className="text-xs text-muted-foreground">Total signups</p>
                         </CardContent>
                     </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Help Requests</CardTitle>
+                            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{stats.totalHelp}</div>
+                            <p className="text-xs text-muted-foreground">User messages</p>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Quick Links */}
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
                         <CardHeader>
                             <CardTitle>Blog Posts</CardTitle>
-                            <CardDescription>Manage all your blog content</CardDescription>
+                            <CardDescription>Manage your content</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2">
                             <Link href="/admin/posts">
@@ -160,19 +177,13 @@ export default function AdminDashboardPage() {
                                     All Posts
                                 </Button>
                             </Link>
-                            <Link href="/admin/posts/new">
-                                <Button className="w-full justify-start" variant="outline">
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Create New Post
-                                </Button>
-                            </Link>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader>
                             <CardTitle>Waitlist</CardTitle>
-                            <CardDescription>Manage early access signups</CardDescription>
+                            <CardDescription>Early access signups</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2">
                             <Link href="/admin/waitlist">
@@ -181,23 +192,34 @@ export default function AdminDashboardPage() {
                                     View Waitlist
                                 </Button>
                             </Link>
-                            <Button className="w-full justify-start" variant="outline" disabled>
-                                <Mail className="mr-2 h-4 w-4" />
-                                Send Invitations
-                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Help & Support</CardTitle>
+                            <CardDescription>User help requests</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <Link href="/admin/help">
+                                <Button className="w-full justify-start" variant="outline">
+                                    <MessageSquare className="mr-2 h-4 w-4" />
+                                    Manage Requests
+                                </Button>
+                            </Link>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader>
                             <CardTitle>System</CardTitle>
-                            <CardDescription>Administrative settings</CardDescription>
+                            <CardDescription>Settings</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2">
                             <Link href="/admin/categories">
                                 <Button className="w-full justify-start" variant="outline">
                                     <FolderOpen className="mr-2 h-4 w-4" />
-                                    Manage Categories
+                                    Categories
                                 </Button>
                             </Link>
                         </CardContent>

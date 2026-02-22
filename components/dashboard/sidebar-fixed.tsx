@@ -383,9 +383,9 @@ export function DashboardSidebar() {
           ))}
         </SidebarMenu>
 
-        <Collapsible defaultOpen={true} className="px-3 py-1 relative z-10 group/channels">
+        <Collapsible defaultOpen={true} className="relative z-10 group/channels px-2">
           <CollapsibleTrigger asChild>
-            <div className="flex items-center justify-between px-4 cursor-pointer hover:bg-muted/50 py-1.5 rounded-lg transition-colors">
+            <div className="flex items-center justify-between px-4 cursor-pointer hover:bg-muted/50 py-1 rounded-lg transition-colors">
               <div className="flex items-center gap-2">
                 <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
                   Channels
@@ -415,7 +415,7 @@ export function DashboardSidebar() {
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent className="animate-in fade-in slide-in-from-top-1 duration-200">
-            <SidebarMenu className="gap-1 mt-0">
+            <div className="flex flex-col gap-1 px-2">
               {socialChannels.filter(channel => {
                 const acc = connectedAccounts[channel.title.toLowerCase()]
                 return acc && (acc.connected || acc.accessToken || acc.access_token)
@@ -434,7 +434,7 @@ export function DashboardSidebar() {
                         key={channel.title}
                         href={channel.href}
                         className={cn(
-                          "flex items-center gap-3 px-2 py-2 rounded-xl transition-all duration-200 group relative",
+                          "flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group relative",
                           active
                             ? "bg-primary/10 text-primary shadow-[inset_0px_0px_12px_rgba(var(--primary-rgb),0.05)]"
                             : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-muted/50 hover:text-foreground"
@@ -477,7 +477,7 @@ export function DashboardSidebar() {
                   No Connections
                 </div>
               )}
-            </SidebarMenu>
+            </div>
           </CollapsibleContent>
         </Collapsible>
 

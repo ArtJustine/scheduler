@@ -1428,7 +1428,7 @@ export default function CreatePostPage() {
 
           {/* Preview Platform Selector */}
           <div className="flex items-center -space-x-1.5 py-2 mb-2 overflow-x-auto no-scrollbar pl-1">
-            {connectedPlatforms.map((platform) => (
+            {selectedPlatforms.map((platform) => (
               <button
                 key={platform}
                 onClick={() => setPreviewPlatform(platform)}

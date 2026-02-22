@@ -383,9 +383,9 @@ export function DashboardSidebar() {
           ))}
         </SidebarMenu>
 
-        <Collapsible defaultOpen={true} className="relative z-10 group/channels px-2">
+        <Collapsible defaultOpen={true} className="relative z-10 group/channels">
           <CollapsibleTrigger asChild>
-            <div className="flex items-center justify-between px-4 cursor-pointer hover:bg-muted/50 py-1 rounded-lg transition-colors">
+            <div className="flex items-center justify-between px-2 cursor-pointer hover:bg-muted/50 py-1 rounded-lg transition-colors">
               <div className="flex items-center gap-2">
                 <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
                   Channels
@@ -434,14 +434,14 @@ export function DashboardSidebar() {
                         key={channel.title}
                         href={channel.href}
                         className={cn(
-                          "flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group relative",
+                          "flex items-center gap-2 px-1.5 py-1.5 rounded-xl transition-all duration-200 group relative",
                           active
                             ? "bg-primary/10 text-primary shadow-[inset_0px_0px_12px_rgba(var(--primary-rgb),0.05)]"
                             : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-muted/50 hover:text-foreground"
                         )}
                         onMouseEnter={handleMouseEnter}
                       >
-                        <div className="relative h-8 w-8 flex-shrink-0">
+                        <div className="relative h-7 w-7 flex-shrink-0">
                           {image ? (
                             <div className={cn(
                               "h-full w-full rounded-full flex items-center justify-center overflow-hidden border border-white/10",
@@ -468,7 +468,7 @@ export function DashboardSidebar() {
                             </div>
                           )}
                         </div>
-                        <span className="text-sm font-medium truncate">{title}</span>
+                        <span className="text-xs font-medium truncate flex-1 min-w-0">{title}</span>
                       </Link>
                     )
                   })
@@ -481,18 +481,20 @@ export function DashboardSidebar() {
           </CollapsibleContent>
         </Collapsible>
 
-        <SidebarMenu className="relative z-10">
-          {settingsItems.map((item) => (
-            <SidebarMenuItem key={item.href} onMouseEnter={handleMouseEnter}>
-              <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
-                <Link href={item.href} className={cn("flex items-center")}>
-                  <item.icon className="mr-2 h-5 w-5" />
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        <div className="mt-0">
+          <SidebarMenu className="relative z-10 gap-1">
+            {settingsItems.map((item) => (
+              <SidebarMenuItem key={item.href} onMouseEnter={handleMouseEnter}>
+                <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
+                  <Link href={item.href} className={cn("flex items-center")}>
+                    <item.icon className="mr-2 h-5 w-5" />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </div>
       </SidebarContent>
       <SidebarFooter className="p-4 flex flex-col gap-2">
         <div className="text-xs text-muted-foreground text-center">© {new Date().getFullYear()} Chiyu</div>

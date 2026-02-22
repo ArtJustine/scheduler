@@ -1161,6 +1161,14 @@ export default function CreatePostPage() {
                   </div>
                 </div>
 
+                <Alert className="bg-blue-50/50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-900/30">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-[10px] text-blue-700 dark:text-blue-400 font-medium leading-relaxed">
+                    TikTok's Direct Post API requires your account to be set to <strong>Public</strong> in the TikTok app settings.
+                    If your account is private, automated posting will fail.
+                  </AlertDescription>
+                </Alert>
+
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Privacy</Label>
@@ -1169,21 +1177,25 @@ export default function CreatePostPage() {
                         <SelectValue placeholder="Who can watch?" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-white/20">
-                        <SelectItem value="public">Everyone</SelectItem>
+                        <SelectItem value="public">Public (Everyone)</SelectItem>
                         <SelectItem value="friends">Friends Only</SelectItem>
-                        <SelectItem value="self">Only Me</SelectItem>
+                        <SelectItem value="self">Private (Only Me)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="flex items-center justify-between p-3 border border-muted/10 rounded-2xl bg-muted/5 group">
-                      <Label htmlFor="tt-comments" className="text-[10px] font-bold cursor-pointer">Comments</Label>
+                      <Label htmlFor="tt-comments" className="text-[10px] font-bold cursor-pointer">Allow Comments</Label>
                       <Switch id="tt-comments" checked={tiktokAllowComments} onCheckedChange={setTiktokAllowComments} />
                     </div>
                     <div className="flex items-center justify-between p-3 border border-muted/10 rounded-2xl bg-muted/5 group">
-                      <Label htmlFor="tt-duet" className="text-[10px] font-bold cursor-pointer">Duet</Label>
+                      <Label htmlFor="tt-duet" className="text-[10px] font-bold cursor-pointer">Allow Duet</Label>
                       <Switch id="tt-duet" checked={tiktokAllowDuet} onCheckedChange={setTiktokAllowDuet} />
+                    </div>
+                    <div className="flex items-center justify-between p-3 border border-muted/10 rounded-2xl bg-muted/5 group col-span-2">
+                      <Label htmlFor="tt-stitch" className="text-[10px] font-bold cursor-pointer">Allow Stitch</Label>
+                      <Switch id="tt-stitch" checked={tiktokAllowStitch} onCheckedChange={setTiktokAllowStitch} />
                     </div>
                   </div>
                 </div>

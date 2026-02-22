@@ -470,10 +470,11 @@ async function publishToTikTok(userId: string, post: any) {
       const initBody = {
         post_info: {
           title: post.title || post.content?.substring(0, 80) || "Scheduled Post",
-          privacy_level: "SELF_ONLY", // Reverting to standard sandbox requirement
-          disable_comment: false,
-          disable_duet: false,
-          disable_stitch: false,
+          privacy_level: post.tiktokOptions?.privacy === "public" ? "PUBLIC_TO_EVERYONE" :
+            post.tiktokOptions?.privacy === "friends" ? "FRIENDS" : "SELF_ONLY",
+          disable_comment: post.tiktokOptions?.allowComments === false,
+          disable_duet: post.tiktokOptions?.allowDuet === false,
+          disable_stitch: post.tiktokOptions?.allowStitch === false,
           video_ad_tag: false
         },
         source_info: {

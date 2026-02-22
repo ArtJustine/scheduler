@@ -383,7 +383,7 @@ export function DashboardSidebar() {
           ))}
         </SidebarMenu>
 
-        <Collapsible defaultOpen={true} className="relative z-10 group/channels">
+        <Collapsible defaultOpen={true} className="relative z-10 group/channels -mt-1">
           <CollapsibleTrigger asChild>
             <div className="flex items-center justify-between px-2 cursor-pointer hover:bg-muted/50 py-1 rounded-lg transition-colors">
               <div className="flex items-center gap-2">
@@ -415,7 +415,7 @@ export function DashboardSidebar() {
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent className="animate-in fade-in slide-in-from-top-1 duration-200">
-            <div className="flex flex-col gap-1 px-2">
+            <div className="flex flex-col gap-0.5 mt-0.5">
               {socialChannels.filter(channel => {
                 const acc = connectedAccounts[channel.title.toLowerCase()]
                 return acc && (acc.connected || acc.accessToken || acc.access_token)
@@ -434,7 +434,7 @@ export function DashboardSidebar() {
                         key={channel.title}
                         href={channel.href}
                         className={cn(
-                          "flex items-center gap-2 px-1.5 py-1.5 rounded-xl transition-all duration-200 group relative",
+                          "flex items-center gap-2.5 px-2 py-1.5 rounded-md transition-all duration-200 group relative",
                           active
                             ? "bg-primary/10 text-primary shadow-[inset_0px_0px_12px_rgba(var(--primary-rgb),0.05)]"
                             : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-muted/50 hover:text-foreground"
@@ -468,7 +468,7 @@ export function DashboardSidebar() {
                             </div>
                           )}
                         </div>
-                        <span className="text-xs font-medium truncate flex-1 min-w-0">{title}</span>
+                        <span className="text-sm font-medium truncate flex-1 min-w-0">{title}</span>
                       </Link>
                     )
                   })
@@ -481,7 +481,7 @@ export function DashboardSidebar() {
           </CollapsibleContent>
         </Collapsible>
 
-        <div className="mt-0">
+        <div className="-mt-1">
           <SidebarMenu className="relative z-10 gap-1">
             {settingsItems.map((item) => (
               <SidebarMenuItem key={item.href} onMouseEnter={handleMouseEnter}>

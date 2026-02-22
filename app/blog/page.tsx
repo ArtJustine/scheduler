@@ -10,6 +10,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar, Eye, ArrowRight, Search, Tag } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import type { BlogPost, BlogCategory } from "@/types/blog"
+import { firebaseDb } from "@/lib/firebase-client"
+import { collection, query, where, getDocs } from "firebase/firestore"
 
 export default function BlogPage() {
     const [posts, setPosts] = useState<BlogPost[]>([])
@@ -25,8 +27,6 @@ export default function BlogPage() {
     const fetchData = async () => {
         try {
             setIsLoading(true)
-            const { firebaseDb } = await import("@/lib/firebase-client")
-            const { collection, query, where, getDocs } = await import("firebase/firestore")
 
             if (firebaseDb) {
                 // Fetch categories
@@ -34,7 +34,7 @@ export default function BlogPage() {
                 const cats = catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as BlogCategory[]
                 setCategories(cats)
 
-                // Fetch published posts - simplify query to avoid index requirement if possible
+                // Fetch published posts
                 const q = query(
                     collection(firebaseDb, "blog_posts"),
                     where("status", "==", "published")
@@ -78,7 +78,7 @@ export default function BlogPage() {
         <div className="flex flex-col min-h-screen bg-background">
             <SiteHeader />
 
-            <main className="flex-1 pt-32 pb-20 relative overflow-hidden">
+            <main className="flex-1 pt-32 pb-20 relative">
                 {/* Background Blobs - Minimal */}
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -z-10" />
 
@@ -144,7 +144,7 @@ export default function BlogPage() {
                     {/* Blog Posts Grid */}
                     <div className="max-w-6xl mx-auto">
                         {isLoading ? (
-                            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid gap-6 sm:gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                                 {[1, 2, 3, 4, 5, 6].map((i) => (
                                     <div key={i} className="h-[400px] rounded-xl bg-muted animate-pulse" />
                                 ))}
@@ -160,7 +160,7 @@ export default function BlogPage() {
                                 </button>
                             </div>
                         ) : (
-                            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid gap-6 sm:gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 min-h-[400px]">
                                 {filteredPosts.map((post) => (
                                     <Link key={post.id} href={`/blog/${post.slug}`}>
                                         <Card className="h-full border-none bg-muted/30 hover:bg-muted/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden group rounded-3xl">

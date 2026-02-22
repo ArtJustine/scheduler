@@ -43,11 +43,11 @@ export default function FeaturesPage() {
                     <div className="flex flex-col items-center space-y-8">
                         <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-center">Supported Platforms</p>
                         <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 transition-all duration-500">
-                            <div className="flex flex-col items-center space-y-2 group opacity-40">
+                            <div className="flex flex-col items-center space-y-2 group">
                                 <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
                                     <img src="/instagram.webp" alt="Instagram" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
                                 </div>
-                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Instagram</span>
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">Instagram</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group">
                                 <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
@@ -55,11 +55,11 @@ export default function FeaturesPage() {
                                 </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">YouTube</span>
                             </div>
-                            <div className="flex flex-col items-center space-y-2 group opacity-40">
+                            <div className="flex flex-col items-center space-y-2 group">
                                 <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
                                     <img src="/facebook.webp" alt="Facebook" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
                                 </div>
-                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Facebook</span>
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">Facebook</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group opacity-40">
                                 <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
@@ -67,11 +67,17 @@ export default function FeaturesPage() {
                                 </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">X</span>
                             </div>
-                            <div className="flex flex-col items-center space-y-2 group opacity-40">
+                            <div className="flex flex-col items-center space-y-2 group">
                                 <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
                                     <img src="/linkedin.webp" alt="LinkedIn" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
                                 </div>
-                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">LinkedIn</span>
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">LinkedIn</span>
+                            </div>
+                            <div className="flex flex-col items-center space-y-2 group">
+                                <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
+                                    <img src="/pinterest.webp" alt="Pinterest" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
+                                </div>
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">Pinterest</span>
                             </div>
                             <div className="flex flex-col items-center space-y-2 group">
                                 <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
@@ -79,11 +85,11 @@ export default function FeaturesPage() {
                                 </div>
                                 <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">TikTok</span>
                             </div>
-                            <div className="flex flex-col items-center space-y-2 group opacity-40">
+                            <div className="flex flex-col items-center space-y-2 group">
                                 <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100 flex items-center justify-center">
                                     <img src="/threads.webp" alt="Threads" className="h-4 w-4 object-contain group-hover:scale-110 transition-transform" />
                                 </div>
-                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter">Threads</span>
+                                <span className="text-[10px] font-medium hidden md:block uppercase tracking-tighter text-primary">Threads</span>
                             </div>
                         </div>
                     </div>

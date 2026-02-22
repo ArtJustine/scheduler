@@ -76,8 +76,16 @@ export default function CreatePostPage() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
   const [mediaUrl, setMediaUrl] = useState("")
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null)
-  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(new Date())
-  const [scheduledTime, setScheduledTime] = useState<string>("09:02")
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(() => {
+    const now = new Date()
+    now.setMinutes(now.getMinutes() + 10)
+    return now
+  })
+  const [scheduledTime, setScheduledTime] = useState<string>(() => {
+    const now = new Date()
+    now.setMinutes(now.getMinutes() + 10)
+    return format(now, "HH:mm")
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -1419,7 +1427,7 @@ export default function CreatePostPage() {
           </div>
 
           {/* Preview Platform Selector */}
-          <div className="flex items-center gap-2 py-2 mb-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center -space-x-1.5 py-2 mb-2 overflow-x-auto no-scrollbar pl-1">
             {connectedPlatforms.map((platform) => (
               <button
                 key={platform}

@@ -61,7 +61,7 @@ Save your app configuration.
 
 This is a **Facebook App Domain** configuration issue.
 
-1. Go to [Meta for Developers](https://developers.facebook.com/) -> Select App **943816434644966**.
+1. Go to [Meta for Developers](https://developers.facebook.com/) -> Select your App.
 2. Go to **Settings** -> **Basic**.
 3. In the **App Domains** field, add: `chiyusocial.com`.
 4. Scroll to the bottom and ensure **Website** platform is added with site URL `https://chiyusocial.com`.

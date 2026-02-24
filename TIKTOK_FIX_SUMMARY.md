@@ -53,8 +53,8 @@ Go to: https://vercel.com/dashboard
 
 | Variable Name | Value | Environments |
 |--------------|-------|--------------|
-| `TIKTOK_CLIENT_KEY` | `sbaw0g0284gv7qrf7t` | Production, Preview, Development |
-| `TIKTOK_CLIENT_SECRET` | `lxgui2v0OrGTIRx9UQX4LRwWmmMFMxQH` | Production, Preview, Development |
+| `TIKTOK_CLIENT_KEY` | `your_tiktok_client_key` | Production, Preview, Development |
+| `TIKTOK_CLIENT_SECRET` | `your_tiktok_client_secret` | Production, Preview, Development |
 | `TIKTOK_REDIRECT_URI` | `https://scheduler-silk-tau.vercel.app/api/auth/callback/tiktok` | Production, Preview, Development |
 
 4. After adding, trigger a new deployment (or wait for auto-deploy from GitHub push)

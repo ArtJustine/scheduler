@@ -9,6 +9,7 @@ import {
   useColorScheme,
   RefreshControl,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { Spacing, Radius, FontSize, FontWeight, Shadow } from '@/constants/Theme';
 import { useAuth } from '@/context/AuthContext';
+import { getUpcomingPosts, getPostStats } from '@/lib/posts';
 import type { PostType } from '@/types';
 
 // ── Stat card component ─────────────────────────────────────────
@@ -117,18 +119,48 @@ export default function DashboardScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const { user } = useAuth();
+
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<PostType[]>([]);
+  const [stats, setStats] = useState({ scheduled: 0, published: 0, failed: 0 });
 
-  // Placeholder data — replace with Firestore queries later
-  const [posts] = useState<PostType[]>([]);
+  const fetchData = async () => {
+    try {
+      const [upcomingPosts, postStats] = await Promise.all([
+        getUpcomingPosts(5),
+        getPostStats()
+      ]);
+      setPosts(upcomingPosts);
+      setStats(postStats);
+    } catch (error) {
+      console.error('[Dashboard] fetchData error:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
-  const onRefresh = async () => {
+  useEffect(() => {
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
+
+  const onRefresh = () => {
     setRefreshing(true);
-    // TODO: fetch posts from Firestore
-    setTimeout(() => setRefreshing(false), 1200);
+    fetchData();
   };
 
   const displayName = user?.displayName ?? 'there';
+
+  if (loading && !refreshing) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.brand} />
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -153,16 +185,16 @@ export default function DashboardScreen() {
         <StatCard
           icon="calendar-outline"
           label="Scheduled"
-          value="0"
-          trend="+0 this week"
+          value={stats.scheduled.toString()}
+          trend={stats.scheduled > 0 ? `+${stats.scheduled} total` : undefined}
           trendUp
           colors={colors}
         />
         <StatCard
           icon="checkmark-circle-outline"
           label="Published"
-          value="0"
-          trend="+0 this week"
+          value={stats.published.toString()}
+          trend={stats.published > 0 ? `+${stats.published} total` : undefined}
           trendUp
           colors={colors}
         />
@@ -209,6 +241,7 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  centered: { alignItems: 'center', justifyContent: 'center' },
   scrollContent: { padding: Spacing.base, paddingBottom: Spacing['4xl'] },
   greetingContainer: { marginBottom: Spacing.xl, marginTop: Spacing.sm },
   greeting: { fontSize: FontSize['2xl'], fontWeight: FontWeight.bold, letterSpacing: -0.5 },

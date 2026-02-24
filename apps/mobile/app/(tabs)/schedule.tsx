@@ -3,7 +3,7 @@
  * with a FAB to create new posts.
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     StyleSheet,
     ScrollView,
@@ -12,11 +12,14 @@ import {
     TouchableOpacity,
     View,
     Text,
+    ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import Colors from '@/constants/Colors';
 import { Spacing, Radius, FontSize, FontWeight, Shadow } from '@/constants/Theme';
+import { useAuth } from '@/context/AuthContext';
+import { getUserPosts } from '@/lib/posts';
 import type { PostType } from '@/types';
 
 // ── Filter chip ─────────────────────────────────────────────────
@@ -63,19 +66,46 @@ type FilterType = 'all' | 'scheduled' | 'published' | 'failed';
 export default function ScheduleScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const colors = Colors[colorScheme];
+    const { user } = useAuth();
+
     const [filter, setFilter] = useState<FilterType>('all');
     const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [posts, setPosts] = useState<PostType[]>([]);
 
-    // Placeholder — replace with Firestore query
-    const [posts] = useState<PostType[]>([]);
+    const fetchPosts = async () => {
+        try {
+            const allPosts = await getUserPosts();
+            setPosts(allPosts);
+        } catch (error) {
+            console.error('[Schedule] fetchPosts error:', error);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
 
-    const onRefresh = async () => {
+    useEffect(() => {
+        if (user) {
+            fetchPosts();
+        }
+    }, [user]);
+
+    const onRefresh = () => {
         setRefreshing(true);
-        setTimeout(() => setRefreshing(false), 1200);
+        fetchPosts();
     };
 
     const filteredPosts =
         filter === 'all' ? posts : posts.filter((p) => p.status === filter);
+
+    if (loading && !refreshing) {
+        return (
+            <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+                <ActivityIndicator size="large" color={colors.brand} />
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -128,11 +158,19 @@ export default function ScheduleScreen() {
                                 {post.title || post.description?.slice(0, 60) || 'Untitled'}
                             </Text>
                             <View style={styles.postMeta}>
+                                <View style={[styles.statusTag, { backgroundColor: post.status === 'published' ? '#22C55E20' : post.status === 'failed' ? `${colors.destructive}20` : `${colors.brand}20` }]}>
+                                    <Text style={[styles.statusTagText, { color: post.status === 'published' ? '#22C55E' : post.status === 'failed' ? colors.destructive : colors.brand }]}>
+                                        {post.status}
+                                    </Text>
+                                </View>
+                                <View style={styles.postPlatform}>
+                                    <Ionicons name="share-social-outline" size={14} color={colors.mutedForeground} style={{ marginRight: 4 }} />
+                                    <Text style={[styles.postMetaText, { color: colors.mutedForeground, textTransform: 'capitalize' }]}>
+                                        {post.platform}
+                                    </Text>
+                                </View>
                                 <Text style={[styles.postMetaText, { color: colors.mutedForeground }]}>
-                                    {post.platform}
-                                </Text>
-                                <Text style={[styles.postMetaText, { color: colors.mutedForeground }]}>
-                                    {new Date(post.scheduledFor).toLocaleString()}
+                                    {new Date(post.scheduledFor).toLocaleDateString()}
                                 </Text>
                             </View>
                         </View>
@@ -153,6 +191,7 @@ export default function ScheduleScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
+    centered: { alignItems: 'center', justifyContent: 'center' },
     filtersContainer: {
         maxHeight: 52,
         borderBottomWidth: 1,
@@ -189,8 +228,27 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.md,
     },
     postTitle: { fontSize: FontSize.base, fontWeight: FontWeight.medium },
-    postMeta: { flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing.sm },
+    postMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: Spacing.sm
+    },
     postMetaText: { fontSize: FontSize.xs },
+    statusTag: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: Radius.md,
+    },
+    statusTagText: {
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+        textTransform: 'uppercase',
+    },
+    postPlatform: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
     fab: {
         position: 'absolute',
         bottom: 24,

@@ -4,19 +4,19 @@
 export const config = {
   // Firebase Configuration (must match lib/firebase-client.ts)
   firebase: {
-    apiKey: "AIzaSyC9LlfyJStd8YjczRPU82BzVmTKxQmMQZ8",
-    authDomain: "socialmedia-scheduler-eb22f.firebaseapp.com",
-    projectId: "socialmedia-scheduler-eb22f",
-    storageBucket: "socialmedia-scheduler-eb22f.firebasestorage.app",
-    messagingSenderId: "974176191059",
-    appId: "1:974176191059:web:4b29d837e57c00a97abca6",
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
   },
 
   // Instagram API Configuration (matching Meta dashboard exactly)
   instagram: {
-    appId: process.env.INSTAGRAM_APP_ID || "943816434644966",
+    appId: process.env.INSTAGRAM_APP_ID || "",
     // Use the Meta App Secret that corresponds with the App ID above
-    appSecret: process.env.INSTAGRAM_APP_SECRET || "106bb8fb32f22f00aa01ee0800da6cd2",
+    appSecret: process.env.INSTAGRAM_APP_SECRET || "",
     // Hardcode Redirect URI to ensure exact match between Auth and Callback, ignoring Vercel env
     // NO trailing slash - must match Meta App Dashboard configuration exactly
     redirectUri: "https://chiyusocial.com/api/auth/callback/instagram",
@@ -34,8 +34,8 @@ export const config = {
 
   // TikTok API Configuration
   tiktok: {
-    clientKey: process.env.TIKTOK_CLIENT_KEY || "sbaw0g0284gv7qrf7t",
-    clientSecret: process.env.TIKTOK_CLIENT_SECRET || "lxgui2v0OrGTIRx9UQX4LRwWmmMFMxQH",
+    clientKey: process.env.TIKTOK_CLIENT_KEY || "",
+    clientSecret: process.env.TIKTOK_CLIENT_SECRET || "",
     redirectUri: process.env.TIKTOK_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/tiktok",
   },
 
@@ -54,8 +54,8 @@ export const config = {
 
   // Facebook API Configuration (for Instagram Business)
   facebook: {
-    appId: process.env.FACEBOOK_APP_ID || "943816434644966",
-    appSecret: process.env.FACEBOOK_APP_SECRET || "106bb8fb32f22f00aa01ee0800da6cd2",
+    appId: process.env.FACEBOOK_APP_ID || "",
+    appSecret: process.env.FACEBOOK_APP_SECRET || "",
     redirectUri: process.env.FACEBOOK_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/facebook",
     apiVersion: "18.0",
     scopes: [
@@ -91,16 +91,16 @@ export const config = {
 
   // Pinterest API Configuration
   pinterest: {
-    appId: process.env.PINTEREST_APP_ID || "1547648",
-    appSecret: process.env.PINTEREST_APP_SECRET || "0e07519280051ae48772ca668ba5ff3cbcb74e81",
+    appId: process.env.PINTEREST_APP_ID || "",
+    appSecret: process.env.PINTEREST_APP_SECRET || "",
     redirectUri: process.env.PINTEREST_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/pinterest",
     scopes: ["boards:read", "pins:read", "pins:write", "user_accounts:read"],
   },
 
   // Threads API Configuration
   threads: {
-    appId: process.env.THREADS_APP_ID || "2277979319398653",
-    appSecret: process.env.THREADS_APP_SECRET || "dd000681cfe3962c0be3f18563848fd1",
+    appId: process.env.THREADS_APP_ID || "",
+    appSecret: process.env.THREADS_APP_SECRET || "",
     redirectUri: process.env.THREADS_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/threads",
     scopes: ["threads_basic", "threads_content_publish", "threads_manage_insights", "threads_profile_discovery"],
   },

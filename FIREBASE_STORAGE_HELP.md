@@ -11,19 +11,19 @@ You need to apply the `cors.json` file (created in this directory) to your Fireb
 
 ### Option A: Using Google Cloud Console (Web UI)
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Select your project: `socialmedia-scheduler-eb22f`.
+2. Select your project.
 3. Activate Cloud Shell (icon in the top right).
 4. Upload the `cors.json` file to the Cloud Shell using the logic in the "three dots" menu of the terminal.
 5. Run this command in the Cloud Shell:
    ```bash
-   gsutil cors set cors.json gs://socialmedia-scheduler-eb22f.firebasestorage.app
+   gsutil cors set cors.json gs://your-project-id.firebasestorage.app
    ```
    *(Note: Verify your bucket name in the Firebase Console -> Storage if the above command fails)*
 
 ### Option B: Using Local Terminal (Requires gsutil)
 If you have `gcloud` or `gsutil` installed locally:
 ```bash
-gsutil cors set cors.json gs://socialmedia-scheduler-eb22f.firebasestorage.app
+gsutil cors set cors.json gs://your-project-id.firebasestorage.app
 ```
 
 ## Step 2: Check Storage Rules
@@ -46,4 +46,4 @@ service firebase.storage {
 ## Step 3: Verify Initialization
 
 If you see "Storage not initialized", verify your `lib/config.ts` has the correct `storageBucket`.
-Current setting: `socialmedia-scheduler-eb22f.firebasestorage.app`
+Current setting: `your-project-id.firebasestorage.app`

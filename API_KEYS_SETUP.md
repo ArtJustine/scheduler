@@ -8,13 +8,13 @@ This guide will help you set up API keys for all the social media platforms supp
 Create a `.env.local` file in your project root with the following variables:
 
 ```env
-# Firebase Configuration (already configured)
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyC9LlfyJStd8YjczRPU82BzVmTKxQmMQZ8
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=socialmedia-scheduler-eb22f.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=socialmedia-scheduler-eb22f
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=socialmedia-scheduler-eb22f.firebasestorage.app
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=974176191059
-NEXT_PUBLIC_FIREBASE_APP_ID=1:974176191059:web:4b29d837e57c00a97abca6
+# Firebase Configuration (get these from your Firebase Console)
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
 # Instagram API Configuration
 INSTAGRAM_APP_ID=your_instagram_app_id

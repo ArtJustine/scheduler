@@ -3,7 +3,7 @@
  * Mirrors the sidebar "Channels" section from the web app.
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     StyleSheet,
     ScrollView,
@@ -12,11 +12,14 @@ import {
     View,
     Text,
     RefreshControl,
+    ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import Colors from '@/constants/Colors';
 import { Spacing, Radius, FontSize, FontWeight, Shadow } from '@/constants/Theme';
+import { useAuth } from '@/context/AuthContext';
+import { getConnectedAccounts } from '@/lib/accounts';
 import type { SocialAccountType, SocialAccount } from '@/types';
 
 // ── Platform metadata ───────────────────────────────────────────
@@ -52,7 +55,7 @@ function PlatformCard({
     colors: (typeof Colors)['light'];
 }) {
     const connected = !!account?.connected;
-    const brandColor = colors[platform.colorKey] as string;
+    const brandColor = (colors[platform.colorKey] as string) || colors.brand;
 
     return (
         <View
@@ -107,17 +110,44 @@ function PlatformCard({
 export default function ChannelsScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const colors = Colors[colorScheme];
+    const { user } = useAuth();
+
     const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [accounts, setAccounts] = useState<Partial<Record<SocialAccountType, SocialAccount>>>({});
 
-    // Placeholder — will be fetched from Firestore workspace.accounts
-    const connectedAccounts: Partial<Record<SocialAccountType, SocialAccount>> = {};
-
-    const connectedCount = Object.values(connectedAccounts).filter((a) => a?.connected).length;
-
-    const onRefresh = async () => {
-        setRefreshing(true);
-        setTimeout(() => setRefreshing(false), 1200);
+    const fetchAccounts = async () => {
+        try {
+            const connectedAccounts = await getConnectedAccounts();
+            setAccounts(connectedAccounts);
+        } catch (error) {
+            console.error('[Channels] fetchAccounts error:', error);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
     };
+
+    useEffect(() => {
+        if (user) {
+            fetchAccounts();
+        }
+    }, [user]);
+
+    const connectedCount = Object.values(accounts).filter((a) => a?.connected).length;
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchAccounts();
+    };
+
+    if (loading && !refreshing) {
+        return (
+            <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+                <ActivityIndicator size="large" color={colors.brand} />
+            </View>
+        );
+    }
 
     return (
         <ScrollView
@@ -149,7 +179,7 @@ export default function ChannelsScreen() {
                 <PlatformCard
                     key={platform.key}
                     platform={platform}
-                    account={connectedAccounts[platform.key]}
+                    account={accounts[platform.key]}
                     colors={colors}
                 />
             ))}
@@ -159,6 +189,7 @@ export default function ChannelsScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
+    centered: { alignItems: 'center', justifyContent: 'center' },
     content: { padding: Spacing.base, paddingBottom: Spacing['4xl'] },
     summaryCard: {
         flexDirection: 'row',

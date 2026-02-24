@@ -6,11 +6,11 @@
 4. Add the following variables:
 
 **Variable Name:** TIKTOK_CLIENT_KEY
-**Value:** sbaw0g0284gv7qrf7t
+**Value:** your_tiktok_client_key
 **Environment:** Production, Preview, Development
 
 **Variable Name:** TIKTOK_CLIENT_SECRET
-**Value:** lxgui2v0OrGTIRx9UQX4LRwWmmMFMxQH
+**Value:** your_tiktok_client_secret
 **Environment:** Production, Preview, Development
 
 **Variable Name:** TIKTOK_REDIRECT_URI

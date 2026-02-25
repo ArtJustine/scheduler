@@ -15,12 +15,15 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 import Colors from '@/constants/Colors';
 import { Spacing, Radius, FontSize, FontWeight, Shadow } from '@/constants/Theme';
 import { useAuth } from '@/context/AuthContext';
+import { useWorkspace } from '@/context/WorkspaceContext';
 import { getUserPosts } from '@/lib/posts';
 import type { PostType } from '@/types';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher';
+import { useRouter } from 'expo-router';
 
 // ── Filter chip ─────────────────────────────────────────────────
 
@@ -59,14 +62,14 @@ function FilterChip({
     );
 }
 
-// ── Main component ──────────────────────────────────────────────
-
 type FilterType = 'all' | 'scheduled' | 'published' | 'failed';
 
 export default function ScheduleScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const colors = Colors[colorScheme];
     const { user } = useAuth();
+    const { activeWorkspace } = useWorkspace();
+    const router = useRouter();
 
     const [filter, setFilter] = useState<FilterType>('all');
     const [refreshing, setRefreshing] = useState(false);
@@ -74,8 +77,9 @@ export default function ScheduleScreen() {
     const [posts, setPosts] = useState<PostType[]>([]);
 
     const fetchPosts = async () => {
+        if (!activeWorkspace) return;
         try {
-            const allPosts = await getUserPosts();
+            const allPosts = await getUserPosts(activeWorkspace.id);
             setPosts(allPosts);
         } catch (error) {
             console.error('[Schedule] fetchPosts error:', error);
@@ -86,10 +90,12 @@ export default function ScheduleScreen() {
     };
 
     useEffect(() => {
-        if (user) {
+        if (user && activeWorkspace) {
             fetchPosts();
+        } else if (!activeWorkspace) {
+            setLoading(false);
         }
-    }, [user]);
+    }, [user, activeWorkspace]);
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -109,6 +115,8 @@ export default function ScheduleScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <WorkspaceSwitcher />
+
             {/* Filters */}
             <ScrollView
                 horizontal
@@ -136,23 +144,21 @@ export default function ScheduleScreen() {
                 }
             >
                 {filteredPosts.length === 0 ? (
-                    <View style={[styles.emptyState, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <GlassCard style={styles.emptyState} intensity={15}>
                         <Ionicons name="document-text-outline" size={40} color={colors.mutedForeground} />
                         <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
                             {filter === 'all' ? 'No posts yet' : `No ${filter} posts`}
                         </Text>
                         <Text style={[styles.emptyDescription, { color: colors.mutedForeground }]}>
-                            Tap the + button to schedule your first post
+                            Go to the Post tab to schedule your first post
                         </Text>
-                    </View>
+                    </GlassCard>
                 ) : (
                     filteredPosts.map((post) => (
-                        <View
+                        <GlassCard
                             key={post.id}
-                            style={[
-                                styles.postCard,
-                                { backgroundColor: colors.card, borderColor: colors.border, ...Shadow.sm },
-                            ]}
+                            style={styles.postCard}
+                            intensity={15}
                         >
                             <Text numberOfLines={2} style={[styles.postTitle, { color: colors.foreground }]}>
                                 {post.title || post.description?.slice(0, 60) || 'Untitled'}
@@ -173,18 +179,10 @@ export default function ScheduleScreen() {
                                     {new Date(post.scheduledFor).toLocaleDateString()}
                                 </Text>
                             </View>
-                        </View>
+                        </GlassCard>
                     ))
                 )}
             </ScrollView>
-
-            {/* FAB */}
-            <TouchableOpacity
-                style={[styles.fab, { backgroundColor: colors.brand, ...Shadow.lg }]}
-                activeOpacity={0.85}
-            >
-                <Ionicons name="add" size={28} color="#fff" />
-            </TouchableOpacity>
         </View>
     );
 }

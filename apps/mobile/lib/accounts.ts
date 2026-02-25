@@ -46,11 +46,14 @@ export const getActiveWorkspace = async () => {
 };
 
 /**
- * Fetch all connected social accounts
+ * Fetch all connected social accounts for a workspace
  */
-export const getConnectedAccounts = async (): Promise<Partial<Record<SocialAccountType, SocialAccount>>> => {
+export const getConnectedAccounts = async (workspaceId?: string): Promise<Partial<Record<SocialAccountType, SocialAccount>>> => {
+    if (!workspaceId) return {};
     try {
-        const workspace = await getActiveWorkspace();
+        const workspaceDoc = await db.collection('workspaces').doc(workspaceId).get();
+        const workspace = workspaceDoc.exists ? workspaceDoc.data() : null;
+
         if (!workspace || !workspace.accounts) return {};
 
         const accounts = workspace.accounts as Record<string, any>;
@@ -71,3 +74,27 @@ export const getConnectedAccounts = async (): Promise<Partial<Record<SocialAccou
         return {};
     }
 };
+
+/**
+ * Remove a social account from a workspace
+ */
+export const removeSocialAccount = async (workspaceId: string, platform: SocialAccountType) => {
+    try {
+        // In Firestore compat API, we use update with a special field value or just replace the object
+        // For simplicity and since accounts is a map, we'll fetch and delete the key
+        const workspaceRef = db.collection('workspaces').doc(workspaceId);
+        const workspaceDoc = await workspaceRef.get();
+        if (!workspaceDoc.exists) return;
+
+        const data = workspaceDoc.data();
+        if (data?.accounts && data.accounts[platform]) {
+            const newAccounts = { ...data.accounts };
+            delete newAccounts[platform];
+            await workspaceRef.update({ accounts: newAccounts });
+        }
+    } catch (error) {
+        console.error('[accounts] removeSocialAccount error:', error);
+        throw error;
+    }
+};
+

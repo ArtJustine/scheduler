@@ -12,6 +12,7 @@ import { useColorScheme } from 'react-native';
 import 'react-native-reanimated';
 
 import { AuthProvider } from '@/context/AuthContext';
+import { WorkspaceProvider } from '@/context/WorkspaceContext';
 import Colors from '@/constants/Colors';
 
 export { ErrorBoundary } from 'expo-router';
@@ -74,11 +75,13 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? ChiyuDarkTheme : ChiyuLightTheme}>
       <AuthProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        </Stack>
+        <WorkspaceProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          </Stack>
+        </WorkspaceProvider>
       </AuthProvider>
     </ThemeProvider>
   );

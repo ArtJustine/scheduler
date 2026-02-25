@@ -8,16 +8,17 @@ import { db, auth } from './firebase';
 import { PostType } from '@/types';
 
 /**
- * Fetch all posts for the current authenticated user
+ * Fetch all posts for the current authenticated user and workspace
  */
-export const getUserPosts = async (): Promise<PostType[]> => {
+export const getUserPosts = async (workspaceId?: string): Promise<PostType[]> => {
     const currentUser = auth.currentUser;
-    if (!currentUser) return [];
+    if (!currentUser || !workspaceId) return [];
 
     try {
         const snapshot = await db
             .collection('posts')
             .where('userId', '==', currentUser.uid)
+            .where('workspaceId', '==', workspaceId)
             .orderBy('scheduledFor', 'desc')
             .get();
 
@@ -34,15 +35,16 @@ export const getUserPosts = async (): Promise<PostType[]> => {
 /**
  * Fetch upcoming posts (scheduled for the future)
  */
-export const getUpcomingPosts = async (limit = 5): Promise<PostType[]> => {
+export const getUpcomingPosts = async (workspaceId?: string, limit = 5): Promise<PostType[]> => {
     const currentUser = auth.currentUser;
-    if (!currentUser) return [];
+    if (!currentUser || !workspaceId) return [];
 
     try {
         const now = new Date().toISOString();
         const snapshot = await db
             .collection('posts')
             .where('userId', '==', currentUser.uid)
+            .where('workspaceId', '==', workspaceId)
             .where('status', '==', 'scheduled')
             .where('scheduledFor', '>', now)
             .orderBy('scheduledFor', 'asc')
@@ -62,14 +64,15 @@ export const getUpcomingPosts = async (limit = 5): Promise<PostType[]> => {
 /**
  * Get post stats (counts of scheduled/published/failed)
  */
-export const getPostStats = async () => {
+export const getPostStats = async (workspaceId?: string) => {
     const currentUser = auth.currentUser;
-    if (!currentUser) return { scheduled: 0, published: 0, failed: 0 };
+    if (!currentUser || !workspaceId) return { scheduled: 0, published: 0, failed: 0 };
 
     try {
         const snapshot = await db
             .collection('posts')
             .where('userId', '==', currentUser.uid)
+            .where('workspaceId', '==', workspaceId)
             .get();
 
         const stats = {
@@ -91,3 +94,4 @@ export const getPostStats = async () => {
         return { scheduled: 0, published: 0, failed: 0 };
     }
 };
+

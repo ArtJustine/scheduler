@@ -17,7 +17,11 @@ import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { Spacing, Radius, FontSize, FontWeight, Shadow } from '@/constants/Theme';
 import { useAuth } from '@/context/AuthContext';
+import { useWorkspace } from '@/context/WorkspaceContext';
 import { signOut } from '@/lib/auth';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher';
+import * as Linking from 'expo-linking';
 
 // ── Settings row ────────────────────────────────────────────────
 
@@ -64,12 +68,11 @@ function SettingsRow({
     );
 }
 
-// ── Main component ──────────────────────────────────────────────
-
 export default function SettingsScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const colors = Colors[colorScheme];
     const { user } = useAuth();
+    const { activeWorkspace } = useWorkspace();
     const [loggingOut, setLoggingOut] = useState(false);
 
     const handleLogout = () => {
@@ -82,7 +85,6 @@ export default function SettingsScreen() {
                     setLoggingOut(true);
                     try {
                         await signOut();
-                        // AuthProvider will redirect to login
                     } catch {
                         Alert.alert('Error', 'Failed to log out. Please try again.');
                     } finally {
@@ -98,13 +100,19 @@ export default function SettingsScreen() {
         user?.email?.charAt(0).toUpperCase() ||
         'C';
 
+    const openSupportLink = (url: string) => {
+        Linking.openURL(url).catch(() => Alert.alert('Error', 'Could not open help page.'));
+    };
+
     return (
         <ScrollView
             style={[styles.container, { backgroundColor: colors.background }]}
             contentContainerStyle={styles.content}
         >
+            <WorkspaceSwitcher />
+
             {/* Profile card */}
-            <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.border, ...Shadow.md }]}>
+            <GlassCard style={styles.profileCard} intensity={20}>
                 <View style={[styles.avatar, { backgroundColor: colors.brand }]}>
                     <Text style={styles.avatarText}>{initial}</Text>
                 </View>
@@ -116,38 +124,43 @@ export default function SettingsScreen() {
                         {user?.email}
                     </Text>
                 </View>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => Alert.alert('Edit Profile', 'Profile editing will be available soon in the mobile app.')}>
                     <Ionicons name="create-outline" size={20} color={colors.brand} />
                 </TouchableOpacity>
-            </View>
+            </GlassCard>
 
             {/* Account section */}
             <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>ACCOUNT</Text>
-            <View style={[styles.settingsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <GlassCard style={styles.settingsCard} intensity={10}>
                 <SettingsRow icon="person-outline" label="Edit Profile" onPress={() => { }} colors={colors} />
                 <SettingsRow icon="notifications-outline" label="Notifications" onPress={() => { }} colors={colors} />
                 <SettingsRow icon="shield-checkmark-outline" label="Privacy" onPress={() => { }} colors={colors} />
-            </View>
+            </GlassCard>
 
             {/* Preferences section */}
             <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>PREFERENCES</Text>
-            <View style={[styles.settingsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <SettingsRow icon="moon-outline" label="Appearance" value="System" onPress={() => { }} colors={colors} />
+            <GlassCard style={styles.settingsCard} intensity={10}>
+                <SettingsRow
+                    icon={colorScheme === 'dark' ? "moon-outline" : "sunny-outline"}
+                    label="Appearance"
+                    value={colorScheme === 'dark' ? "Dark Mode" : "Light Mode"}
+                    onPress={() => Alert.alert('Appearance', 'The app follows your system light/dark mode settings.')}
+                    colors={colors}
+                />
                 <SettingsRow icon="time-outline" label="Time Zone" value="Auto" onPress={() => { }} colors={colors} />
-                <SettingsRow icon="language-outline" label="Language" value="English" onPress={() => { }} colors={colors} />
-            </View>
+            </GlassCard>
 
             {/* Support section */}
             <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>SUPPORT</Text>
-            <View style={[styles.settingsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <SettingsRow icon="help-circle-outline" label="Help Center" onPress={() => { }} colors={colors} />
-                <SettingsRow icon="chatbubble-outline" label="Contact Us" onPress={() => { }} colors={colors} />
-                <SettingsRow icon="document-text-outline" label="Terms of Service" onPress={() => { }} colors={colors} />
-                <SettingsRow icon="lock-closed-outline" label="Privacy Policy" onPress={() => { }} colors={colors} />
-            </View>
+            <GlassCard style={styles.settingsCard} intensity={10}>
+                <SettingsRow icon="help-circle-outline" label="Help Center" onPress={() => openSupportLink('https://docs.chiyusocial.com')} colors={colors} />
+                <SettingsRow icon="chatbubble-outline" label="Contact Us" onPress={() => openSupportLink('mailto:support@chiyusocial.com')} colors={colors} />
+                <SettingsRow icon="document-text-outline" label="Terms of Service" onPress={() => openSupportLink('https://chiyusocial.com/terms')} colors={colors} />
+                <SettingsRow icon="lock-closed-outline" label="Privacy Policy" onPress={() => openSupportLink('https://chiyusocial.com/privacy')} colors={colors} />
+            </GlassCard>
 
             {/* Logout */}
-            <View style={[styles.settingsCard, { backgroundColor: colors.card, borderColor: colors.border, marginBottom: Spacing['4xl'] }]}>
+            <GlassCard style={StyleSheet.flatten([styles.settingsCard, { marginBottom: Spacing['4xl'] }])} intensity={10}>
                 <SettingsRow
                     icon="log-out-outline"
                     label={loggingOut ? 'Logging out…' : 'Log Out'}
@@ -155,7 +168,7 @@ export default function SettingsScreen() {
                     destructive
                     colors={colors}
                 />
-            </View>
+            </GlassCard>
 
             {/* Version */}
             <Text style={[styles.version, { color: colors.mutedForeground }]}>

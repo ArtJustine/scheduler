@@ -15,12 +15,15 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 import Colors from '@/constants/Colors';
 import { Spacing, Radius, FontSize, FontWeight, Shadow } from '@/constants/Theme';
 import { useAuth } from '@/context/AuthContext';
-import { getConnectedAccounts } from '@/lib/accounts';
+import { useWorkspace } from '@/context/WorkspaceContext';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher';
+import { getConnectedAccounts, removeSocialAccount } from '@/lib/accounts';
 import type { SocialAccountType, SocialAccount } from '@/types';
+import { Alert } from 'react-native';
 
 // ── Platform metadata ───────────────────────────────────────────
 
@@ -43,27 +46,22 @@ const PLATFORMS: PlatformInfo[] = [
     { key: 'bluesky', label: 'Bluesky', icon: 'cloud-outline', colorKey: 'platformBluesky' },
 ];
 
-// ── Platform card ───────────────────────────────────────────────
-
 function PlatformCard({
     platform,
     account,
     colors,
+    onRemove,
 }: {
     platform: PlatformInfo;
     account?: SocialAccount | null;
     colors: (typeof Colors)['light'];
+    onRemove: (platform: SocialAccountType) => void;
 }) {
     const connected = !!account?.connected;
     const brandColor = (colors[platform.colorKey] as string) || colors.brand;
 
     return (
-        <View
-            style={[
-                styles.platformCard,
-                { backgroundColor: colors.card, borderColor: colors.border, ...Shadow.sm },
-            ]}
-        >
+        <GlassCard style={styles.platformCard} intensity={20}>
             <View style={[styles.platformIconWrap, { backgroundColor: `${brandColor}15` }]}>
                 <Ionicons name={platform.icon} size={22} color={brandColor} />
             </View>
@@ -87,38 +85,39 @@ function PlatformCard({
                 style={[
                     styles.connectButton,
                     connected
-                        ? { backgroundColor: `${colors.brand}15` }
+                        ? { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.destructive + '40' }
                         : { backgroundColor: colors.brand },
                 ]}
                 activeOpacity={0.8}
+                onPress={() => connected ? onRemove(platform.key) : Alert.alert('Connect', `Connecting ${platform.label} will be available soon in the app. For now, please use the web dashboard.`)}
             >
                 <Text
                     style={[
                         styles.connectButtonText,
-                        { color: connected ? colors.brand : '#fff' },
+                        { color: connected ? colors.destructive : '#fff' },
                     ]}
                 >
-                    {connected ? 'Manage' : 'Connect'}
+                    {connected ? 'Remove' : 'Connect'}
                 </Text>
             </TouchableOpacity>
-        </View>
+        </GlassCard>
     );
 }
-
-// ── Main component ──────────────────────────────────────────────
 
 export default function ChannelsScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const colors = Colors[colorScheme];
     const { user } = useAuth();
+    const { activeWorkspace } = useWorkspace();
 
     const [refreshing, setRefreshing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [accounts, setAccounts] = useState<Partial<Record<SocialAccountType, SocialAccount>>>({});
 
     const fetchAccounts = async () => {
+        if (!activeWorkspace) return;
         try {
-            const connectedAccounts = await getConnectedAccounts();
+            const connectedAccounts = await getConnectedAccounts(activeWorkspace.id);
             setAccounts(connectedAccounts);
         } catch (error) {
             console.error('[Channels] fetchAccounts error:', error);
@@ -129,10 +128,35 @@ export default function ChannelsScreen() {
     };
 
     useEffect(() => {
-        if (user) {
+        if (user && activeWorkspace) {
             fetchAccounts();
+        } else if (!activeWorkspace) {
+            setLoading(false);
         }
-    }, [user]);
+    }, [user, activeWorkspace]);
+
+    const handleRemove = (platform: SocialAccountType) => {
+        if (!activeWorkspace) return;
+        Alert.alert(
+            'Remove Account',
+            `Are you sure you want to disconnect your ${platform} account?`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Remove',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await removeSocialAccount(activeWorkspace.id, platform);
+                            fetchAccounts();
+                        } catch (e) {
+                            Alert.alert('Error', 'Failed to remove account');
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     const connectedCount = Object.values(accounts).filter((a) => a?.connected).length;
 
@@ -157,8 +181,10 @@ export default function ChannelsScreen() {
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />
             }
         >
+            <WorkspaceSwitcher />
+
             {/* Summary */}
-            <View style={[styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.border, ...Shadow.md }]}>
+            <GlassCard style={styles.summaryCard} intensity={25}>
                 <View style={[styles.summaryIcon, { backgroundColor: `${colors.brand}15` }]}>
                     <Ionicons name="link-outline" size={22} color={colors.brand} />
                 </View>
@@ -170,7 +196,7 @@ export default function ChannelsScreen() {
                         Connect your accounts to start scheduling
                     </Text>
                 </View>
-            </View>
+            </GlassCard>
 
             {/* Platform list */}
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>All Platforms</Text>
@@ -181,6 +207,7 @@ export default function ChannelsScreen() {
                     platform={platform}
                     account={accounts[platform.key]}
                     colors={colors}
+                    onRemove={handleRemove}
                 />
             ))}
         </ScrollView>

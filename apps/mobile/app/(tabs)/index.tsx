@@ -17,8 +17,11 @@ import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { Spacing, Radius, FontSize, FontWeight, Shadow } from '@/constants/Theme';
 import { useAuth } from '@/context/AuthContext';
+import { useWorkspace } from '@/context/WorkspaceContext';
 import { getUpcomingPosts, getPostStats } from '@/lib/posts';
 import type { PostType } from '@/types';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher';
 
 // ── Stat card component ─────────────────────────────────────────
 
@@ -38,7 +41,7 @@ function StatCard({
   colors: (typeof Colors)['light'];
 }) {
   return (
-    <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border, ...Shadow.md }]}>
+    <GlassCard style={styles.statCard} intensity={20}>
       <View style={[styles.statIconContainer, { backgroundColor: `${colors.brand}15` }]}>
         <Ionicons name={icon} size={20} color={colors.brand} />
       </View>
@@ -61,7 +64,7 @@ function StatCard({
           </Text>
         </View>
       )}
-    </View>
+    </GlassCard>
   );
 }
 
@@ -113,12 +116,13 @@ function PostRow({
   );
 }
 
-// ── Main component ──────────────────────────────────────────────
+// ... existing platformIcons and PostRow unchanged ...
 
 export default function DashboardScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const { user } = useAuth();
+  const { activeWorkspace } = useWorkspace();
 
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -126,10 +130,11 @@ export default function DashboardScreen() {
   const [stats, setStats] = useState({ scheduled: 0, published: 0, failed: 0 });
 
   const fetchData = async () => {
+    if (!activeWorkspace) return;
     try {
       const [upcomingPosts, postStats] = await Promise.all([
-        getUpcomingPosts(5),
-        getPostStats()
+        getUpcomingPosts(activeWorkspace.id, 5),
+        getPostStats(activeWorkspace.id)
       ]);
       setPosts(upcomingPosts);
       setStats(postStats);
@@ -142,10 +147,12 @@ export default function DashboardScreen() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && activeWorkspace) {
       fetchData();
+    } else if (!activeWorkspace) {
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, activeWorkspace]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -170,13 +177,15 @@ export default function DashboardScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />
       }
     >
+      <WorkspaceSwitcher />
+
       {/* Greeting */}
       <View style={styles.greetingContainer}>
         <Text style={[styles.greeting, { color: colors.foreground }]}>
           Hey, {displayName} 👋
         </Text>
         <Text style={[styles.greetingSub, { color: colors.mutedForeground }]}>
-          Here's your social media overview
+          Here's your {activeWorkspace?.name || 'social media'} overview
         </Text>
       </View>
 
@@ -221,19 +230,19 @@ export default function DashboardScreen() {
       </View>
 
       {posts.length === 0 ? (
-        <View style={[styles.emptyState, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <GlassCard style={styles.emptyState} intensity={15}>
           <Ionicons name="calendar-outline" size={40} color={colors.mutedForeground} />
           <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No posts yet</Text>
           <Text style={[styles.emptyDescription, { color: colors.mutedForeground }]}>
-            Create your first scheduled post from the Schedule tab
+            Create your first scheduled post from the Post tab
           </Text>
-        </View>
+        </GlassCard>
       ) : (
-        <View style={[styles.postsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <GlassCard style={styles.postsCard} intensity={10}>
           {posts.map((post) => (
             <PostRow key={post.id} post={post} colors={colors} />
           ))}
-        </View>
+        </GlassCard>
       )}
     </ScrollView>
   );

@@ -81,7 +81,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="create"
         options={{
-          title: 'Post',
+          title: '',
           tabBarIcon: ({ color }) => (
             <View style={{
               backgroundColor: colors.brand,
@@ -106,7 +106,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="channels"
         options={{
-          title: 'Social',
+          title: 'Connections',
           tabBarIcon: ({ color }) => <TabBarIcon name="share-social-outline" color={color} />,
           headerTitle: 'Social',
         }}

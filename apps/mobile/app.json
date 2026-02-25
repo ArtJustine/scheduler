@@ -4,6 +4,10 @@
     "slug": "chiyu-social",
     "version": "1.0.0",
     "orientation": "portrait",
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "icon": "./assets/images/icon.png",
     "scheme": "chiyu",
     "userInterfaceStyle": "automatic",
@@ -15,7 +19,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.chiyu.social"
+      "bundleIdentifier": "com.chiyu.social",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {

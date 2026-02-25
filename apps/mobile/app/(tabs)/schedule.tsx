@@ -1,6 +1,5 @@
 /**
- * Schedule tab — list of all scheduled / published / failed posts
- * with a FAB to create new posts.
+ * Schedule — iOS26 Liquid Glass aesthetic
  */
 
 import React, { useEffect, useState } from 'react';
@@ -15,17 +14,20 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import Colors from '@/constants/Colors';
-import { Spacing, Radius, FontSize, FontWeight, Shadow } from '@/constants/Theme';
 import { useAuth } from '@/context/AuthContext';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { getUserPosts } from '@/lib/posts';
 import type { PostType } from '@/types';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher';
-import { useRouter } from 'expo-router';
 
 // ── Filter chip ─────────────────────────────────────────────────
+
+type FilterType = 'all' | 'scheduled' | 'published' | 'failed';
 
 function FilterChip({
     label,
@@ -39,37 +41,54 @@ function FilterChip({
     colors: (typeof Colors)['light'];
 }) {
     return (
-        <TouchableOpacity
-            onPress={onPress}
-            style={[
-                styles.chip,
-                {
-                    backgroundColor: active ? colors.brand : colors.accent,
-                    borderColor: active ? colors.brand : colors.border,
-                },
-            ]}
-            activeOpacity={0.8}
-        >
-            <Text
-                style={[
-                    styles.chipText,
-                    { color: active ? '#fff' : colors.mutedForeground },
-                ]}
-            >
-                {label}
-            </Text>
+        <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+            <View style={[styles.chip, active && { overflow: 'hidden' }]}>
+                {active ? (
+                    <>
+                        <LinearGradient
+                            colors={[colors.brand, `${colors.brand}DD`]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={StyleSheet.absoluteFill}
+                        />
+                        <Text style={[styles.chipText, { color: '#fff' }]}>{label}</Text>
+                    </>
+                ) : (
+                    <>
+                        <View style={[StyleSheet.absoluteFill, {
+                            backgroundColor: colors.accent,
+                            borderWidth: 1,
+                            borderColor: colors.border,
+                            borderRadius: 20,
+                        }]} />
+                        <Text style={[styles.chipText, { color: colors.mutedForeground }]}>{label}</Text>
+                    </>
+                )}
+            </View>
         </TouchableOpacity>
     );
 }
 
-type FilterType = 'all' | 'scheduled' | 'published' | 'failed';
+// ── Platform icons ──────────────────────────────────────────────
+
+const platformIcons: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
+    instagram: 'logo-instagram',
+    youtube: 'logo-youtube',
+    tiktok: 'logo-tiktok',
+    facebook: 'logo-facebook',
+    twitter: 'logo-twitter',
+    linkedin: 'logo-linkedin',
+    pinterest: 'logo-pinterest',
+};
+
+// ── Main screen ─────────────────────────────────────────────────
 
 export default function ScheduleScreen() {
+    const insets = useSafeAreaInsets();
     const colorScheme = useColorScheme() ?? 'light';
     const colors = Colors[colorScheme];
     const { user } = useAuth();
     const { activeWorkspace } = useWorkspace();
-    const router = useRouter();
 
     const [filter, setFilter] = useState<FilterType>('all');
     const [refreshing, setRefreshing] = useState(false);
@@ -90,20 +109,12 @@ export default function ScheduleScreen() {
     };
 
     useEffect(() => {
-        if (user && activeWorkspace) {
-            fetchPosts();
-        } else if (!activeWorkspace) {
-            setLoading(false);
-        }
+        if (user && activeWorkspace) fetchPosts();
+        else if (!activeWorkspace) setLoading(false);
     }, [user, activeWorkspace]);
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        fetchPosts();
-    };
-
-    const filteredPosts =
-        filter === 'all' ? posts : posts.filter((p) => p.status === filter);
+    const onRefresh = () => { setRefreshing(true); fetchPosts(); };
+    const filteredPosts = filter === 'all' ? posts : posts.filter((p) => p.status === filter);
 
     if (loading && !refreshing) {
         return (
@@ -115,146 +126,107 @@ export default function ScheduleScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <WorkspaceSwitcher />
-
             {/* Filters */}
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filtersRow}
-                style={[styles.filtersContainer, { borderBottomColor: colors.border }]}
-            >
-                {(['all', 'scheduled', 'published', 'failed'] as FilterType[]).map((f) => (
-                    <FilterChip
-                        key={f}
-                        label={f === 'all' ? 'All Posts' : f.charAt(0).toUpperCase() + f.slice(1)}
-                        active={filter === f}
-                        onPress={() => setFilter(f)}
-                        colors={colors}
-                    />
-                ))}
-            </ScrollView>
+            <View style={[styles.filtersWrap, { paddingTop: insets.top + 52 }]}>
+                <WorkspaceSwitcher />
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.filtersRow}
+                >
+                    {(['all', 'scheduled', 'published', 'failed'] as FilterType[]).map((f) => (
+                        <FilterChip
+                            key={f}
+                            label={f === 'all' ? 'All Posts' : f.charAt(0).toUpperCase() + f.slice(1)}
+                            active={filter === f}
+                            onPress={() => setFilter(f)}
+                            colors={colors}
+                        />
+                    ))}
+                </ScrollView>
+                <View style={[styles.separator, { backgroundColor: colors.border }]} />
+            </View>
 
             {/* Post list */}
             <ScrollView
                 style={styles.list}
                 contentContainerStyle={styles.listContent}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />
-                }
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />}
             >
                 {filteredPosts.length === 0 ? (
-                    <GlassCard style={styles.emptyState} intensity={15}>
-                        <Ionicons name="document-text-outline" size={40} color={colors.mutedForeground} />
+                    <GlassCard style={styles.emptyCard}>
+                        <View style={[styles.emptyIcon, { backgroundColor: `${colors.brand}10` }]}>
+                            <Ionicons name="document-text-outline" size={28} color={colors.brand} />
+                        </View>
                         <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
                             {filter === 'all' ? 'No posts yet' : `No ${filter} posts`}
                         </Text>
-                        <Text style={[styles.emptyDescription, { color: colors.mutedForeground }]}>
+                        <Text style={[styles.emptyDesc, { color: colors.mutedForeground }]}>
                             Go to the Post tab to schedule your first post
                         </Text>
                     </GlassCard>
                 ) : (
-                    filteredPosts.map((post) => (
-                        <GlassCard
-                            key={post.id}
-                            style={styles.postCard}
-                            intensity={15}
-                        >
-                            <Text numberOfLines={2} style={[styles.postTitle, { color: colors.foreground }]}>
-                                {post.title || post.description?.slice(0, 60) || 'Untitled'}
-                            </Text>
-                            <View style={styles.postMeta}>
-                                <View style={[styles.statusTag, { backgroundColor: post.status === 'published' ? '#22C55E20' : post.status === 'failed' ? `${colors.destructive}20` : `${colors.brand}20` }]}>
-                                    <Text style={[styles.statusTagText, { color: post.status === 'published' ? '#22C55E' : post.status === 'failed' ? colors.destructive : colors.brand }]}>
-                                        {post.status}
-                                    </Text>
-                                </View>
-                                <View style={styles.postPlatform}>
-                                    <Ionicons name="share-social-outline" size={14} color={colors.mutedForeground} style={{ marginRight: 4 }} />
-                                    <Text style={[styles.postMetaText, { color: colors.mutedForeground, textTransform: 'capitalize' }]}>
-                                        {post.platform}
-                                    </Text>
-                                </View>
-                                <Text style={[styles.postMetaText, { color: colors.mutedForeground }]}>
-                                    {new Date(post.scheduledFor).toLocaleDateString()}
+                    filteredPosts.map((post) => {
+                        const iconName = platformIcons[post.platform] ?? 'globe-outline';
+                        const statusColors: Record<string, string> = {
+                            scheduled: colors.brand,
+                            published: '#22C55E',
+                            failed: colors.destructive,
+                            partial: '#F59E0B',
+                        };
+                        const sc = statusColors[post.status] ?? colors.mutedForeground;
+
+                        return (
+                            <GlassCard key={post.id} style={styles.postCard}>
+                                <Text numberOfLines={2} style={[styles.postTitle, { color: colors.foreground }]}>
+                                    {post.title || post.description?.slice(0, 60) || 'Untitled'}
                                 </Text>
-                            </View>
-                        </GlassCard>
-                    ))
+                                <View style={styles.postMeta}>
+                                    <View style={[styles.statusPill, { backgroundColor: `${sc}14` }]}>
+                                        <View style={[styles.statusDot, { backgroundColor: sc }]} />
+                                        <Text style={[styles.statusText, { color: sc }]}>{post.status}</Text>
+                                    </View>
+                                    <View style={styles.platformRow}>
+                                        <Ionicons name={iconName} size={13} color={colors.mutedForeground} />
+                                        <Text style={[styles.metaText, { color: colors.mutedForeground }]}>
+                                            {post.platform}
+                                        </Text>
+                                    </View>
+                                    <Text style={[styles.metaText, { color: colors.mutedForeground }]}>
+                                        {new Date(post.scheduledFor).toLocaleDateString()}
+                                    </Text>
+                                </View>
+                            </GlassCard>
+                        );
+                    })
                 )}
             </ScrollView>
         </View>
     );
 }
 
+// ── Styles ──────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
     container: { flex: 1 },
     centered: { alignItems: 'center', justifyContent: 'center' },
-    filtersContainer: {
-        maxHeight: 52,
-        borderBottomWidth: 1,
-    },
-    filtersRow: {
-        flexDirection: 'row',
-        gap: Spacing.sm,
-        paddingHorizontal: Spacing.base,
-        paddingVertical: Spacing.sm,
-    },
-    chip: {
-        borderRadius: Radius.full,
-        borderWidth: 1,
-        paddingHorizontal: Spacing.base,
-        paddingVertical: Spacing.xs,
-    },
-    chipText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+    filtersWrap: { paddingHorizontal: 20 },
+    filtersRow: { flexDirection: 'row', gap: 8, paddingVertical: 10 },
+    chip: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, minWidth: 70, alignItems: 'center' },
+    chipText: { fontSize: 13, fontWeight: '600', letterSpacing: -0.2 },
+    separator: { height: 0.5, marginTop: 4 },
     list: { flex: 1 },
-    listContent: { padding: Spacing.base, paddingBottom: 100 },
-    emptyState: {
-        borderRadius: Radius['2xl'],
-        borderWidth: 1,
-        padding: Spacing['2xl'],
-        alignItems: 'center',
-        gap: Spacing.sm,
-        marginTop: Spacing.xl,
-    },
-    emptyTitle: { fontSize: FontSize.base, fontWeight: FontWeight.semibold },
-    emptyDescription: { fontSize: FontSize.sm, textAlign: 'center', maxWidth: 260 },
-    postCard: {
-        borderRadius: Radius['2xl'],
-        borderWidth: 1,
-        padding: Spacing.base,
-        marginBottom: Spacing.md,
-    },
-    postTitle: { fontSize: FontSize.base, fontWeight: FontWeight.medium },
-    postMeta: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginTop: Spacing.sm
-    },
-    postMetaText: { fontSize: FontSize.xs },
-    statusTag: {
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: Radius.md,
-    },
-    statusTagText: {
-        fontSize: 10,
-        fontWeight: FontWeight.bold,
-        textTransform: 'uppercase',
-    },
-    postPlatform: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    fab: {
-        position: 'absolute',
-        bottom: 24,
-        right: 20,
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
+    listContent: { padding: 20, paddingBottom: 120 },
+    emptyCard: { alignItems: 'center', paddingVertical: 40, gap: 10, marginTop: 20 },
+    emptyIcon: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+    emptyTitle: { fontSize: 16, fontWeight: '700' },
+    emptyDesc: { fontSize: 13, textAlign: 'center', maxWidth: 240, opacity: 0.7, lineHeight: 18 },
+    postCard: { marginBottom: 12 },
+    postTitle: { fontSize: 15, fontWeight: '600', letterSpacing: -0.2, marginBottom: 10 },
+    postMeta: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    statusPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
+    statusDot: { width: 5, height: 5, borderRadius: 3 },
+    statusText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
+    platformRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    metaText: { fontSize: 12, opacity: 0.7 },
 });

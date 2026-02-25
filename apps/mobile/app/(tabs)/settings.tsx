@@ -1,5 +1,5 @@
 /**
- * Settings tab — user profile, preferences, and logout.
+ * Settings — iOS26 Liquid Glass aesthetic
  */
 
 import React, { useState } from 'react';
@@ -13,9 +13,10 @@ import {
     Text,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Colors from '@/constants/Colors';
-import { Spacing, Radius, FontSize, FontWeight, Shadow } from '@/constants/Theme';
 import { useAuth } from '@/context/AuthContext';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { signOut } from '@/lib/auth';
@@ -23,7 +24,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher';
 import * as Linking from 'expo-linking';
 
-// ── Settings row ────────────────────────────────────────────────
+// ── Row component ───────────────────────────────────────────────
 
 function SettingsRow({
     icon,
@@ -32,6 +33,7 @@ function SettingsRow({
     onPress,
     destructive,
     colors,
+    isLast,
 }: {
     icon: React.ComponentProps<typeof Ionicons>['name'];
     label: string;
@@ -39,36 +41,39 @@ function SettingsRow({
     onPress?: () => void;
     destructive?: boolean;
     colors: (typeof Colors)['light'];
+    isLast?: boolean;
 }) {
+    const iconColor = destructive ? colors.destructive : colors.brand;
     return (
         <TouchableOpacity
-            style={[styles.settingsRow, { borderBottomColor: colors.border }]}
+            style={[
+                styles.row,
+                !isLast && { borderBottomWidth: 0.5, borderBottomColor: `${colors.border}80` },
+            ]}
             onPress={onPress}
-            activeOpacity={0.7}
+            activeOpacity={onPress ? 0.7 : 1}
             disabled={!onPress}
         >
-            <View style={[styles.settingsIconWrap, { backgroundColor: destructive ? `${colors.destructive}15` : `${colors.brand}12` }]}>
-                <Ionicons name={icon} size={18} color={destructive ? colors.destructive : colors.brand} />
+            <View style={[styles.rowIcon, { backgroundColor: `${iconColor}12` }]}>
+                <Ionicons name={icon} size={16} color={iconColor} />
             </View>
-            <Text
-                style={[
-                    styles.settingsLabel,
-                    { color: destructive ? colors.destructive : colors.foreground },
-                ]}
-            >
+            <Text style={[styles.rowLabel, { color: destructive ? colors.destructive : colors.foreground }]}>
                 {label}
             </Text>
             {value && (
-                <Text style={[styles.settingsValue, { color: colors.mutedForeground }]}>{value}</Text>
+                <Text style={[styles.rowValue, { color: colors.mutedForeground }]}>{value}</Text>
             )}
             {onPress && (
-                <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+                <Ionicons name="chevron-forward" size={14} color={colors.mutedForeground} style={{ opacity: 0.5 }} />
             )}
         </TouchableOpacity>
     );
 }
 
+// ── Main screen ─────────────────────────────────────────────────
+
 export default function SettingsScreen() {
+    const insets = useSafeAreaInsets();
     const colorScheme = useColorScheme() ?? 'light';
     const colors = Colors[colorScheme];
     const { user } = useAuth();
@@ -76,20 +81,14 @@ export default function SettingsScreen() {
     const [loggingOut, setLoggingOut] = useState(false);
 
     const handleLogout = () => {
-        Alert.alert('Log Out', 'Are you sure you want to log out?', [
+        Alert.alert('Log Out', 'Are you sure?', [
             { text: 'Cancel', style: 'cancel' },
             {
-                text: 'Log Out',
-                style: 'destructive',
+                text: 'Log Out', style: 'destructive',
                 onPress: async () => {
                     setLoggingOut(true);
-                    try {
-                        await signOut();
-                    } catch {
-                        Alert.alert('Error', 'Failed to log out. Please try again.');
-                    } finally {
-                        setLoggingOut(false);
-                    }
+                    try { await signOut(); } catch { Alert.alert('Error', 'Failed to log out.'); }
+                    finally { setLoggingOut(false); }
                 },
             },
         ]);
@@ -97,24 +96,28 @@ export default function SettingsScreen() {
 
     const initial =
         user?.displayName?.charAt(0).toUpperCase() ||
-        user?.email?.charAt(0).toUpperCase() ||
-        'C';
+        user?.email?.charAt(0).toUpperCase() || 'C';
 
-    const openSupportLink = (url: string) => {
-        Linking.openURL(url).catch(() => Alert.alert('Error', 'Could not open help page.'));
+    const openLink = (url: string) => {
+        Linking.openURL(url).catch(() => Alert.alert('Error', 'Could not open page.'));
     };
 
     return (
         <ScrollView
             style={[styles.container, { backgroundColor: colors.background }]}
-            contentContainerStyle={styles.content}
+            contentContainerStyle={[styles.content, { paddingTop: insets.top + 56 }]}
         >
             <WorkspaceSwitcher />
 
-            {/* Profile card */}
-            <GlassCard style={styles.profileCard} intensity={20}>
-                <View style={[styles.avatar, { backgroundColor: colors.brand }]}>
-                    <Text style={styles.avatarText}>{initial}</Text>
+            {/* Profile */}
+            <GlassCard style={styles.profileCard} glassColor={colors.brand}>
+                <View style={styles.avatarWrap}>
+                    <LinearGradient
+                        colors={[colors.brand, `${colors.brand}CC`]}
+                        style={styles.avatar}
+                    >
+                        <Text style={styles.avatarText}>{initial}</Text>
+                    </LinearGradient>
                 </View>
                 <View style={styles.profileInfo}>
                     <Text style={[styles.profileName, { color: colors.foreground }]}>
@@ -124,111 +127,77 @@ export default function SettingsScreen() {
                         {user?.email}
                     </Text>
                 </View>
-                <TouchableOpacity onPress={() => Alert.alert('Edit Profile', 'Profile editing will be available soon in the mobile app.')}>
-                    <Ionicons name="create-outline" size={20} color={colors.brand} />
+                <TouchableOpacity
+                    style={[styles.editBtn, { backgroundColor: `${colors.foreground}08` }]}
+                    onPress={() => Alert.alert('Edit Profile', 'Coming soon in the mobile app.')}
+                >
+                    <Ionicons name="create-outline" size={16} color={colors.foreground} />
                 </TouchableOpacity>
             </GlassCard>
 
-            {/* Account section */}
-            <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>ACCOUNT</Text>
-            <GlassCard style={styles.settingsCard} intensity={10}>
+            {/* Account */}
+            <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>ACCOUNT</Text>
+            <GlassCard noPadding style={styles.sectionCard}>
                 <SettingsRow icon="person-outline" label="Edit Profile" onPress={() => { }} colors={colors} />
                 <SettingsRow icon="notifications-outline" label="Notifications" onPress={() => { }} colors={colors} />
-                <SettingsRow icon="shield-checkmark-outline" label="Privacy" onPress={() => { }} colors={colors} />
+                <SettingsRow icon="shield-checkmark-outline" label="Privacy" onPress={() => { }} colors={colors} isLast />
             </GlassCard>
 
-            {/* Preferences section */}
-            <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>PREFERENCES</Text>
-            <GlassCard style={styles.settingsCard} intensity={10}>
+            {/* Preferences */}
+            <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>PREFERENCES</Text>
+            <GlassCard noPadding style={styles.sectionCard}>
                 <SettingsRow
-                    icon={colorScheme === 'dark' ? "moon-outline" : "sunny-outline"}
+                    icon={colorScheme === 'dark' ? 'moon-outline' : 'sunny-outline'}
                     label="Appearance"
-                    value={colorScheme === 'dark' ? "Dark Mode" : "Light Mode"}
-                    onPress={() => Alert.alert('Appearance', 'The app follows your system light/dark mode settings.')}
+                    value={colorScheme === 'dark' ? 'Dark' : 'Light'}
+                    onPress={() => Alert.alert('Appearance', 'Follows your system light/dark mode.')}
                     colors={colors}
                 />
-                <SettingsRow icon="time-outline" label="Time Zone" value="Auto" onPress={() => { }} colors={colors} />
+                <SettingsRow icon="time-outline" label="Time Zone" value="Auto" onPress={() => { }} colors={colors} isLast />
             </GlassCard>
 
-            {/* Support section */}
-            <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>SUPPORT</Text>
-            <GlassCard style={styles.settingsCard} intensity={10}>
-                <SettingsRow icon="help-circle-outline" label="Help Center" onPress={() => openSupportLink('https://docs.chiyusocial.com')} colors={colors} />
-                <SettingsRow icon="chatbubble-outline" label="Contact Us" onPress={() => openSupportLink('mailto:support@chiyusocial.com')} colors={colors} />
-                <SettingsRow icon="document-text-outline" label="Terms of Service" onPress={() => openSupportLink('https://chiyusocial.com/terms')} colors={colors} />
-                <SettingsRow icon="lock-closed-outline" label="Privacy Policy" onPress={() => openSupportLink('https://chiyusocial.com/privacy')} colors={colors} />
+            {/* Support */}
+            <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>SUPPORT</Text>
+            <GlassCard noPadding style={styles.sectionCard}>
+                <SettingsRow icon="help-circle-outline" label="Help Center" onPress={() => openLink('https://docs.chiyusocial.com')} colors={colors} />
+                <SettingsRow icon="chatbubble-outline" label="Contact Us" onPress={() => openLink('mailto:support@chiyusocial.com')} colors={colors} />
+                <SettingsRow icon="document-text-outline" label="Terms of Service" onPress={() => openLink('https://chiyusocial.com/terms')} colors={colors} />
+                <SettingsRow icon="lock-closed-outline" label="Privacy Policy" onPress={() => openLink('https://chiyusocial.com/privacy')} colors={colors} isLast />
             </GlassCard>
 
             {/* Logout */}
-            <GlassCard style={StyleSheet.flatten([styles.settingsCard, { marginBottom: Spacing['4xl'] }])} intensity={10}>
+            <GlassCard noPadding style={[styles.sectionCard, { marginBottom: 20 }]}>
                 <SettingsRow
                     icon="log-out-outline"
                     label={loggingOut ? 'Logging out…' : 'Log Out'}
                     onPress={handleLogout}
                     destructive
                     colors={colors}
+                    isLast
                 />
             </GlassCard>
 
-            {/* Version */}
-            <Text style={[styles.version, { color: colors.mutedForeground }]}>
-                Chiyu Social v1.0.0
-            </Text>
+            <Text style={[styles.version, { color: colors.mutedForeground }]}>Chiyu Social v1.0.0</Text>
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    content: { padding: Spacing.base, paddingBottom: Spacing['5xl'] },
-    profileCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: Radius['2xl'],
-        borderWidth: 1,
-        padding: Spacing.base,
-        gap: Spacing.md,
-        marginBottom: Spacing.xl,
-    },
-    avatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    avatarText: { color: '#fff', fontSize: FontSize.xl, fontWeight: FontWeight.bold },
+    content: { paddingHorizontal: 20, paddingBottom: 120 },
+    profileCard: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 28 },
+    avatarWrap: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8 },
+    avatar: { width: 50, height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+    avatarText: { color: '#fff', fontSize: 20, fontWeight: '800' },
     profileInfo: { flex: 1 },
-    profileName: { fontSize: FontSize.base, fontWeight: FontWeight.semibold },
-    profileEmail: { fontSize: FontSize.xs, marginTop: 2 },
-    sectionTitle: {
-        fontSize: FontSize.xs,
-        fontWeight: FontWeight.semibold,
-        letterSpacing: 0.5,
-        marginBottom: Spacing.sm,
-        paddingHorizontal: Spacing.xs,
-    },
-    settingsCard: {
-        borderRadius: Radius['2xl'],
-        borderWidth: 1,
-        overflow: 'hidden',
-        marginBottom: Spacing.xl,
-    },
-    settingsRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: Spacing.base,
-        borderBottomWidth: 1,
-        gap: Spacing.md,
-    },
-    settingsIconWrap: {
-        width: 32,
-        height: 32,
-        borderRadius: Radius.md,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    settingsLabel: { flex: 1, fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-    settingsValue: { fontSize: FontSize.sm },
-    version: { fontSize: FontSize.xs, textAlign: 'center', marginTop: Spacing.md },
+    profileName: { fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
+    profileEmail: { fontSize: 12, marginTop: 2, opacity: 0.6 },
+    editBtn: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+    sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginBottom: 8, paddingLeft: 4, opacity: 0.5 },
+    sectionCard: { marginBottom: 24, overflow: 'hidden' },
+    row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12 },
+    rowIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+    rowLabel: { flex: 1, fontSize: 14, fontWeight: '600', letterSpacing: -0.2 },
+    rowValue: { fontSize: 13, opacity: 0.6 },
+    version: { fontSize: 11, textAlign: 'center', marginTop: 8, opacity: 0.4 },
 });

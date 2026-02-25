@@ -17,6 +17,7 @@ export default {
         "slug": "chiyu-social",
         "version": "1.0.0",
         "orientation": "portrait",
+        "platforms": ["ios", "android"],
         "icon": "./assets/images/icon.png",
         "scheme": "chiyu",
         "userInterfaceStyle": "automatic",

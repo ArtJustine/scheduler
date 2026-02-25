@@ -12,7 +12,7 @@
  */
 
 // ── Brand accent (the blue used in buttons / links on the web) ──
-const CHIYU_BLUE = '#7C5BFF';
+const CHIYU_BLUE = '#70A5EE';
 
 const light = {
   // Surfaces

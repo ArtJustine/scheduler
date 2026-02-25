@@ -3,8 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { config } from "@/lib/config"
 import { tiktokOAuth, oauthHelpers } from "@/lib/oauth-utils"
 import { cookies } from "next/headers"
-import { serverDb } from "@/lib/firebase-server"
-import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore"
+export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
   try {

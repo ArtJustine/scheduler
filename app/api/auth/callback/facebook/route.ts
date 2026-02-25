@@ -4,7 +4,7 @@ import { config } from "@/lib/config"
 import { facebookOAuth, oauthHelpers } from "@/lib/oauth-utils"
 import { cookies } from "next/headers"
 import { doc, setDoc, updateDoc } from "firebase/firestore"
-import { serverDb } from "@/lib/firebase-server"
+export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
     try {
@@ -175,14 +175,14 @@ export async function GET(request: NextRequest) {
 
         try {
             const workspaceId = cookieStore.get("oauth_workspace_id")?.value
-            if (workspaceId && serverDb) {
-                const { getDoc } = await import("firebase/firestore")
-                const workspaceDoc = await getDoc(doc(serverDb, "workspaces", workspaceId))
-                if (workspaceDoc.exists()) {
+            if (workspaceId) {
+                const { adminDb } = await import("@/lib/firebase-admin")
+                const workspaceDoc = await adminDb.collection("workspaces").doc(workspaceId).get()
+                if (workspaceDoc.exists) {
                     const data = workspaceDoc.data()
-                    if (data.accounts?.instagram?.connected && data.accounts?.facebook?.connected) {
+                    if (data?.accounts?.instagram?.connected && data?.accounts?.facebook?.connected) {
                         successType = "facebook_instagram_connected"
-                    } else if (data.accounts?.instagram?.connected && isInstagramInitiated) {
+                    } else if (data?.accounts?.instagram?.connected && isInstagramInitiated) {
                         successType = "instagram_connected"
                     }
                 }

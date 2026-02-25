@@ -3,9 +3,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { config } from "@/lib/config"
 import { linkedinOAuth, oauthHelpers } from "@/lib/oauth-utils"
 import { cookies } from "next/headers"
-import { adminDb } from "@/lib/firebase-admin"
+
+export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
+    const { adminDb } = await import("@/lib/firebase-admin")
     try {
         const { searchParams } = new URL(request.url)
         const code = searchParams.get("code")

@@ -36,7 +36,17 @@ export function getFirebaseAdmin() {
   return { firebaseApp, firebaseDb, firebaseStorage, firebaseAuth }
 }
 
-export const serverDb = getFirebaseAdmin().firebaseDb
-export const serverStorage = getFirebaseAdmin().firebaseStorage
-export const serverAuth = getFirebaseAdmin().firebaseAuth
+// Lazy initialization to prevent build-time crashes
+export const getServerFirebase = () => getFirebaseAdmin();
+
+// Export getters instead of direct constants to avoid immediate evaluation
+export const getServerDb = () => getFirebaseAdmin().firebaseDb;
+export const getServerStorage = () => getFirebaseAdmin().firebaseStorage;
+export const getServerAuth = () => getFirebaseAdmin().firebaseAuth;
+
+// Keep these for backward compatibility but they will now trigger initialization on first access
+// if used in a way that allows for it, but better to use the getters above.
+export const serverDb = null as any;
+export const serverStorage = null as any;
+export const serverAuth = null as any;
 

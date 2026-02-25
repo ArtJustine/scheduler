@@ -3,8 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { config } from "@/lib/config"
 import { threadsOAuth, oauthHelpers } from "@/lib/oauth-utils"
 import { cookies } from "next/headers"
-import { doc, setDoc, updateDoc } from "firebase/firestore"
-import { serverDb } from "@/lib/firebase-server"
+export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
     try {
@@ -111,32 +110,39 @@ export async function GET(request: NextRequest) {
         }
         // Save to Firestore directly from the server for better reliability
         try {
-            if (serverDb) {
-                const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+            const { adminDb } = await import("@/lib/firebase-admin")
+            let workspaceId = cookieStore.get("oauth_workspace_id")?.value
 
-                if (workspaceId) {
-                    const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
-                    await updateDoc(workspaceDocRef, {
-                        [`accounts.${accountData.platform}`]: {
-                            ...accountData,
-                            updatedAt: new Date().toISOString()
-                        },
-                        updatedAt: new Date().toISOString()
-                    } as any)
-                    console.log("Threads account saved to Workspace:", workspaceId)
-                } else {
-                    const userDocRef = doc(serverDb, "users", userId)
-                    await setDoc(userDocRef, {
-                        threads: {
-                            ...accountData,
-                            updatedAt: new Date().toISOString()
-                        }
-                    }, { merge: true })
-                    console.log("Threads account saved to User Doc:", userId)
+            // If workspaceId is missing, try to find the user's active workspace
+            if (!workspaceId && userId) {
+                const userDoc = await adminDb.collection("users").doc(userId).get()
+                if (userDoc.exists) {
+                    workspaceId = userDoc.data()?.activeWorkspaceId
                 }
             }
+
+            if (workspaceId) {
+                const workspaceDocRef = adminDb.collection("workspaces").doc(workspaceId)
+                await workspaceDocRef.update({
+                    [`accounts.${accountData.platform}`]: {
+                        ...accountData,
+                        updatedAt: new Date().toISOString()
+                    },
+                    updatedAt: new Date().toISOString()
+                })
+                console.log("Threads account saved to Workspace (Admin):", workspaceId)
+            } else {
+                const userDocRef = adminDb.collection("users").doc(userId)
+                await userDocRef.set({
+                    threads: {
+                        ...accountData,
+                        updatedAt: new Date().toISOString()
+                    }
+                }, { merge: true })
+                console.log("Threads account saved to User Doc (Admin):", userId)
+            }
         } catch (saveError) {
-            console.error("Error saving Threads account to Firestore:", saveError)
+            console.error("Error saving Threads account to Firestore (Admin):", saveError)
         }
 
         // Redirect to dashboard with handover flag

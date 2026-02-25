@@ -3,9 +3,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { config } from "@/lib/config"
 import { cookies } from "next/headers"
 import { instagramOAuth } from "@/lib/oauth-utils"
-import { adminDb } from "@/lib/firebase-admin"
+export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
+  const { adminDb } = await import("@/lib/firebase-admin")
   console.log("Instagram Auth Callback started")
   try {
     const { searchParams } = new URL(request.url)

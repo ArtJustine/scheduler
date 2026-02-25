@@ -3,8 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { config } from "@/lib/config"
 import { pinterestOAuth } from "@/lib/oauth-utils"
 import { cookies } from "next/headers"
-import { doc, setDoc } from "firebase/firestore"
-import { serverDb } from "@/lib/firebase-server"
+export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
     try {

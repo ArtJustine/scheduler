@@ -1,5 +1,5 @@
 /**
- * Channels (Social) — iOS26 Liquid Glass aesthetic
+ * Channels (Social) — clean iOS design with gradient background
  */
 
 import React, { useEffect, useState } from 'react';
@@ -26,8 +26,6 @@ import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher';
 import { getConnectedAccounts, removeSocialAccount } from '@/lib/accounts';
 import type { SocialAccountType, SocialAccount } from '@/types';
 
-// ── Platform metadata ───────────────────────────────────────────
-
 interface PlatformInfo {
     key: SocialAccountType;
     label: string;
@@ -47,62 +45,6 @@ const PLATFORMS: PlatformInfo[] = [
     { key: 'bluesky', label: 'Bluesky', icon: 'cloud-outline', color: '#0085FF' },
 ];
 
-function PlatformCard({
-    platform,
-    account,
-    colors,
-    isDark,
-    onRemove,
-}: {
-    platform: PlatformInfo;
-    account?: SocialAccount | null;
-    colors: (typeof Colors)['light'];
-    isDark: boolean;
-    onRemove: (platform: SocialAccountType) => void;
-}) {
-    const connected = !!account?.connected;
-
-    return (
-        <GlassCard style={styles.platformCard} glassColor={connected ? platform.color : undefined}>
-            <View style={[styles.platformIcon, { backgroundColor: `${platform.color}15` }]}>
-                <Ionicons name={platform.icon} size={20} color={platform.color} />
-            </View>
-            <View style={styles.platformInfo}>
-                <Text style={[styles.platformName, { color: colors.foreground }]}>{platform.label}</Text>
-                <Text style={[styles.platformUsername, { color: colors.mutedForeground }]}>
-                    {connected ? `@${account!.username}` : 'Not connected'}
-                </Text>
-            </View>
-            <TouchableOpacity
-                style={[
-                    styles.connectBtn,
-                    connected
-                        ? { backgroundColor: `${colors.destructive}10`, borderWidth: 1, borderColor: `${colors.destructive}20` }
-                        : { overflow: 'hidden' },
-                ]}
-                activeOpacity={0.8}
-                onPress={() =>
-                    connected
-                        ? onRemove(platform.key)
-                        : Alert.alert('Connect', `Connecting ${platform.label} will be available soon. Use the web dashboard.`)
-                }
-            >
-                {!connected && (
-                    <LinearGradient
-                        colors={[colors.brand, `${colors.brand}DD`]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={StyleSheet.absoluteFill}
-                    />
-                )}
-                <Text style={[styles.connectBtnText, { color: connected ? colors.destructive : '#fff' }]}>
-                    {connected ? 'Remove' : 'Connect'}
-                </Text>
-            </TouchableOpacity>
-        </GlassCard>
-    );
-}
-
 export default function ChannelsScreen() {
     const insets = useSafeAreaInsets();
     const colorScheme = useColorScheme() ?? 'light';
@@ -117,15 +59,9 @@ export default function ChannelsScreen() {
 
     const fetchAccounts = async () => {
         if (!activeWorkspace) return;
-        try {
-            const connectedAccounts = await getConnectedAccounts(activeWorkspace.id);
-            setAccounts(connectedAccounts);
-        } catch (error) {
-            console.error('[Channels] fetchAccounts error:', error);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
+        try { setAccounts(await getConnectedAccounts(activeWorkspace.id)); }
+        catch (e) { console.error('[Channels] fetchAccounts error:', e); }
+        finally { setLoading(false); setRefreshing(false); }
     };
 
     useEffect(() => {
@@ -152,48 +88,89 @@ export default function ChannelsScreen() {
 
     if (loading && !refreshing) {
         return (
-            <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+            <View style={[styles.container, styles.centered]}>
+                <LinearGradient colors={isDark ? ['#0A0A0A', '#0A0A0A'] : ['#EDF4FD', '#F0ECFB', '#FEFEFE']} style={StyleSheet.absoluteFill} />
                 <ActivityIndicator size="large" color={colors.brand} />
             </View>
         );
     }
 
     return (
-        <ScrollView
-            style={[styles.container, { backgroundColor: colors.background }]}
-            contentContainerStyle={[styles.content, { paddingTop: insets.top + 56 }]}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />}
-        >
-            <WorkspaceSwitcher />
+        <View style={styles.container}>
+            <LinearGradient
+                colors={isDark ? ['#0A0A0A', '#0F1117', '#0A0A0A'] : ['#EDF4FD', '#F0ECFB', '#FDF2F0', '#FEFEFE']}
+                locations={isDark ? [0, 0.5, 1] : [0, 0.3, 0.6, 1]}
+                style={StyleSheet.absoluteFill}
+            />
+            <ScrollView
+                contentContainerStyle={[styles.content, { paddingTop: insets.top + 52 }]}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />}
+                showsVerticalScrollIndicator={false}
+            >
+                <WorkspaceSwitcher />
 
-            {/* Summary */}
-            <GlassCard style={styles.summaryCard} glassColor={colors.brand}>
-                <View style={[styles.summaryIcon, { backgroundColor: `${colors.brand}15` }]}>
-                    <Ionicons name="link-outline" size={22} color={colors.brand} />
-                </View>
-                <View style={{ flex: 1 }}>
-                    <Text style={[styles.summaryTitle, { color: colors.foreground }]}>
-                        {connectedCount} / {PLATFORMS.length} Connected
-                    </Text>
-                    <Text style={[styles.summaryDesc, { color: colors.mutedForeground }]}>
-                        Connect accounts to start scheduling
-                    </Text>
-                </View>
-            </GlassCard>
+                {/* Summary */}
+                <GlassCard style={styles.summaryCard}>
+                    <View style={[styles.summaryIcon, { backgroundColor: `${colors.brand}10` }]}>
+                        <Ionicons name="link-outline" size={20} color={colors.brand} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={[styles.summaryTitle, { color: colors.foreground }]}>
+                            {connectedCount} / {PLATFORMS.length} Connected
+                        </Text>
+                        <Text style={[styles.summaryDesc, { color: colors.mutedForeground }]}>
+                            Connect accounts to start scheduling
+                        </Text>
+                    </View>
+                </GlassCard>
 
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>All Platforms</Text>
+                <Text style={[styles.sectionTitle, { color: colors.foreground }]}>All Platforms</Text>
 
-            {PLATFORMS.map((platform) => (
-                <PlatformCard
-                    key={platform.key}
-                    platform={platform}
-                    account={accounts[platform.key]}
-                    colors={colors}
-                    isDark={isDark}
-                    onRemove={handleRemove}
-                />
-            ))}
-        </ScrollView>
+                {/* Platform list as a single card with dividers */}
+                <GlassCard noPadding>
+                    {PLATFORMS.map((platform, i) => {
+                        const account = accounts[platform.key];
+                        const connected = !!account?.connected;
+                        return (
+                            <View key={platform.key}>
+                                <View style={styles.platformRow}>
+                                    <View style={[styles.platformIcon, { backgroundColor: `${platform.color}10` }]}>
+                                        <Ionicons name={platform.icon} size={18} color={platform.color} />
+                                    </View>
+                                    <View style={styles.platformInfo}>
+                                        <Text style={[styles.platformName, { color: colors.foreground }]}>{platform.label}</Text>
+                                        <Text style={[styles.platformStatus, { color: colors.mutedForeground }]}>
+                                            {connected ? `@${account!.username}` : 'Not connected'}
+                                        </Text>
+                                    </View>
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.connectBtn,
+                                            connected
+                                                ? { backgroundColor: `${colors.destructive}08`, borderWidth: 1, borderColor: `${colors.destructive}20` }
+                                                : { backgroundColor: colors.brand },
+                                        ]}
+                                        activeOpacity={0.8}
+                                        onPress={() =>
+                                            connected
+                                                ? handleRemove(platform.key)
+                                                : Alert.alert('Connect', `Connect ${platform.label} from the web dashboard.`)
+                                        }
+                                    >
+                                        <Text style={[styles.connectText, { color: connected ? colors.destructive : '#fff' }]}>
+                                            {connected ? 'Remove' : 'Connect'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                                {i < PLATFORMS.length - 1 && (
+                                    <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                                )}
+                            </View>
+                        );
+                    })}
+                </GlassCard>
+            </ScrollView>
+        </View>
     );
 }
 
@@ -201,16 +178,17 @@ const styles = StyleSheet.create({
     container: { flex: 1 },
     centered: { alignItems: 'center', justifyContent: 'center' },
     content: { paddingHorizontal: 20, paddingBottom: 120 },
-    summaryCard: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 28 },
-    summaryIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    summaryTitle: { fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
-    summaryDesc: { fontSize: 12, marginTop: 2, opacity: 0.7 },
-    sectionTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.5, marginBottom: 14 },
-    platformCard: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
-    platformIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+    summaryCard: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 24 },
+    summaryIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+    summaryTitle: { fontSize: 15, fontWeight: '600' },
+    summaryDesc: { fontSize: 12, marginTop: 2 },
+    sectionTitle: { fontSize: 18, fontWeight: '600', letterSpacing: -0.3, marginBottom: 12 },
+    platformRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13, gap: 12 },
+    platformIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
     platformInfo: { flex: 1 },
-    platformName: { fontSize: 14, fontWeight: '600' },
-    platformUsername: { fontSize: 11, marginTop: 1, opacity: 0.6 },
-    connectBtn: { borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8 },
-    connectBtnText: { fontSize: 12, fontWeight: '700' },
+    platformName: { fontSize: 14, fontWeight: '500' },
+    platformStatus: { fontSize: 12, marginTop: 1 },
+    connectBtn: { borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
+    connectText: { fontSize: 12, fontWeight: '600' },
+    divider: { height: StyleSheet.hairlineWidth, marginLeft: 64 },
 });

@@ -1,5 +1,6 @@
 /**
- * Dashboard — iOS26 Liquid Glass aesthetic
+ * Dashboard — clean iOS design with vibrant gradient background.
+ * Glass effect comes from the tab bar / header refracting this gradient.
  */
 
 import React, { useEffect, useState } from 'react';
@@ -31,42 +32,23 @@ function StatCard({
   icon,
   label,
   value,
-  trend,
-  trendUp,
-  colors,
   accent,
+  colors,
 }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   label: string;
   value: string;
-  trend?: string;
-  trendUp?: boolean;
+  accent: string;
   colors: (typeof Colors)['light'];
-  accent?: string;
 }) {
-  const accentColor = accent || colors.brand;
   return (
-    <GlassCard style={styles.statCard} glassColor={accentColor}>
-      <View style={styles.statTop}>
-        <View style={[styles.statIcon, { backgroundColor: `${accentColor}15` }]}>
-          <Ionicons name={icon} size={18} color={accentColor} />
-        </View>
-        {trend && (
-          <View style={[styles.trendBadge, { backgroundColor: `${trendUp ? '#22C55E' : colors.destructive}12` }]}>
-            <Ionicons
-              name={trendUp ? 'trending-up' : 'trending-down'}
-              size={11}
-              color={trendUp ? '#22C55E' : colors.destructive}
-            />
-            <Text style={[styles.trendText, { color: trendUp ? '#22C55E' : colors.destructive }]}>
-              {trend}
-            </Text>
-          </View>
-        )}
+    <View style={styles.statCard}>
+      <View style={[styles.statIconCircle, { backgroundColor: `${accent}12` }]}>
+        <Ionicons name={icon} size={18} color={accent} />
       </View>
       <Text style={[styles.statValue, { color: colors.foreground }]}>{value}</Text>
       <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{label}</Text>
-    </GlassCard>
+    </View>
   );
 }
 
@@ -82,48 +64,38 @@ const platformIcons: Record<string, React.ComponentProps<typeof Ionicons>['name'
   pinterest: 'logo-pinterest',
 };
 
-function PostRow({
-  post,
-  colors,
-  isLast,
-}: {
-  post: PostType;
-  colors: (typeof Colors)['light'];
-  isLast?: boolean;
-}) {
+function PostRow({ post, colors, isLast }: { post: PostType; colors: (typeof Colors)['light']; isLast?: boolean }) {
   const iconName = platformIcons[post.platform] ?? 'globe-outline';
-  const statusColors: Record<string, string> = {
-    scheduled: colors.brand,
-    published: '#22C55E',
-    failed: colors.destructive,
-    partial: '#F59E0B',
+  const statusMap: Record<string, { color: string; label: string }> = {
+    scheduled: { color: colors.brand, label: 'Scheduled' },
+    published: { color: '#34C759', label: 'Published' },
+    failed: { color: '#FF3B30', label: 'Failed' },
+    partial: { color: '#FF9500', label: 'Partial' },
   };
-  const statusColor = statusColors[post.status] ?? colors.mutedForeground;
+  const status = statusMap[post.status] ?? { color: colors.mutedForeground, label: post.status };
 
   return (
-    <View style={[styles.postRow, !isLast && { borderBottomWidth: 0.5, borderBottomColor: `${colors.border}80` }]}>
-      <View style={[styles.postIcon, { backgroundColor: `${colors.brand}10` }]}>
-        <Ionicons name={iconName} size={16} color={colors.brand} />
+    <View style={[styles.postRow, !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }]}>
+      <View style={[styles.postPlatformIcon, { backgroundColor: `${colors.brand}08` }]}>
+        <Ionicons name={iconName} size={16} color={colors.mutedForeground} />
       </View>
-      <View style={styles.postInfo}>
+      <View style={styles.postContent}>
         <Text numberOfLines={1} style={[styles.postTitle, { color: colors.foreground }]}>
-          {post.title || post.description?.slice(0, 40) || 'Untitled post'}
+          {post.title || post.description?.slice(0, 50) || 'Untitled post'}
         </Text>
-        <Text style={[styles.postMeta, { color: colors.mutedForeground }]}>
-          {post.platform} · {new Date(post.scheduledFor).toLocaleDateString()}
+        <Text style={[styles.postDate, { color: colors.mutedForeground }]}>
+          {new Date(post.scheduledFor).toLocaleDateString()} · {post.platform}
         </Text>
       </View>
-      <View style={[styles.statusPill, { backgroundColor: `${statusColor}14` }]}>
-        <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-        <Text style={[styles.statusLabel, { color: statusColor }]}>
-          {post.status}
-        </Text>
+      <View style={[styles.statusBadge, { backgroundColor: `${status.color}12` }]}>
+        <View style={[styles.statusDot, { backgroundColor: status.color }]} />
+        <Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text>
       </View>
     </View>
   );
 }
 
-// ── Main screen ─────────────────────────────────────────────────
+// ── Main dashboard ──────────────────────────────────────────────
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -143,7 +115,7 @@ export default function DashboardScreen() {
     try {
       const [upcomingPosts, postStats] = await Promise.all([
         getUpcomingPosts(activeWorkspace.id, 5),
-        getPostStats(activeWorkspace.id)
+        getPostStats(activeWorkspace.id),
       ]);
       setPosts(upcomingPosts);
       setStats(postStats);
@@ -165,112 +137,119 @@ export default function DashboardScreen() {
 
   if (loading && !refreshing) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, styles.centered]}>
+        <LinearGradient colors={isDark ? ['#0A0A0A', '#0A0A0A'] : ['#EDF4FD', '#F0ECFB', '#FEFEFE']} style={StyleSheet.absoluteFill} />
         <ActivityIndicator size="large" color={colors.brand} />
       </View>
     );
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 56 }]}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />}
-    >
-      <WorkspaceSwitcher />
+    <View style={styles.container}>
+      {/* Vibrant gradient background — this is what the tab bar refracts */}
+      <LinearGradient
+        colors={isDark
+          ? ['#0A0A0A', '#0F1117', '#0A0A0A']
+          : ['#E8F0FE', '#EDE7FB', '#FDF2F0', '#F8FAFE']
+        }
+        locations={isDark ? [0, 0.5, 1] : [0, 0.3, 0.6, 1]}
+        style={StyleSheet.absoluteFill}
+      />
 
-      {/* Greeting */}
-      <View style={styles.greeting}>
-        <Text style={[styles.greetingText, { color: colors.foreground }]}>
-          Hey, {displayName} 👋
-        </Text>
-        <Text style={[styles.greetingSub, { color: colors.mutedForeground }]}>
-          Here's your {activeWorkspace?.name || 'social media'} overview
-        </Text>
-      </View>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 52 }]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />}
+        showsVerticalScrollIndicator={false}
+      >
+        <WorkspaceSwitcher />
 
-      {/* Stats */}
-      <View style={styles.statsGrid}>
-        <StatCard
-          icon="calendar-outline" label="Scheduled" value={stats.scheduled.toString()}
-          trend={stats.scheduled > 0 ? `${stats.scheduled} total` : undefined} trendUp
-          colors={colors} accent={colors.brand}
-        />
-        <StatCard
-          icon="checkmark-circle-outline" label="Published" value={stats.published.toString()}
-          trend={stats.published > 0 ? `${stats.published} total` : undefined} trendUp
-          colors={colors} accent="#22C55E"
-        />
-        <StatCard
-          icon="people-outline" label="Followers" value="—"
-          colors={colors} accent="#8B5CF6"
-        />
-        <StatCard
-          icon="pulse-outline" label="Engagement" value="—"
-          colors={colors} accent="#F59E0B"
-        />
-      </View>
-
-      {/* Upcoming posts */}
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Upcoming Posts</Text>
-        {posts.length > 0 && (
-          <TouchableOpacity><Text style={[styles.seeAll, { color: colors.brand }]}>See all</Text></TouchableOpacity>
-        )}
-      </View>
-
-      {posts.length === 0 ? (
-        <GlassCard style={styles.emptyCard}>
-          <View style={[styles.emptyIcon, { backgroundColor: `${colors.brand}10` }]}>
-            <Ionicons name="calendar-outline" size={28} color={colors.brand} />
-          </View>
-          <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No posts yet</Text>
-          <Text style={[styles.emptyDesc, { color: colors.mutedForeground }]}>
-            Create your first post from the Post tab
+        {/* Greeting */}
+        <View style={styles.greeting}>
+          <Text style={[styles.greetingTitle, { color: colors.foreground }]}>
+            Hey, {displayName} 👋
           </Text>
+          <Text style={[styles.greetingSub, { color: colors.mutedForeground }]}>
+            Here's your {activeWorkspace?.name || 'social'} overview
+          </Text>
+        </View>
+
+        {/* Stats row */}
+        <GlassCard noPadding style={styles.statsCard}>
+          <View style={styles.statsRow}>
+            <StatCard icon="calendar" label="Scheduled" value={stats.scheduled.toString()} accent={colors.brand} colors={colors} />
+            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+            <StatCard icon="checkmark-circle" label="Published" value={stats.published.toString()} accent="#34C759" colors={colors} />
+            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+            <StatCard icon="people" label="Followers" value="—" accent="#AF52DE" colors={colors} />
+            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+            <StatCard icon="pulse" label="Engagement" value="—" accent="#FF9500" colors={colors} />
+          </View>
         </GlassCard>
-      ) : (
-        <GlassCard noPadding style={styles.postsCard}>
-          {posts.map((post, i) => (
-            <PostRow key={post.id} post={post} colors={colors} isLast={i === posts.length - 1} />
-          ))}
-        </GlassCard>
-      )}
-    </ScrollView>
+
+        {/* Upcoming posts */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Upcoming Posts</Text>
+          {posts.length > 0 && (
+            <TouchableOpacity>
+              <Text style={[styles.seeAll, { color: colors.brand }]}>See All</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {posts.length === 0 ? (
+          <GlassCard style={styles.emptyCard}>
+            <View style={[styles.emptyIcon, { backgroundColor: `${colors.brand}08` }]}>
+              <Ionicons name="calendar-outline" size={28} color={colors.brand} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No posts yet</Text>
+            <Text style={[styles.emptyDesc, { color: colors.mutedForeground }]}>
+              Create your first scheduled post from the Post tab
+            </Text>
+          </GlassCard>
+        ) : (
+          <GlassCard noPadding>
+            {posts.map((post, i) => (
+              <PostRow key={post.id} post={post} colors={colors} isLast={i === posts.length - 1} />
+            ))}
+          </GlassCard>
+        )}
+      </ScrollView>
+    </View>
   );
 }
-
-// ── Styles ──────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 120 },
-  greeting: { marginBottom: 24, marginTop: 8 },
-  greetingText: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8 },
-  greetingSub: { fontSize: 14, marginTop: 4, opacity: 0.7 },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 28 },
-  statCard: { width: '47%', flexGrow: 1 },
-  statTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  statIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  statValue: { fontSize: 24, fontWeight: '800', letterSpacing: -0.6 },
-  statLabel: { fontSize: 12, fontWeight: '500', marginTop: 2, opacity: 0.7 },
-  trendBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
-  trendText: { fontSize: 10, fontWeight: '700' },
+
+  greeting: { marginBottom: 20 },
+  greetingTitle: { fontSize: 26, fontWeight: '700', letterSpacing: -0.6 },
+  greetingSub: { fontSize: 14, marginTop: 4 },
+
+  statsCard: { marginBottom: 28 },
+  statsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16 },
+  statCard: { flex: 1, alignItems: 'center', paddingVertical: 4 },
+  statIconCircle: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  statValue: { fontSize: 22, fontWeight: '700', letterSpacing: -0.5 },
+  statLabel: { fontSize: 11, fontWeight: '500', marginTop: 2 },
+  statDivider: { width: StyleSheet.hairlineWidth, height: 40, opacity: 0.5 },
+
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.5 },
-  seeAll: { fontSize: 13, fontWeight: '600' },
-  emptyCard: { alignItems: 'center', paddingVertical: 40, gap: 10 },
-  emptyIcon: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  emptyTitle: { fontSize: 16, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', maxWidth: 240, opacity: 0.7, lineHeight: 18 },
-  postsCard: { overflow: 'hidden' },
-  postRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12 },
-  postIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  postInfo: { flex: 1 },
-  postTitle: { fontSize: 14, fontWeight: '600', letterSpacing: -0.2 },
-  postMeta: { fontSize: 11, marginTop: 2, opacity: 0.6 },
-  statusPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', letterSpacing: -0.3 },
+  seeAll: { fontSize: 14, fontWeight: '500' },
+
+  emptyCard: { alignItems: 'center', paddingVertical: 36, gap: 8 },
+  emptyIcon: { width: 52, height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  emptyTitle: { fontSize: 16, fontWeight: '600' },
+  emptyDesc: { fontSize: 13, textAlign: 'center', maxWidth: 240, lineHeight: 18 },
+
+  postRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13, gap: 12 },
+  postPlatformIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  postContent: { flex: 1 },
+  postTitle: { fontSize: 14, fontWeight: '500', letterSpacing: -0.1 },
+  postDate: { fontSize: 12, marginTop: 2 },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   statusDot: { width: 5, height: 5, borderRadius: 3 },
-  statusLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
+  statusText: { fontSize: 11, fontWeight: '600' },
 });

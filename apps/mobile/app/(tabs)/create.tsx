@@ -1,5 +1,5 @@
 /**
- * Create Post — iOS26 Liquid Glass aesthetic
+ * Create Post — clean iOS design with gradient background
  */
 
 import React, { useState } from 'react';
@@ -33,6 +33,7 @@ export default function CreatePostScreen() {
     const insets = useSafeAreaInsets();
     const colorScheme = useColorScheme() ?? 'light';
     const colors = Colors[colorScheme];
+    const isDark = colorScheme === 'dark';
     const { user } = useAuth();
     const { activeWorkspace } = useWorkspace();
     const router = useRouter();
@@ -47,31 +48,20 @@ export default function CreatePostScreen() {
             Alert.alert('Permission denied', 'We need access to your photos.');
             return;
         }
-
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
             aspect: [4, 5],
             quality: 0.8,
         });
-
         if (!result.canceled) {
-            setMedia({
-                uri: result.assets[0].uri,
-                type: result.assets[0].type === 'video' ? 'video' : 'image',
-            });
+            setMedia({ uri: result.assets[0].uri, type: result.assets[0].type === 'video' ? 'video' : 'image' });
         }
     };
 
     const handleCreate = async () => {
-        if (!caption && !media) {
-            Alert.alert('Error', 'Please add a caption or media');
-            return;
-        }
-        if (!activeWorkspace) {
-            Alert.alert('Error', 'No active workspace selected');
-            return;
-        }
+        if (!caption && !media) { Alert.alert('Error', 'Please add a caption or media'); return; }
+        if (!activeWorkspace) { Alert.alert('Error', 'No active workspace'); return; }
 
         setLoading(true);
         try {
@@ -84,7 +74,6 @@ export default function CreatePostScreen() {
                 await ref.put(blob);
                 mediaUrl = await ref.getDownloadURL();
             }
-
             await db.collection('posts').add({
                 userId: user?.uid,
                 workspaceId: activeWorkspace.id,
@@ -96,10 +85,7 @@ export default function CreatePostScreen() {
                 createdAt: new Date().toISOString(),
                 platform: 'instagram',
             });
-
-            Alert.alert('Success', 'Post scheduled!', [
-                { text: 'OK', onPress: () => router.push('/(tabs)') },
-            ]);
+            Alert.alert('Success', 'Post scheduled!', [{ text: 'OK', onPress: () => router.push('/(tabs)') }]);
             setCaption('');
             setMedia(null);
         } catch (error) {
@@ -111,94 +97,93 @@ export default function CreatePostScreen() {
     };
 
     return (
-        <ScrollView
-            style={[styles.container, { backgroundColor: colors.background }]}
-            contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 56 }]}
-        >
-            <WorkspaceSwitcher />
+        <View style={styles.container}>
+            <LinearGradient
+                colors={isDark ? ['#0A0A0A', '#0F1117', '#0A0A0A'] : ['#EDF4FD', '#F0ECFB', '#FDF2F0', '#FEFEFE']}
+                locations={isDark ? [0, 0.5, 1] : [0, 0.3, 0.6, 1]}
+                style={StyleSheet.absoluteFill}
+            />
+            <ScrollView
+                contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 52 }]}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
+                <WorkspaceSwitcher />
 
-            <Text style={[styles.title, { color: colors.foreground }]}>Create Post</Text>
+                <Text style={[styles.title, { color: colors.foreground }]}>Create Post</Text>
 
-            {/* Caption */}
-            <GlassCard style={styles.inputCard}>
-                <TextInput
-                    style={[styles.input, { color: colors.foreground }]}
-                    placeholder="What's on your mind?"
-                    placeholderTextColor={`${colors.mutedForeground}90`}
-                    multiline
-                    value={caption}
-                    onChangeText={setCaption}
-                />
-            </GlassCard>
+                {/* Caption */}
+                <GlassCard style={styles.inputCard}>
+                    <TextInput
+                        style={[styles.input, { color: colors.foreground }]}
+                        placeholder="What's on your mind?"
+                        placeholderTextColor={colors.mutedForeground}
+                        multiline
+                        value={caption}
+                        onChangeText={setCaption}
+                    />
+                </GlassCard>
 
-            {/* Media */}
-            <TouchableOpacity onPress={pickMedia} activeOpacity={0.8} style={styles.mediaTrigger}>
-                {media ? (
-                    <View style={styles.previewWrap}>
-                        <Image source={{ uri: media.uri }} style={styles.preview} />
-                        <TouchableOpacity style={styles.removeMedia} onPress={() => setMedia(null)}>
-                            <View style={styles.removeCircle}>
-                                <Ionicons name="close" size={16} color="#fff" />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-                ) : (
-                    <GlassCard style={styles.mediaPlaceholder}>
-                        <View style={[styles.mediaIconCircle, { backgroundColor: `${colors.brand}12` }]}>
-                            <Ionicons name="image-outline" size={28} color={colors.brand} />
+                {/* Media */}
+                <TouchableOpacity onPress={pickMedia} activeOpacity={0.8}>
+                    {media ? (
+                        <View style={styles.previewWrap}>
+                            <Image source={{ uri: media.uri }} style={styles.preview} />
+                            <TouchableOpacity style={styles.removeBtn} onPress={() => setMedia(null)}>
+                                <View style={styles.removeCircle}>
+                                    <Ionicons name="close" size={14} color="#fff" />
+                                </View>
+                            </TouchableOpacity>
                         </View>
-                        <Text style={[styles.mediaTitle, { color: colors.foreground }]}>Add photos or video</Text>
-                        <Text style={[styles.mediaSubtext, { color: colors.mutedForeground }]}>
-                            Tap to select from your library
-                        </Text>
-                    </GlassCard>
-                )}
-            </TouchableOpacity>
+                    ) : (
+                        <View style={[styles.mediaPlaceholder, { borderColor: `${colors.border}` }]}>
+                            <View style={[styles.mediaIconCircle, { backgroundColor: `${colors.brand}08` }]}>
+                                <Ionicons name="image-outline" size={24} color={colors.brand} />
+                            </View>
+                            <Text style={[styles.mediaTitle, { color: colors.foreground }]}>Add media</Text>
+                            <Text style={[styles.mediaSub, { color: colors.mutedForeground }]}>Photos or video</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
 
-            {/* Submit */}
-            <View style={styles.actions}>
-                <GlassButton
-                    title={loading ? 'Creating...' : 'Schedule Post'}
-                    onPress={handleCreate}
-                    variant="primary"
-                    icon={!loading ? <Ionicons name="send" size={16} color="#fff" /> : undefined}
-                />
-                {loading && <ActivityIndicator style={{ marginTop: 16 }} color={colors.brand} />}
-            </View>
-        </ScrollView>
+                {/* Submit */}
+                <View style={styles.actions}>
+                    <GlassButton
+                        title={loading ? 'Creating...' : 'Schedule Post'}
+                        onPress={handleCreate}
+                        variant="primary"
+                        disabled={loading}
+                        icon={!loading ? <Ionicons name="send" size={15} color="#fff" /> : undefined}
+                    />
+                    {loading && <ActivityIndicator style={{ marginTop: 16 }} color={colors.brand} />}
+                </View>
+            </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
     scrollContent: { paddingHorizontal: 20, paddingBottom: 120 },
-    title: { fontSize: 30, fontWeight: '800', letterSpacing: -1, marginBottom: 20 },
-    inputCard: { marginBottom: 20, minHeight: 130 },
+    title: { fontSize: 28, fontWeight: '700', letterSpacing: -0.8, marginBottom: 20 },
+    inputCard: { marginBottom: 20, minHeight: 120 },
     input: { fontSize: 16, lineHeight: 22, textAlignVertical: 'top' },
-    mediaTrigger: { marginBottom: 28 },
     mediaPlaceholder: {
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 48,
-        gap: 10,
-        borderStyle: 'dashed',
+        paddingVertical: 40,
+        borderRadius: 16,
         borderWidth: 1.5,
-        borderColor: 'rgba(112, 165, 238, 0.25)',
-        borderRadius: 22,
+        borderStyle: 'dashed',
+        marginBottom: 24,
+        gap: 6,
     },
-    mediaIconCircle: { width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-    mediaTitle: { fontSize: 15, fontWeight: '700' },
-    mediaSubtext: { fontSize: 12, opacity: 0.6 },
-    previewWrap: { borderRadius: 22, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)' },
-    preview: { width: '100%', height: 320, resizeMode: 'cover' },
-    removeMedia: { position: 'absolute', top: 12, right: 12 },
-    removeCircle: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    actions: { marginTop: 4 },
+    mediaIconCircle: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+    mediaTitle: { fontSize: 15, fontWeight: '600' },
+    mediaSub: { fontSize: 12 },
+    previewWrap: { borderRadius: 16, overflow: 'hidden', marginBottom: 24 },
+    preview: { width: '100%', height: 300, resizeMode: 'cover' },
+    removeBtn: { position: 'absolute', top: 10, right: 10 },
+    removeCircle: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+    actions: {},
 });

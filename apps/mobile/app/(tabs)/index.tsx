@@ -147,14 +147,7 @@ export default function DashboardScreen() {
   return (
     <View style={styles.container}>
       {/* Vibrant gradient background — this is what the tab bar refracts */}
-      <LinearGradient
-        colors={isDark
-          ? ['#0A0A0A', '#0F1117', '#0A0A0A']
-          : ['#E8F0FE', '#EDE7FB', '#FDF2F0', '#F8FAFE']
-        }
-        locations={isDark ? [0, 0.5, 1] : [0, 0.3, 0.6, 1]}
-        style={StyleSheet.absoluteFill}
-      />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
 
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 52 }]}

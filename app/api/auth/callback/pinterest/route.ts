@@ -89,8 +89,16 @@ export async function GET(request: NextRequest) {
         try {
             const { adminDb } = await import("@/lib/firebase-admin")
             if (adminDb) {
-                const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+                let workspaceId = cookieStore.get("oauth_workspace_id")?.value
                 const timestamp = new Date().toISOString()
+
+                // If workspaceId is missing, try to find the user's active workspace
+                if (!workspaceId && userId) {
+                    const userDoc = await adminDb.collection("users").doc(userId).get()
+                    if (userDoc.exists) {
+                        workspaceId = userDoc.data()?.activeWorkspaceId
+                    }
+                }
 
                 if (workspaceId) {
                     await adminDb.collection("workspaces").doc(workspaceId).update({

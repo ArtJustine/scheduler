@@ -2,7 +2,7 @@
  * Settings — clean iOS design with gradient background
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     ScrollView,
@@ -22,7 +22,9 @@ import { useWorkspace } from '@/context/WorkspaceContext';
 import { signOut } from '@/lib/auth';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher';
+import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ── Row ─────────────────────────────────────────────────────────
 
@@ -68,12 +70,45 @@ function SettingsRow({
 
 export default function SettingsScreen() {
     const insets = useSafeAreaInsets();
+    const router = useRouter();
     const colorScheme = useColorScheme() ?? 'light';
     const colors = Colors[colorScheme];
     const isDark = colorScheme === 'dark';
     const { user } = useAuth();
     const { activeWorkspace } = useWorkspace();
     const [loggingOut, setLoggingOut] = useState(false);
+
+    // Posting Options State
+    const [showPostingOptions, setShowPostingOptions] = useState(false);
+    const [defaultFormat, setDefaultFormat] = useState('Vertical');
+    const [defaultPlatforms, setDefaultPlatforms] = useState(['Instagram', 'TikTok']);
+
+    // Load defaults
+    useEffect(() => {
+        const loadDefaults = async () => {
+            try {
+                const format = await AsyncStorage.getItem('default_format');
+                const platforms = await AsyncStorage.getItem('default_platforms');
+                if (format) setDefaultFormat(format);
+                if (platforms) setDefaultPlatforms(JSON.parse(platforms));
+            } catch (e) { console.error('Error loading defaults', e); }
+        };
+        loadDefaults();
+    }, []);
+
+    // Save defaults
+    const saveFormat = async (f: string) => {
+        setDefaultFormat(f);
+        await AsyncStorage.setItem('default_format', f);
+    };
+
+    const toggleDefaultPlatform = async (p: string) => {
+        const next = defaultPlatforms.includes(p)
+            ? defaultPlatforms.filter(x => x !== p)
+            : [...defaultPlatforms, p];
+        setDefaultPlatforms(next);
+        await AsyncStorage.setItem('default_platforms', JSON.stringify(next));
+    };
 
     const handleLogout = () => {
         Alert.alert('Log Out', 'Are you sure?', [
@@ -92,18 +127,73 @@ export default function SettingsScreen() {
     const initial = user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'C';
     const openLink = (url: string) => Linking.openURL(url).catch(() => Alert.alert('Error', 'Could not open page.'));
 
+    if (showPostingOptions) {
+        return (
+            <View style={styles.container}>
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
+                <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 52 }]}>
+                    <TouchableOpacity style={styles.backBtn} onPress={() => setShowPostingOptions(false)}>
+                        <Ionicons name="arrow-back" size={20} color={colors.foreground} />
+                        <Text style={[styles.backText, { color: colors.foreground }]}>Back to Settings</Text>
+                    </TouchableOpacity>
+
+                    <Text style={[styles.title, { color: colors.foreground, marginTop: 10 }]}>Posting Options</Text>
+
+                    <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>DEFAULT FORMAT</Text>
+                    <GlassCard noPadding>
+                        {['Vertical', 'Horizontal', 'Text'].map((f, i, arr) => (
+                            <TouchableOpacity
+                                key={f}
+                                style={styles.row}
+                                onPress={() => setDefaultFormat(f)}
+                            >
+                                <Text style={[styles.rowLabel, { color: colors.foreground }]}>{f}</Text>
+                                {defaultFormat === f && <Ionicons name="checkmark" size={20} color={colors.brand} />}
+                            </TouchableOpacity>
+                        ))}
+                    </GlassCard>
+
+                    <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>DEFAULT PLATFORMS</Text>
+                    <GlassCard noPadding>
+                        {['Instagram', 'TikTok', 'YouTube', 'Facebook', 'X', 'LinkedIn'].map((p, i, arr) => {
+                            const isSelected = defaultPlatforms.includes(p);
+                            return (
+                                <TouchableOpacity
+                                    key={p}
+                                    style={styles.row}
+                                    onPress={() => {
+                                        setDefaultPlatforms(prev =>
+                                            prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]
+                                        );
+                                    }}
+                                >
+                                    <Text style={[styles.rowLabel, { color: colors.foreground }]}>{p}</Text>
+                                    <View style={[styles.checkbox, isSelected && { backgroundColor: colors.brand, borderColor: colors.brand }]}>
+                                        {isSelected && <Ionicons name="checkmark" size={12} color="#fff" />}
+                                    </View>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </GlassCard>
+
+                    <View style={{ marginTop: 24 }}>
+                        <Text style={[styles.version, { color: colors.mutedForeground, textAlign: 'left', paddingHorizontal: 4 }]}>
+                            These options will be applied as defaults when you create a new post.
+                        </Text>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
-            <LinearGradient
-                colors={isDark ? ['#0A0A0A', '#0F1117', '#0A0A0A'] : ['#EDF4FD', '#F0ECFB', '#FDF2F0', '#FEFEFE']}
-                locations={isDark ? [0, 0.5, 1] : [0, 0.3, 0.6, 1]}
-                style={StyleSheet.absoluteFill}
-            />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
             <ScrollView
                 contentContainerStyle={[styles.content, { paddingTop: insets.top + 52 }]}
                 showsVerticalScrollIndicator={false}
             >
-                <WorkspaceSwitcher />
+
 
                 {/* Profile */}
                 <GlassCard style={styles.profileCard}>
@@ -140,7 +230,8 @@ export default function SettingsScreen() {
                         onPress={() => Alert.alert('Appearance', 'Follows system settings.')}
                         colors={colors}
                     />
-                    <SettingsRow icon="time-outline" label="Time Zone" value="Auto" onPress={() => { }} colors={colors} isLast />
+                    <SettingsRow icon="time-outline" label="Time Zone" value="Auto" onPress={() => { }} colors={colors} />
+                    <SettingsRow icon="options-outline" label="Posting Options" value="Customize" onPress={() => setShowPostingOptions(true)} colors={colors} isLast />
                 </GlassCard>
 
                 {/* Support */}
@@ -170,6 +261,9 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1 },
     content: { paddingHorizontal: 20, paddingBottom: 120 },
+    title: { fontSize: 24, fontWeight: '700', letterSpacing: -0.5, marginBottom: 16 },
+    backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 },
+    backText: { fontSize: 15, fontWeight: '500' },
     profileCard: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 24 },
     avatar: { width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     avatarText: { color: '#fff', fontSize: 18, fontWeight: '700' },
@@ -181,6 +275,7 @@ const styles = StyleSheet.create({
     rowIcon: { width: 28, height: 28, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
     rowLabel: { flex: 1, fontSize: 15, fontWeight: '400' },
     rowValue: { fontSize: 14 },
+    checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 2, borderColor: '#00000020', alignItems: 'center', justifyContent: 'center' },
     divider: { height: StyleSheet.hairlineWidth, marginLeft: 56 },
     version: { fontSize: 11, textAlign: 'center', marginTop: 24 },
 });

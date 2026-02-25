@@ -70,96 +70,103 @@ export async function GET(request: NextRequest) {
             connected: true,
         }
 
-        // Save to Firestore directly from the server for better reliability
+        // Save to Firestore directly from the server using Admin SDK for bypass permissions
         try {
-            if (serverDb) {
-                const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+            const { adminDb } = await import("@/lib/firebase-admin")
+            let workspaceId = cookieStore.get("oauth_workspace_id")?.value
 
-                // Fetch linked Instagram Business Accounts and Page info from Facebook Pages
-                try {
-                    console.log("Checking for Facebook Pages and linked Instagram accounts...")
-                    const pagesResponse = await fetch(
-                        `https://graph.facebook.com/v${config.facebook.apiVersion}/me/accounts?fields=id,name,access_token,link,picture,followers_count,fan_count,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${tokenData.access_token}`
-                    )
+            // If workspaceId is missing, try to find the user's active workspace
+            if (!workspaceId && userId) {
+                const userDoc = await adminDb.collection("users").doc(userId).get()
+                if (userDoc.exists) {
+                    workspaceId = userDoc.data()?.activeWorkspaceId
+                }
+            }
 
-                    if (pagesResponse.ok) {
-                        const pagesData = await pagesResponse.json()
-                        const pages = pagesData.data || []
-                        console.log("Found Pages:", pages.length)
+            // Fetch linked Instagram Business Accounts and Page info from Facebook Pages
+            try {
+                console.log("Checking for Facebook Pages and linked Instagram accounts...")
+                const pagesResponse = await fetch(
+                    `https://graph.facebook.com/v${config.facebook.apiVersion}/me/accounts?fields=id,name,access_token,link,picture,followers_count,fan_count,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${tokenData.access_token}`
+                )
 
-                        if (pages.length > 0) {
-                            // Use the first page as the primary Facebook account if none selected
-                            const primaryPage = pages[0]
-                            const fbPageData = {
-                                platform: "facebook",
-                                id: primaryPage.id,
-                                username: primaryPage.name,
-                                profileImage: primaryPage.picture?.data?.url || accountData.profileImage,
-                                followers: Number(primaryPage.followers_count ?? primaryPage.fan_count ?? 0),
-                                accessToken: primaryPage.access_token,
+                if (pagesResponse.ok) {
+                    const pagesData = await pagesResponse.json()
+                    const pages = pagesData.data || []
+                    console.log("Found Pages:", pages.length)
+
+                    if (pages.length > 0) {
+                        // Use the first page as the primary Facebook account
+                        const primaryPage = pages[0]
+                        const fbPageData = {
+                            platform: "facebook",
+                            id: primaryPage.id,
+                            username: primaryPage.name,
+                            profileImage: primaryPage.picture?.data?.url || accountData.profileImage,
+                            followers: Number(primaryPage.followers_count ?? primaryPage.fan_count ?? 0),
+                            accessToken: primaryPage.access_token,
+                            connected: true,
+                            connectedAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        }
+
+                        if (workspaceId) {
+                            const workspaceDocRef = adminDb.collection("workspaces").doc(workspaceId)
+                            await workspaceDocRef.update({
+                                [`accounts.facebook`]: fbPageData,
+                                updatedAt: new Date().toISOString()
+                            })
+                            console.log("Facebook Page saved to Workspace (Admin):", workspaceId)
+                        }
+                    }
+
+                    for (const page of pages) {
+                        if (page.instagram_business_account) {
+                            const ig = page.instagram_business_account
+                            const igAccountData = {
+                                platform: "instagram",
+                                id: ig.id,
+                                username: ig.username,
+                                name: ig.name,
+                                profileImage: ig.profile_picture_url,
+                                followers: Number(ig.followers_count ?? ig.follower_count) || 0,
+                                posts: Number(ig.media_count) || 0,
+                                accessToken: page.access_token,
                                 connected: true,
                                 connectedAt: new Date().toISOString(),
+                                pageId: page.id,
+                                pageName: page.name,
                                 updatedAt: new Date().toISOString()
                             }
 
                             if (workspaceId) {
-                                const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
-                                await updateDoc(workspaceDocRef, {
-                                    [`accounts.facebook`]: fbPageData,
+                                const workspaceDocRef = adminDb.collection("workspaces").doc(workspaceId)
+                                await workspaceDocRef.update({
+                                    [`accounts.instagram`]: igAccountData,
                                     updatedAt: new Date().toISOString()
-                                } as any)
-                                console.log("Facebook Page saved to Workspace:", workspaceId)
-                            }
-                        }
-
-                        for (const page of pages) {
-                            if (page.instagram_business_account) {
-                                const ig = page.instagram_business_account
-                                const igAccountData = {
-                                    platform: "instagram",
-                                    id: ig.id,
-                                    username: ig.username,
-                                    name: ig.name,
-                                    profileImage: ig.profile_picture_url,
-                                    followers: Number(ig.followers_count ?? ig.follower_count) || 0,
-                                    posts: Number(ig.media_count) || 0,
-                                    accessToken: page.access_token, // Page token can often act on behalf of IG
-                                    connected: true,
-                                    connectedAt: new Date().toISOString(),
-                                    pageId: page.id,
-                                    pageName: page.name,
-                                    updatedAt: new Date().toISOString()
-                                }
-
-                                if (workspaceId) {
-                                    const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
-                                    await updateDoc(workspaceDocRef, {
-                                        [`accounts.instagram`]: igAccountData,
-                                        updatedAt: new Date().toISOString()
-                                    } as any)
-                                    console.log("Linked Instagram account saved to Workspace:", workspaceId)
-                                }
+                                })
+                                console.log("Linked Instagram account saved to Workspace (Admin):", workspaceId)
                             }
                         }
                     }
-                } catch (igErr) {
-                    console.warn("Could not fetch Facebook pages/linked IG accounts:", igErr)
                 }
+            } catch (igErr) {
+                console.warn("Could not fetch Facebook pages/linked IG accounts (Admin):", igErr)
+            }
 
-                // If no workspaceId, fall back to saving the basic user-based Facebook account
-                if (!workspaceId) {
-                    const userDocRef = doc(serverDb, "users", userId)
-                    await setDoc(userDocRef, {
-                        facebook: {
-                            ...accountData,
-                            updatedAt: new Date().toISOString()
-                        }
-                    }, { merge: true })
-                    console.log("Basic Facebook login saved to User Doc:", userId)
-                }
+            // If no workspaceId, fall back to saving the basic user-based Facebook account
+            if (!workspaceId) {
+                const userDocRef = adminDb.collection("users").doc(userId)
+                await userDocRef.set({
+                    facebook: {
+                        ...accountData,
+                        updatedAt: new Date().toISOString()
+                    }
+                }, { merge: true })
+                console.log("Basic Facebook login saved to User Doc (Admin):", userId)
             }
         } catch (saveError) {
-            console.error("Error saving Facebook account to Firestore:", saveError)
+            console.error("Error saving Facebook account to Firestore (Admin):", saveError)
         }
 
         // Redirect to dashboard with handover flag and smart success message

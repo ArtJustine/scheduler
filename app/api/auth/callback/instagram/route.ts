@@ -193,12 +193,23 @@ export async function GET(request: NextRequest) {
         // We CAN save the profile picture here in the DB
         const dbData = { ...accountData, profileImage: profilePicture, updatedAt: new Date().toISOString() }
 
-        const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+        const workspaceIdFromCookie = cookieStore.get("oauth_workspace_id")?.value
+        let workspaceId = workspaceIdFromCookie
+
+        // If workspaceId is missing, try to find the user's active workspace (Robustness skip)
+        if (!workspaceId && userId) {
+          const userDoc = await adminDb.collection("users").doc(userId).get()
+          if (userDoc.exists) {
+            workspaceId = userDoc.data()?.activeWorkspaceId
+          }
+        }
+
         if (workspaceId) {
           await adminDb.collection("workspaces").doc(workspaceId).update({
             [`accounts.instagram`]: dbData,
             updatedAt: new Date().toISOString()
           })
+          console.log("Instagram account saved to Workspace (Admin):", workspaceId)
         } else {
           await adminDb.collection("users").doc(userId).update({
             instagram: dbData,

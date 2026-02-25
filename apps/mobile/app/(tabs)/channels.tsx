@@ -97,17 +97,13 @@ export default function ChannelsScreen() {
 
     return (
         <View style={styles.container}>
-            <LinearGradient
-                colors={isDark ? ['#0A0A0A', '#0F1117', '#0A0A0A'] : ['#EDF4FD', '#F0ECFB', '#FDF2F0', '#FEFEFE']}
-                locations={isDark ? [0, 0.5, 1] : [0, 0.3, 0.6, 1]}
-                style={StyleSheet.absoluteFill}
-            />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
             <ScrollView
                 contentContainerStyle={[styles.content, { paddingTop: insets.top + 52 }]}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />}
                 showsVerticalScrollIndicator={false}
             >
-                <WorkspaceSwitcher />
+
 
                 {/* Summary */}
                 <GlassCard style={styles.summaryCard}>

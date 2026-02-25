@@ -99,36 +99,43 @@ export async function GET(request: NextRequest) {
       likes: likesCount,
     }
 
-    // Save to Firestore directly from the server for better reliability
+    // Save to Firestore directly from the server using Admin SDK for bypass permissions
     try {
-      if (serverDb) {
-        const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+      const { adminDb } = await import("@/lib/firebase-admin")
+      let workspaceId = cookieStore.get("oauth_workspace_id")?.value
 
-        if (workspaceId) {
-          // Save to workspace doc
-          const workspaceDocRef = doc(serverDb, "workspaces", workspaceId)
-          await updateDoc(workspaceDocRef, {
-            [`accounts.${accountData.platform}`]: {
-              ...accountData,
-              updatedAt: new Date().toISOString()
-            },
-            updatedAt: new Date().toISOString()
-          })
-          console.log("TikTok account saved to Workspace:", workspaceId)
-        } else {
-          // Legacy: Save to user doc
-          const userDocRef = doc(serverDb, "users", userId)
-          await setDoc(userDocRef, {
-            tiktok: {
-              ...accountData,
-              updatedAt: new Date().toISOString()
-            }
-          }, { merge: true })
-          console.log("TikTok account saved to User Doc:", userId)
+      // If workspaceId is missing, try to find the user's active workspace
+      if (!workspaceId && userId) {
+        const userDoc = await adminDb.collection("users").doc(userId).get()
+        if (userDoc.exists) {
+          workspaceId = userDoc.data()?.activeWorkspaceId
         }
       }
+
+      if (workspaceId) {
+        // Save to workspace doc
+        const workspaceDocRef = adminDb.collection("workspaces").doc(workspaceId)
+        await workspaceDocRef.update({
+          [`accounts.${accountData.platform}`]: {
+            ...accountData,
+            updatedAt: new Date().toISOString()
+          },
+          updatedAt: new Date().toISOString()
+        })
+        console.log("TikTok account saved to Workspace (Admin):", workspaceId)
+      } else {
+        // Legacy: Save to user doc
+        const userDocRef = adminDb.collection("users").doc(userId)
+        await userDocRef.set({
+          tiktok: {
+            ...accountData,
+            updatedAt: new Date().toISOString()
+          }
+        }, { merge: true })
+        console.log("TikTok account saved to User Doc (Admin):", userId)
+      }
     } catch (saveError) {
-      console.error("Error saving TikTok account to Firestore:", saveError)
+      console.error("Error saving TikTok account to Firestore (Admin):", saveError)
     }
 
     // Clear workspace cookie

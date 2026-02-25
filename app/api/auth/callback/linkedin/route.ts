@@ -107,8 +107,16 @@ export async function GET(request: NextRequest) {
         // Save to Firestore directly from the server using adminDb for reliability
         try {
             if (adminDb) {
-                const workspaceId = cookieStore.get("oauth_workspace_id")?.value
+                let workspaceId = cookieStore.get("oauth_workspace_id")?.value
                 const timestamp = new Date().toISOString()
+
+                // If workspaceId is missing, try to find the user's active workspace
+                if (!workspaceId && userId) {
+                    const userDoc = await adminDb.collection("users").doc(userId).get()
+                    if (userDoc.exists) {
+                        workspaceId = userDoc.data()?.activeWorkspaceId
+                    }
+                }
 
                 if (workspaceId) {
                     const workspaceRef = adminDb.collection("workspaces").doc(workspaceId)

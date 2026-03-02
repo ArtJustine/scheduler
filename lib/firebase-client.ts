@@ -24,28 +24,36 @@ let firebaseDb: Firestore | undefined
 let firebaseStorage: FirebaseStorage | undefined
 
 if (typeof window !== "undefined") {
-  if (!getApps().length) {
-    firebaseApp = initializeApp(firebaseConfig)
-  } else {
-    firebaseApp = getApp()
-  }
-
-  firebaseAuth = getAuth(firebaseApp)
-  // Use initializeFirestore to enable ignoreUndefinedProperties
-  // This prevents the "Unsupported field value: undefined" error globally
-  firebaseDb = initializeFirestore(firebaseApp!, { ignoreUndefinedProperties: true })
-  firebaseStorage = getStorage(firebaseApp)
-
-  if (firebaseDb) {
-    enableIndexedDbPersistence(firebaseDb).catch((err) => {
-      if (err.code === "failed-precondition") {
-        console.warn("Firestore persistence failed: Multiple tabs open")
-      } else if (err.code === "unimplemented") {
-        console.warn("Firestore persistence is not available in this browser")
+  try {
+    if (!firebaseConfig.apiKey) {
+      console.warn("Firebase API Key is missing. Check your environment variables.")
+    } else {
+      if (!getApps().length) {
+        firebaseApp = initializeApp(firebaseConfig)
       } else {
-        console.error("Firestore persistence error:", err)
+        firebaseApp = getApp()
       }
-    })
+
+      firebaseAuth = getAuth(firebaseApp)
+      // Use initializeFirestore to enable ignoreUndefinedProperties
+      // This prevents the "Unsupported field value: undefined" error globally
+      firebaseDb = initializeFirestore(firebaseApp!, { ignoreUndefinedProperties: true })
+      firebaseStorage = getStorage(firebaseApp)
+
+      if (firebaseDb) {
+        enableIndexedDbPersistence(firebaseDb).catch((err) => {
+          if (err.code === "failed-precondition") {
+            console.warn("Firestore persistence failed: Multiple tabs open")
+          } else if (err.code === "unimplemented") {
+            console.warn("Firestore persistence is not available in this browser")
+          } else {
+            console.error("Firestore persistence error:", err)
+          }
+        })
+      }
+    }
+  } catch (err) {
+    console.error("Firebase initialization failed:", err)
   }
 }
 

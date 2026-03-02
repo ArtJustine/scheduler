@@ -11,9 +11,27 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 }
 
-// Initialize Firebase for server-side use
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
-const db = getFirestore(app)
+// Initialize Firebase for server-side and client-side use
+let app;
+let db: any;
+
+try {
+    if (typeof window !== "undefined" || process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+        if (!getApps().length) {
+            if (firebaseConfig.apiKey) {
+                app = initializeApp(firebaseConfig)
+            }
+        } else {
+            app = getApps()[0]
+        }
+
+        if (app) {
+            db = getFirestore(app)
+        }
+    }
+} catch (error) {
+    console.error("Firebase waitlist initialization failed:", error)
+}
 
 export interface WaitlistEntry {
     id?: string

@@ -31,13 +31,21 @@ interface FirebaseServices {
 const firebase: FirebaseServices = { app: null, auth: null, db: null, storage: null }
 
 if (typeof window !== "undefined") {
-  // Initialize Firebase
-  firebase.app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
+  try {
+    if (firebaseConfig.apiKey) {
+      // Initialize Firebase
+      firebase.app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
 
-  // Initialize Firebase services
-  firebase.auth = getAuth(firebase.app)
-  firebase.db = getFirestore(firebase.app)
-  firebase.storage = getStorage(firebase.app)
+      // Initialize Firebase services
+      firebase.auth = getAuth(firebase.app)
+      firebase.db = getFirestore(firebase.app)
+      firebase.storage = getStorage(firebase.app)
+    } else {
+      console.warn("Firebase configuration is missing. Authentication and database features will be disabled.")
+    }
+  } catch (error) {
+    console.error("Firebase services initialization failed:", error)
+  }
 }
 
 // Export the initialized services

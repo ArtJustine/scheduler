@@ -1,55 +1,12 @@
 // lib/firebase/config.ts
-import { initializeApp, getApps, getApp } from "firebase/app"
-import { getAuth } from "firebase/auth"
-import { getFirestore } from "firebase/firestore"
-import { getStorage } from "firebase/storage"
-import { config } from "../config"
+// Re-exporting from centralized firebase-client to maintain compatibility
+// while avoiding duplicate initialization.
+import {
+  firebaseApp as app,
+  firebaseAuth as auth,
+  firebaseDb as db,
+  firebaseStorage as storage
+} from "../firebase-client"
 
-// Your Firebase configuration
-const firebaseConfig = {
-  apiKey: config.firebase.apiKey,
-  authDomain: config.firebase.authDomain,
-  projectId: config.firebase.projectId,
-  storageBucket: config.firebase.storageBucket,
-  messagingSenderId: config.firebase.messagingSenderId,
-  appId: config.firebase.appId,
-}
+export { app, auth, db, storage }
 
-import type { Auth } from "firebase/auth"
-import type { Firestore } from "firebase/firestore"
-import type { FirebaseStorage } from "firebase/storage"
-import type { FirebaseApp } from "firebase/app"
-
-interface FirebaseServices {
-  app: FirebaseApp | null
-  auth: Auth | null
-  db: Firestore | null
-  storage: FirebaseStorage | null
-}
-
-// Initialize Firebase for client-side only
-const firebase: FirebaseServices = { app: null, auth: null, db: null, storage: null }
-
-if (typeof window !== "undefined") {
-  try {
-    if (firebaseConfig.apiKey) {
-      // Initialize Firebase
-      firebase.app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
-
-      // Initialize Firebase services
-      firebase.auth = getAuth(firebase.app)
-      firebase.db = getFirestore(firebase.app)
-      firebase.storage = getStorage(firebase.app)
-    } else {
-      console.warn("Firebase configuration is missing. Authentication and database features will be disabled.")
-    }
-  } catch (error) {
-    console.error("Firebase services initialization failed:", error)
-  }
-}
-
-// Export the initialized services
-export const app = firebase.app
-export const auth = firebase.auth
-export const db = firebase.db
-export const storage = firebase.storage

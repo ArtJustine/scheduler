@@ -149,6 +149,14 @@ export default function BlogPage() {
                                     <div key={i} className="h-[400px] rounded-xl bg-muted animate-pulse" />
                                 ))}
                             </div>
+                        ) : !firebaseDb ? (
+                            <div className="text-center py-20 border rounded-3xl bg-muted/20">
+                                <p className="text-xl text-muted-foreground mb-4">We're having trouble reaching our content database.</p>
+                                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                                    This usually means the application configuration is incomplete.
+                                    Please try refreshing the page or contact support if the issue persists.
+                                </p>
+                            </div>
                         ) : filteredPosts.length === 0 ? (
                             <div className="text-center py-20 border rounded-3xl bg-muted/20">
                                 <p className="text-xl text-muted-foreground">No articles found matching your criteria.</p>
@@ -160,6 +168,7 @@ export default function BlogPage() {
                                 </button>
                             </div>
                         ) : (
+
                             <div className="grid gap-6 sm:gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 min-h-[400px]">
                                 {filteredPosts.map((post) => (
                                     <Link key={post.id} href={`/blog/${post.slug}`}>

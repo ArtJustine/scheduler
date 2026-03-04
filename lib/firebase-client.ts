@@ -2,15 +2,16 @@ import { initializeApp, getApps, getApp } from "firebase/app"
 import { getAuth } from "firebase/auth"
 import { initializeFirestore, enableIndexedDbPersistence } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
+import { config } from "./config"
 
-// Your web app's Firebase configuration
+// Your web app's Firebase configuration from centralized config
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: config.firebase.apiKey,
+  authDomain: config.firebase.authDomain,
+  projectId: config.firebase.projectId,
+  storageBucket: config.firebase.storageBucket,
+  messagingSenderId: config.firebase.messagingSenderId,
+  appId: config.firebase.appId,
 }
 
 import type { FirebaseApp } from "firebase/app"
@@ -26,7 +27,7 @@ let firebaseStorage: FirebaseStorage | undefined
 if (typeof window !== "undefined") {
   try {
     if (!firebaseConfig.apiKey) {
-      console.warn("Firebase API Key is missing. Check your environment variables.")
+      console.warn("Firebase API Key is missing. Please check your environment variables (NEXT_PUBLIC_FIREBASE_API_KEY). Authentication and database features will be limited.")
     } else {
       if (!getApps().length) {
         firebaseApp = initializeApp(firebaseConfig)
@@ -58,3 +59,4 @@ if (typeof window !== "undefined") {
 }
 
 export { firebaseApp, firebaseAuth, firebaseDb, firebaseStorage }
+

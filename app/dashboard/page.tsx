@@ -19,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/lib/auth-provider"
 import type { PostType } from "@/types/post"
 import type { SocialAccounts } from "@/types/social"
+import { ContributionCalendar } from "@/components/dashboard/contribution-calendar"
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
@@ -151,6 +152,7 @@ function DashboardContent() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          <ContributionCalendar />
           {!activeWorkspace ? (
             <Card className="border-dashed border-2 bg-muted/30">
               <CardContent className="flex flex-col items-center justify-center py-20 text-center">

@@ -72,20 +72,40 @@ export function PlatformStats({
     <Card className={cn(connected && "border-primary/20 shadow-sm")}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-2">
-          {connected && profileImage ? (
-            <img src={profileImage} alt={username} className="h-6 w-6 rounded-full" />
-          ) : (
-            <div className={cn("h-8 w-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 shrink-0")}>
+          <div className="relative group">
+            {connected && profileImage ? (
               <img
-                src={`/${platform.toLowerCase() === 'x' ? 'x' : platform.toLowerCase()}.webp`}
-                alt={platform}
-                className="h-[65%] w-[65%] object-contain"
+                src={profileImage}
+                alt={username}
+                className="h-8 w-8 rounded-full border border-gray-100 shadow-sm"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
+                  (e.target as HTMLImageElement).src = `/${platform.toLowerCase() === 'x' ? 'x' : platform.toLowerCase()}.webp`;
                 }}
               />
-            </div>
-          )}
+            ) : (
+              <div className={cn("h-8 w-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 shrink-0")}>
+                <img
+                  src={`/${platform.toLowerCase() === 'x' ? 'x' : platform.toLowerCase()}.webp`}
+                  alt={platform}
+                  className="h-[65%] w-[65%] object-contain"
+                  onError={(e) => {
+                    // Last resort: Luckily we have some platform icons imported from lucide-react
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+            {/* Platform indicator icon if connected */}
+            {connected && (
+              <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-gray-100">
+                <img
+                  src={`/${platform.toLowerCase() === 'x' ? 'x' : platform.toLowerCase()}.webp`}
+                  alt={platform}
+                  className="h-3 w-3 object-contain"
+                />
+              </div>
+            )}
+          </div>
           <div>
             <CardTitle className="text-sm font-medium">{platform}</CardTitle>
             {connected && username && (

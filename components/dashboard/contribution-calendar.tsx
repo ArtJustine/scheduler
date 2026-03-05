@@ -130,13 +130,13 @@ export function ContributionCalendar() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div>
-                            <CardTitle className="text-lg font-bold">Activity</CardTitle>
+                            <CardTitle className="text-lg font-bold">Engagement Heatmap</CardTitle>
                             <CardDescription>
-                                {totalContributions} contributions in {selectedYear === currentYear ? 'the last year' : selectedYear}
+                                {totalContributions} platform interactions in {selectedYear === currentYear ? 'the last 12 months' : selectedYear}
                             </CardDescription>
                         </div>
                         <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-                            <SelectTrigger className="w-[100px] h-8 text-xs">
+                            <SelectTrigger className="w-[100px] h-8 text-xs bg-slate-50 dark:bg-slate-900/50 border-border/50">
                                 <SelectValue placeholder="Year" />
                             </SelectTrigger>
                             <SelectContent>
@@ -147,7 +147,7 @@ export function ContributionCalendar() {
                         </Select>
                     </div>
                     <div className="text-xs text-muted-foreground hidden sm:block">
-                        Contribution settings
+                        Personal Insights
                     </div>
                 </div>
             </CardHeader>
@@ -196,7 +196,7 @@ export function ContributionCalendar() {
                                                             />
                                                         </TooltipTrigger>
                                                         <TooltipContent side="top" className="text-[10px] py-1 px-2 border-primary/20 bg-card">
-                                                            <span className="font-medium">{day.count} contributions</span> on {day.date}
+                                                            <span className="font-medium">{day.count} interactions</span> on {new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 ))}
@@ -210,11 +210,12 @@ export function ContributionCalendar() {
 
                     {/* Footer */}
                     <div className="flex items-center justify-between mt-4 text-[10px] text-muted-foreground">
-                        <div className="hover:text-primary transition-colors cursor-pointer">
-                            Learn how we count contributions
+                        <div className="hover:text-primary transition-colors cursor-pointer flex items-center gap-1">
+                            <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />
+                            How we calculate your reach
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <span>Less</span>
+                        <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/40 px-3 py-1.5 rounded-full border border-border/30">
+                            <span className="opacity-60">Quiet</span>
                             <div className="flex gap-[3px]">
                                 <div className="w-[10px] h-[10px] rounded-[2px] bg-slate-100 dark:bg-slate-800/50" />
                                 <div className="w-[10px] h-[10px] rounded-[2px] bg-[#72A5EE]/20" />
@@ -222,7 +223,7 @@ export function ContributionCalendar() {
                                 <div className="w-[10px] h-[10px] rounded-[2px] bg-[#72A5EE]/70" />
                                 <div className="w-[10px] h-[10px] rounded-[2px] bg-[#72A5EE]" />
                             </div>
-                            <span>More</span>
+                            <span className="opacity-60">Active</span>
                         </div>
                     </div>
                 </div>

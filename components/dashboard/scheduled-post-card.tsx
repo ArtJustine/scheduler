@@ -5,14 +5,32 @@ import Link from "next/link"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 
 import type { PostType } from "@/types/post"
+
+import { useState, useEffect } from "react"
+import { getSocialAccounts } from "@/lib/firebase/social-accounts"
 
 interface ScheduledPostCardProps {
   post: PostType
 }
 
 export function ScheduledPostCard({ post }: ScheduledPostCardProps) {
+  const [socialAccounts, setSocialAccounts] = useState<any>(null)
+
+  useEffect(() => {
+    const loadAccounts = async () => {
+      try {
+        const accounts = await getSocialAccounts()
+        setSocialAccounts(accounts)
+      } catch (error) {
+        console.error("Error loading social accounts for card:", error)
+      }
+    }
+    loadAccounts()
+  }, [])
+
   if (!post) {
     return null
   }
@@ -71,13 +89,19 @@ export function ScheduledPostCard({ post }: ScheduledPostCardProps) {
           </div>
           <div className="flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium capitalize bg-primary/10 text-primary">
             {['instagram', 'youtube', 'facebook', 'x', 'linkedin', 'bluesky', 'threads', 'pinterest', 'tiktok'].includes((post.platform || "").toLowerCase()) && (
-              <div className="bg-white h-5 w-5 rounded-full flex items-center justify-center border border-black/5 shadow-sm">
+              <div className="bg-white h-5 w-5 rounded-full flex items-center justify-center border border-black/5 shadow-sm overflow-hidden">
                 <img
-                  src={`/${post.platform?.toLowerCase()}.webp`}
+                  src={socialAccounts?.[post.platform!.toLowerCase()]?.profileImage || `/${post.platform?.toLowerCase()}.webp`}
                   alt={post.platform}
-                  className="h-[65%] w-[65%] object-contain"
+                  referrerPolicy="no-referrer"
+                  className={cn(
+                    "rounded-full",
+                    socialAccounts?.[post.platform!.toLowerCase()]?.profileImage ? "h-full w-full object-cover" : "h-[65%] w-[65%] object-contain"
+                  )}
                   onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
+                    (e.target as HTMLImageElement).src = `/${post.platform?.toLowerCase()}.webp`;
+                    (e.target as HTMLImageElement).classList.add('h-[65%]', 'w-[65%]', 'object-contain');
+                    (e.target as HTMLImageElement).classList.remove('h-full', 'w-full', 'object-cover');
                   }}
                 />
               </div>

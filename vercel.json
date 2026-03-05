@@ -1,8 +1,8 @@
 {
     "crons": [
         {
-            "path": "/api/cron/scheduler?secret=development",
-            "schedule": "0 0 * * *"
+            "path": "/api/cron/scheduler",
+            "schedule": "* * * * *"
         }
     ]
 }

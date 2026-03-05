@@ -24,12 +24,33 @@ export const signUp = async (email: string, password: string, displayName: strin
 
       // Create user document in Firestore
       if (firebaseDb) {
-        await setDoc(doc(firebaseDb, "users", userCredential.user.uid), {
-          uid: userCredential.user.uid,
+        const uid = userCredential.user.uid
+        await setDoc(doc(firebaseDb, "users", uid), {
+          uid,
           email: userCredential.user.email,
           displayName,
           createdAt: new Date().toISOString(),
         })
+
+        // Auto-create a default workspace so the user can immediately create posts
+        try {
+          const { addDoc, collection: firestoreCollection } = await import("firebase/firestore")
+          const workspacesRef = firestoreCollection(firebaseDb, "workspaces")
+          const workspaceRef = await addDoc(workspacesRef, {
+            name: "My Workspace",
+            ownerId: uid,
+            memberIds: [uid],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            accounts: {}
+          })
+          // Set as active workspace
+          await setDoc(doc(firebaseDb, "users", uid), { activeWorkspaceId: workspaceRef.id }, { merge: true })
+          console.log("signUp: Created default workspace", workspaceRef.id, "for user", uid)
+        } catch (wsErr) {
+          // Non-fatal: workspace will be auto-created on first post attempt
+          console.warn("signUp: Could not create default workspace, will retry on first post:", wsErr)
+        }
       }
     }
 

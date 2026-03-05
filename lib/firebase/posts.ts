@@ -23,8 +23,15 @@ export async function getScheduledPosts(userId?: string) {
     console.log("getScheduledPosts: Fetching for user", uid)
 
     // Get active workspace to filter posts
-    const workspace = await getActiveWorkspace(uid)
+    let workspace = await getActiveWorkspace(uid)
+    if (!workspace) {
+      // Auto-create a default workspace for new users
+      const { createWorkspace } = await import("./workspaces")
+      await createWorkspace(uid, "My Workspace")
+      workspace = await getActiveWorkspace(uid)
+    }
     if (!workspace) return []
+
 
     const postsRef = collection(firebaseDb!, "posts")
     const q = query(postsRef, where("workspaceId", "==", workspace.id))
@@ -86,8 +93,16 @@ export async function createPost(postData: Omit<PostType, "id" | "createdAt" | "
   if (!user) throw new Error("User not authenticated")
 
   try {
-    const workspace = await getActiveWorkspace(user.uid)
-    if (!workspace) throw new Error("No active workspace found")
+    let workspace = await getActiveWorkspace(user.uid)
+
+    // Auto-create a default workspace for new users who don't have one yet
+    if (!workspace) {
+      console.log("createPost: No workspace found, creating default workspace for user", user.uid)
+      const { createWorkspace } = await import("./workspaces")
+      const workspaceId = await createWorkspace(user.uid, "My Workspace")
+      workspace = await getActiveWorkspace(user.uid)
+      if (!workspace) throw new Error("Failed to create a default workspace. Please try again.")
+    }
 
     const postsRef = collection(firebaseDb!, "posts")
     const newPost = {
@@ -105,6 +120,7 @@ export async function createPost(postData: Omit<PostType, "id" | "createdAt" | "
     throw error
   }
 }
+
 
 export async function updatePost(postId: string, postData: Partial<PostType>) {
   if (!isFirestoreAvailable()) {

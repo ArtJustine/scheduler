@@ -120,7 +120,7 @@ export const config = {
       (typeof window !== "undefined" ? window.location.origin : `https://${process.env.VERCEL_URL}`) ||
       "http://localhost:3000",
     environment: process.env.NODE_ENV || "development",
-    cronSecret: process.env.NEXT_PUBLIC_CRON_SECRET || process.env.CRON_SECRET || "development",
+    cronSecret: process.env.CRON_SECRET || "",
   },
 }
 

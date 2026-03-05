@@ -422,10 +422,20 @@ export function DashboardSidebar() {
                                   <img
                                     src={image}
                                     alt={title}
+                                    referrerPolicy="no-referrer"
                                     className={cn(
                                       "rounded-full object-cover",
                                       image.endsWith('.webp') ? "h-[65%] w-[65%] object-contain" : "h-full w-full"
                                     )}
+                                    onError={(e) => {
+                                      if (!image.endsWith('.webp')) {
+                                        const pName = channel.title?.toLowerCase();
+                                        (e.target as HTMLImageElement).src = `/${pName}.webp`;
+                                        (e.target as HTMLImageElement).classList.add('h-[65%]', 'w-[65%]', 'object-contain');
+                                        (e.target as HTMLImageElement).classList.remove('h-full', 'w-full', 'object-cover');
+                                        (e.target as HTMLImageElement).parentElement?.classList.add('bg-white');
+                                      }
+                                    }}
                                   />
                                 </div>
                               ) : (

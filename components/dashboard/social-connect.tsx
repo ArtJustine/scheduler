@@ -194,7 +194,13 @@ export function SocialConnect({ connectedAccounts = [], onConnect, onDisconnect 
                   <img
                     src={connectedAccount.profileImage}
                     alt={connectedAccount.username}
-                    className="h-10 w-10 rounded-full border-2 border-primary"
+                    referrerPolicy="no-referrer"
+                    className="h-10 w-10 rounded-full border-2 border-primary object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `/${platform.name.toLowerCase() === 'x' ? 'x' : platform.name.toLowerCase()}.webp`;
+                      (e.target as HTMLImageElement).classList.add('p-2', 'object-contain');
+                      (e.target as HTMLImageElement).classList.remove('object-cover');
+                    }}
                   />
                 ) : (
                   <div className={isConnected ? "text-primary" : ""}>

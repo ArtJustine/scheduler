@@ -77,9 +77,12 @@ export function PlatformStats({
               <img
                 src={profileImage}
                 alt={username}
-                className="h-8 w-8 rounded-full border border-gray-100 shadow-sm"
+                referrerPolicy="no-referrer"
+                className="h-8 w-8 rounded-full border border-gray-100 shadow-sm object-cover"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = `/${platform.toLowerCase() === 'x' ? 'x' : platform.toLowerCase()}.webp`;
+                  (e.target as HTMLImageElement).classList.add('p-1.5', 'object-contain');
+                  (e.target as HTMLImageElement).classList.remove('object-cover');
                 }}
               />
             ) : (
@@ -97,11 +100,12 @@ export function PlatformStats({
             )}
             {/* Platform indicator icon if connected */}
             {connected && (
-              <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-gray-100">
+              <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-gray-100 h-4 w-4 flex items-center justify-center">
                 <img
                   src={`/${platform.toLowerCase() === 'x' ? 'x' : platform.toLowerCase()}.webp`}
                   alt={platform}
-                  className="h-3 w-3 object-contain"
+                  referrerPolicy="no-referrer"
+                  className="h-[80%] w-[80%] object-contain"
                 />
               </div>
             )}

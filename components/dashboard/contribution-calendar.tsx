@@ -3,6 +3,8 @@
 import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState } from "react"
 
 interface ContributionDay {
     date: string
@@ -12,16 +14,25 @@ interface ContributionDay {
 
 const BRAND_COLOR = "#72A5EE"
 
-// Helper to generate mock data for the last 365 days
-const generateMockData = (): ContributionDay[] => {
+// Helper to generate mock data for a specific year
+const generateMockData = (year: number): ContributionDay[] => {
     const data: ContributionDay[] = []
-    const today = new Date()
+    const isCurrentYear = year === new Date().getFullYear()
 
-    for (let i = 0; i < 365; i++) {
-        const date = new Date(today)
-        date.setDate(today.getDate() - (364 - i))
+    let startDate: Date
+    let endDate: Date
 
-        // Create some "density" patterns
+    if (isCurrentYear) {
+        endDate = new Date()
+        startDate = new Date()
+        startDate.setDate(endDate.getDate() - 364)
+    } else {
+        startDate = new Date(year, 0, 1)
+        endDate = new Date(year, 11, 31)
+    }
+
+    let current = new Date(startDate)
+    while (current <= endDate) {
         const random = Math.random()
         let count = 0
         let level: 0 | 1 | 2 | 3 | 4 = 0
@@ -34,26 +45,30 @@ const generateMockData = (): ContributionDay[] => {
             else level = 4
         }
 
-        // Add some clusters (like GitHub often has)
-        const dayOfWeek = date.getDay()
-        const month = date.getMonth()
+        const month = current.getMonth()
         if ((month === 10 || month === 1 || month === 2) && random > 0.6) {
             count = Math.floor(Math.random() * 12) + 2
             level = Math.min(4, Math.floor(count / 3) + 1) as any
         }
 
         data.push({
-            date: date.toISOString().split("T")[0],
+            date: current.toISOString().split("T")[0],
             count,
             level,
         })
+        current.setDate(current.getDate() + 1)
     }
 
     return data
 }
 
 export function ContributionCalendar() {
-    const data = useMemo(() => generateMockData(), [])
+    const currentYear = new Date().getFullYear()
+    const [selectedYear, setSelectedYear] = useState(currentYear)
+    const data = useMemo(() => generateMockData(selectedYear), [selectedYear])
+
+    // Available years: current and past 3
+    const years = Array.from({ length: 4 }, (_, i) => currentYear - i)
 
     // Group data by weeks
     const weeks = useMemo(() => {
@@ -113,9 +128,23 @@ export function ContributionCalendar() {
         <Card className="w-full border-border/50 bg-card/50 backdrop-blur-sm shadow-soft">
             <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                    <div>
-                        <CardTitle className="text-lg font-bold">Activity</CardTitle>
-                        <CardDescription>{totalContributions} contributions in the last year</CardDescription>
+                    <div className="flex items-center gap-4">
+                        <div>
+                            <CardTitle className="text-lg font-bold">Activity</CardTitle>
+                            <CardDescription>
+                                {totalContributions} contributions in {selectedYear === currentYear ? 'the last year' : selectedYear}
+                            </CardDescription>
+                        </div>
+                        <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                            <SelectTrigger className="w-[100px] h-8 text-xs">
+                                <SelectValue placeholder="Year" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {years.map(y => (
+                                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="text-xs text-muted-foreground hidden sm:block">
                         Contribution settings

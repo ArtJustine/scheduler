@@ -4,8 +4,8 @@ import { config } from "@/lib/config"
 
 // Force dynamic rendering — cron routes must never be statically pre-rendered
 export const dynamic = "force-dynamic"
-// Allow up to 300 seconds for all scheduled posts to be processed
-export const maxDuration = 300
+// Max 60s on Vercel Hobby plan; upgrade to Pro for longer execution
+export const maxDuration = 60
 
 export async function GET(request: Request) {
   try {

@@ -142,7 +142,7 @@ export const isPlatformConfigured = (platform: string): boolean => {
     case "pinterest":
       return !!(config.pinterest.appId && config.pinterest.appSecret);
     case "threads":
-      return !!(config.threads.appId && config.threads.appSecret);
+      return !!(config.threads.appId && config.threads.appSecret) || !!(process.env.THREADS_APP_ID && process.env.THREADS_APP_SECRET);
     case "bluesky":
       return !!(config.bluesky.identifier && config.bluesky.appPassword);
     default:

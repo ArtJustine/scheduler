@@ -174,3 +174,44 @@ export async function deletePost(postId: string) {
     throw error
   }
 }
+
+export async function getPostStatsForHeatmap(year: number, userId?: string) {
+  const uid = userId || firebaseAuth?.currentUser?.uid
+  if (!uid) return []
+
+  try {
+    const workspace = await getActiveWorkspace(uid)
+    if (!workspace) return []
+
+    const postsRef = collection(firebaseDb!, "posts")
+    // Note: In production we would filter by date, but since we're using Firestore without indexes for complex queries, we'll fetch all and filter in JS
+    const q = query(postsRef, where("workspaceId", "==", workspace.id))
+    const querySnapshot = await getDocs(q)
+
+    const stats: Record<string, number> = {}
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      if (data.scheduledFor) {
+        const date = data.scheduledFor && typeof data.scheduledFor === 'object' && 'toDate' in data.scheduledFor
+          ? data.scheduledFor.toDate()
+          : new Date(data.scheduledFor)
+
+        const dateYear = date.getFullYear()
+        if (dateYear === year) {
+          const dateStr = date.toISOString().split('T')[0]
+          stats[dateStr] = (stats[dateStr] || 0) + 1
+        }
+      }
+    })
+
+    return Object.entries(stats).map(([date, count]) => ({
+      date,
+      count,
+      level: Math.min(4, Math.ceil(count / 2)) as 0 | 1 | 2 | 3 | 4
+    }))
+  } catch (error) {
+    console.error("Error getting heatmap stats:", error)
+    return []
+  }
+}

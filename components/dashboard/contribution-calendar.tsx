@@ -4,7 +4,9 @@ import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { getPostStatsForHeatmap } from "@/lib/firebase/posts"
+import { Loader2 } from "lucide-react"
 
 interface ContributionDay {
     date: string
@@ -14,58 +16,61 @@ interface ContributionDay {
 
 const BRAND_COLOR = "#72A5EE"
 
-// Helper to generate mock data for a specific year
-const generateMockData = (year: number): ContributionDay[] => {
-    const data: ContributionDay[] = []
-    const isCurrentYear = year === new Date().getFullYear()
-
-    let startDate: Date
-    let endDate: Date
-
-    if (isCurrentYear) {
-        endDate = new Date()
-        startDate = new Date()
-        startDate.setDate(endDate.getDate() - 364)
-    } else {
-        startDate = new Date(year, 0, 1)
-        endDate = new Date(year, 11, 31)
-    }
-
-    let current = new Date(startDate)
-    while (current <= endDate) {
-        const random = Math.random()
-        let count = 0
-        let level: 0 | 1 | 2 | 3 | 4 = 0
-
-        if (random > 0.8) {
-            count = Math.floor(Math.random() * 10) + 1
-            if (count < 3) level = 1
-            else if (count < 6) level = 2
-            else if (count < 9) level = 3
-            else level = 4
-        }
-
-        const month = current.getMonth()
-        if ((month === 10 || month === 1 || month === 2) && random > 0.6) {
-            count = Math.floor(Math.random() * 12) + 2
-            level = Math.min(4, Math.floor(count / 3) + 1) as any
-        }
-
-        data.push({
-            date: current.toISOString().split("T")[0],
-            count,
-            level,
-        })
-        current.setDate(current.getDate() + 1)
-    }
-
-    return data
-}
-
 export function ContributionCalendar() {
     const currentYear = new Date().getFullYear()
     const [selectedYear, setSelectedYear] = useState(currentYear)
-    const data = useMemo(() => generateMockData(selectedYear), [selectedYear])
+    const [realData, setRealData] = useState<ContributionDay[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+
+    useEffect(() => {
+        const loadStats = async () => {
+            setIsLoading(true)
+            try {
+                const stats = await getPostStatsForHeatmap(selectedYear)
+                setRealData(stats || [])
+            } catch (error) {
+                console.error("Error loading heatmap data:", error)
+                setRealData([])
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        loadStats()
+    }, [selectedYear])
+
+    const data = useMemo(() => {
+        // Base structure for the year
+        const yearData: ContributionDay[] = []
+        const isCurrentYear = selectedYear === currentYear
+
+        let startDate: Date
+        let endDate: Date
+
+        if (isCurrentYear) {
+            endDate = new Date()
+            startDate = new Date()
+            startDate.setDate(endDate.getDate() - 364)
+        } else {
+            startDate = new Date(selectedYear, 0, 1)
+            endDate = new Date(selectedYear, 11, 31)
+        }
+
+        // Initialize every day with 0 or real count
+        let current = new Date(startDate)
+        while (current <= endDate) {
+            const dateStr = current.toISOString().split("T")[0]
+            const existingStat = realData.find(d => d.date === dateStr)
+
+            yearData.push({
+                date: dateStr,
+                count: existingStat?.count || 0,
+                level: existingStat?.level || 0,
+            })
+            current.setDate(current.getDate() + 1)
+        }
+
+        return yearData
+    }, [selectedYear, realData, currentYear])
 
     // Available years: current and past 3
     const years = Array.from({ length: 4 }, (_, i) => currentYear - i)
@@ -169,7 +174,12 @@ export function ContributionCalendar() {
                             </div>
 
                             {/* Grid */}
-                            <div className="flex mt-4">
+                            <div className="flex mt-4 relative">
+                                {isLoading && (
+                                    <div className="absolute inset-0 bg-background/20 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-lg">
+                                        <Loader2 className="h-6 w-6 animate-spin text-primary/50" />
+                                    </div>
+                                )}
                                 {/* Day Labels */}
                                 <div className="flex flex-col justify-between text-[10px] text-muted-foreground mr-2 h-[84px] py-1">
                                     <span>Mon</span>

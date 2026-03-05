@@ -28,6 +28,12 @@ export async function GET(request: NextRequest) {
       instagram: {
         appId: config.instagram.appId,
         calculatedRedirectUri: `${origin}/api/auth/callback/instagram`,
+      },
+      threads: {
+        appId: config.threads.appId,
+        configuredRedirectUri: config.threads.redirectUri,
+        calculatedRedirectUri: `${origin}/api/auth/callback/threads`,
+        hasAppSecret: !!config.threads.appSecret,
       }
     },
     instructions: "Ensure the 'calculatedRedirectUri' matches exactly what is configured in your platform's developer console."

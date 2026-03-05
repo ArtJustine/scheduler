@@ -102,7 +102,7 @@ export const config = {
     appId: process.env.THREADS_APP_ID || "",
     appSecret: process.env.THREADS_APP_SECRET || "",
     redirectUri: process.env.THREADS_REDIRECT_URI || "https://chiyusocial.com/api/auth/callback/threads",
-    scopes: ["threads_basic", "threads_content_publish", "threads_manage_insights", "threads_profile_discovery"],
+    scopes: ["threads_basic", "threads_content_publish", "threads_manage_insights"],
   },
 
   // Bluesky API Configuration
@@ -142,7 +142,7 @@ export const isPlatformConfigured = (platform: string): boolean => {
     case "pinterest":
       return !!(config.pinterest.appId && config.pinterest.appSecret);
     case "threads":
-      return !!(config.threads.appId && config.threads.appSecret) || !!(process.env.THREADS_APP_ID && process.env.THREADS_APP_SECRET);
+      return !!(config.threads.appId && config.threads.appSecret);
     case "bluesky":
       return !!(config.bluesky.identifier && config.bluesky.appPassword);
     default:

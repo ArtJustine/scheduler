@@ -367,8 +367,10 @@ export const threadsOAuth = {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(`Threads token exchange failed: ${error.error_description || error.error}`)
+      const errorData = await response.json().catch(() => ({}))
+      console.error("Threads token exchange error details:", errorData)
+      const message = errorData.error?.message || errorData.error_description || errorData.error || "Unknown token exchange error"
+      throw new Error(`Threads token exchange failed: ${message}`)
     }
 
     const data = await response.json()

@@ -4,31 +4,51 @@ import { config } from "./config"
 
 // Function to check for scheduled posts that need to be published
 export async function checkScheduledPosts() {
+  console.log("checkScheduledPosts: Initializing...")
   try {
-    if (!adminDb) return console.log("Database not initialized")
+    if (!adminDb) {
+      console.error("checkScheduledPosts: Database (adminDb) is null or undefined!")
+      return
+    }
 
     const now = new Date().toISOString()
+    console.log(`checkScheduledPosts: Current time (UTC): ${now}`)
 
     // Query the posts collection for scheduled posts
-    // We filter by date in memory to avoid needing a composite index on [status, scheduledFor]
     const postsRef = adminDb.collection("posts")
+    console.log("checkScheduledPosts: Querying Firestore for status == 'scheduled'...")
     const snapshot = await postsRef
       .where("status", "==", "scheduled")
       .get()
 
-    console.log(`Found ${snapshot.size} scheduled posts total`)
+    console.log(`checkScheduledPosts: Found ${snapshot.size} total posts with status 'scheduled'`)
+
+    let processedCount = 0
+    let publishedCount = 0
 
     // Iterate through each scheduled post
     for (const doc of snapshot.docs) {
       const post = doc.data()
-      // Check time client-side (server-side logic but not DB query)
+      console.log(`checkScheduledPosts: Analyzing post ${doc.id} | Scheduled for: ${post.scheduledFor}`)
+
+      // Check time client-side
       if (post.scheduledFor <= now) {
-        console.log(`Publishing due post: ${doc.id}`)
-        await publishPost(post.userId, doc.id, post)
+        console.log(`checkScheduledPosts: Post ${doc.id} is due for publishing!`)
+        processedCount++
+        try {
+          await publishPost(post.userId, doc.id, post)
+          publishedCount++
+        } catch (publishErr) {
+          console.error(`checkScheduledPosts: Failed to publish post ${doc.id}:`, publishErr)
+        }
+      } else {
+        console.log(`checkScheduledPosts: Post ${doc.id} is scheduled for the future (${post.scheduledFor}). Skipping.`)
       }
     }
+
+    console.log(`checkScheduledPosts: Finished. Processed ${processedCount} due posts, ${publishedCount} succeeded.`)
   } catch (error) {
-    console.error("Error checking scheduled posts:", error)
+    console.error("checkScheduledPosts: Critical error:", error)
     throw error // Re-throw so the API returns 500
   }
 }
@@ -71,15 +91,18 @@ async function updateSocialData(userId: string, workspaceId: string | undefined,
 
 // Function to publish a scheduled post
 export async function publishPost(userId: string, postId: string, post: any) {
+  console.log(`publishPost: Starting for post ${postId} (user: ${userId})`)
   try {
     if (!adminDb) throw new Error("Database not initialized")
 
     // Update the post status to "publishing"
     const postRef = adminDb.collection("posts").doc(postId)
+    console.log(`publishPost: Setting status to 'publishing' for ${postId}...`)
     await postRef.update({
       status: "publishing",
       updatedAt: new Date().toISOString()
     })
+    console.log(`publishPost: Status updated to 'publishing' for ${postId}`)
 
     // Determine which platforms to publish to (it's an array now)
     const platforms = post.platforms || [post.platform]

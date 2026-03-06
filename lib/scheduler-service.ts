@@ -104,51 +104,65 @@ export async function publishPost(userId: string, postId: string, post: any) {
     })
     console.log(`publishPost: Status updated to 'publishing' for ${postId}`)
 
-    // Determine which platforms to publish to (it's an array now)
-    const platforms = post.platforms || [post.platform]
+    // Determine which platforms to publish to
+    const platforms: string[] = post.platforms || [post.platform]
     const results: Record<string, any> = {}
-    let allSuccessful = true
 
-    for (const platform of platforms) {
-      let publishResult
+    console.log(`publishPost: Parallel publishing to [${platforms.join(", ")}]...`)
 
-      switch (platform) {
-        case "instagram":
-          publishResult = await publishToInstagram(userId, post)
-          break
-        case "youtube":
-          publishResult = await publishToYouTube(userId, post)
-          break
-        case "tiktok":
-          publishResult = await publishToTikTok(userId, post)
-          break
-        case "threads":
-          publishResult = await publishToThreads(userId, post)
-          break
-        case "linkedin":
-          publishResult = await publishToLinkedIn(userId, post)
-          break
-        case "facebook":
-          publishResult = await publishToFacebook(userId, post)
-          break
-        case "pinterest":
-          publishResult = await publishToPinterest(userId, post)
-          break
-        case "bluesky":
-          publishResult = await publishToBluesky(userId, post)
-          break
-        default:
-          publishResult = {
-            success: false,
-            error: `Unsupported platform: ${platform}`,
-          }
+    // Run all platforms in parallel to avoid Vercel Hobby 60s timeout
+    const publishPromises = platforms.map(async (platform) => {
+      try {
+        let result
+        switch (platform) {
+          case "instagram":
+            result = await publishToInstagram(userId, post)
+            break
+          case "youtube":
+            result = await publishToYouTube(userId, post)
+            break
+          case "tiktok":
+            result = await publishToTikTok(userId, post)
+            break
+          case "threads":
+            result = await publishToThreads(userId, post)
+            break
+          case "linkedin":
+            result = await publishToLinkedIn(userId, post)
+            break
+          case "facebook":
+            result = await publishToFacebook(userId, post)
+            break
+          case "pinterest":
+            result = await publishToPinterest(userId, post)
+            break
+          case "bluesky":
+            result = await publishToBluesky(userId, post)
+            break
+          default:
+            result = { success: false, error: `Unsupported platform: ${platform}` }
+        }
+        return { platform, result }
+      } catch (err: any) {
+        console.error(`publishPost: Error in parallel execution for ${platform}:`, err)
+        return { platform, result: { success: false, error: err.message || "Parallel execution error" } }
       }
+    })
 
-      results[platform] = publishResult
-      if (!publishResult.success) allSuccessful = false
-    }
+    const resultsArray = await Promise.all(publishPromises)
+    let allSuccessful = true
+    let successCount = 0
 
-    const successCount = Object.values(results).filter((r: any) => r.success).length
+    resultsArray.forEach(({ platform, result }) => {
+      results[platform] = result
+      if (result.success) {
+        successCount++
+      } else {
+        allSuccessful = false
+      }
+    })
+
+    console.log(`publishPost: All promises finished. Results:`, JSON.stringify(results))
 
     // Update the post with individual platform status and overall status
     if (allSuccessful) {

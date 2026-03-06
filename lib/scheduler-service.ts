@@ -340,9 +340,34 @@ async function publishToInstagram(userId: string, post: any) {
     if (containerData.error) throw new Error(containerData.error.message)
 
     const creationId = containerData.id
-    if (isVideo) await new Promise(resolve => setTimeout(resolve, 30000))
 
-    // 2. Publish Media
+    // 2. Poll for Status (Wait for processing to finish)
+    let isReady = false
+    let attempts = 0
+    const maxAttempts = 20 // Wait up to 100 seconds total
+
+    console.log(`Instagram: Waiting for media ${creationId} to process...`)
+
+    while (!isReady && attempts < maxAttempts) {
+      if (attempts > 0) await new Promise(resolve => setTimeout(resolve, 5000))
+
+      const statusResponse = await fetch(`https://graph.facebook.com/v18.0/${creationId}?fields=status_code,status,error_message&access_token=${accessToken}`)
+      const statusData = await statusResponse.json()
+
+      console.log(`Instagram status check (attempt ${attempts + 1}):`, statusData.status_code || statusData.status)
+
+      if (statusData.status_code === "FINISHED" || statusData.status === "FINISHED") {
+        isReady = true
+      } else if (statusData.status_code === "ERROR" || statusData.status === "ERROR") {
+        throw new Error(`Instagram processing failed: ${statusData.error_message || "Unknown error"}`)
+      }
+
+      attempts++
+    }
+
+    if (!isReady) throw new Error("Instagram timed out waiting for media to process.")
+
+    // 3. Publish Media
     const publishUrl = `https://graph.facebook.com/v18.0/${igUserId}/media_publish`
     const publishResponse = await fetch(publishUrl, {
       method: "POST",
@@ -359,7 +384,7 @@ async function publishToInstagram(userId: string, post: any) {
     return { success: true, platformId: publishData.id }
   } catch (error: any) {
     console.error("Error publishing to Instagram:", error)
-    return { success: false, error: error.message }
+    return { success: false, error: error.message || "Unknown Instagram error" }
   }
 }
 
@@ -531,12 +556,15 @@ async function publishToTikTok(userId: string, post: any) {
       const uploadUrl = initData.data.upload_url
       if (!uploadUrl) throw new Error("No upload URL returned from TikTok")
 
+      // Detect Content-Type based on extension or mediaResponse headers
+      const contentType = mediaResponse.headers.get("Content-Type") || "video/mp4"
+
       // 3. Perform the actual binary upload
-      console.log("Uploading bytes to TikTok...")
+      console.log(`Uploading bytes to TikTok (Type: ${contentType})...`)
       const uploadResponse = await fetch(uploadUrl, {
         method: "PUT",
         headers: {
-          "Content-Type": "video/mp4", // Most TikToks are mp4
+          "Content-Type": contentType,
           "Content-Range": `bytes 0-${videoSize - 1}/${videoSize}`
         },
         body: mediaBlob

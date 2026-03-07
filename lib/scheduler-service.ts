@@ -738,17 +738,74 @@ async function publishToLinkedIn(userId: string, post: any) {
 
       const hasMedia = !!post.mediaUrl
       const isVideo = post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i) || post.contentType === "video"
+      let assetUrn: string | null = null
 
       if (hasMedia) {
-        // LinkedIn media upload is complex, so we'll start with a simpler version
-        // or a descriptive error if we can't handle it yet.
-        // For a high-end app, we should implement the upload.
+        // Step 1: Register Upload
+        const recipe = isVideo ? "urn:li:digitalmediaRecipe:feedshare-video" : "urn:li:digitalmediaRecipe:feedshare-image";
+        const registerBody = {
+          registerUploadRequest: {
+            recipes: [recipe],
+            owner: author,
+            serviceRelationships: [
+              {
+                relationshipType: "OWNER",
+                identifier: "urn:li:userGeneratedContent"
+              }
+            ]
+          }
+        };
 
-        // Let's try to use the 'specificContent' / 'com.linkedin.ugc.ShareContent' 
-        // older but more common version if the newer 'rest/posts' is too strict
+        const registerRes = await fetch("https://api.linkedin.com/v2/assets?action=registerUpload", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "X-Restli-Protocol-Version": "2.0.0"
+          },
+          body: JSON.stringify(registerBody)
+        });
 
-        const ugcUrl = "https://api.linkedin.com/v2/ugcPosts"
-        const ugcBody = {
+        if (registerRes.status === 401 && refreshToken) {
+          return { retry: true }
+        }
+
+        if (!registerRes.ok) {
+          const err = await registerRes.json().catch(() => ({}));
+          throw new Error(`LinkedIn Media Register Error: ${err.message || registerRes.statusText}`);
+        }
+
+        const registerData = await registerRes.json();
+        const uploadUrl = registerData.value.uploadMechanism["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"].uploadUrl;
+        assetUrn = registerData.value.asset;
+
+        // Step 2: Fetch media from Storage
+        const mediaRes = await fetch(post.mediaUrl);
+        if (!mediaRes.ok) throw new Error("Failed to fetch media from storage for LinkedIn upload");
+        const mediaBlob = await mediaRes.blob();
+
+        // Step 3: Upload binary to LinkedIn
+        const uploadHeaders: any = {
+           "Content-Type": mediaRes.headers.get("Content-Type") || (isVideo ? "video/mp4" : "image/jpeg")
+        };
+        // For image uploads, include token. For video, LinkedIn docs say not to use the 'Authorization' header in PUT
+        if (!isVideo) {
+          uploadHeaders["Authorization"] = `Bearer ${token}`;
+        }
+        
+        const uploadRes = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: uploadHeaders,
+          body: mediaBlob
+        });
+
+        if (!uploadRes.ok) {
+           const errText = await uploadRes.text();
+           throw new Error(`LinkedIn Binary Upload Error (${uploadRes.status}): ${errText}`);
+        }
+
+        // Setup the UGC post body with media
+        body = {
           author: author,
           lifecycleState: "PUBLISHED",
           specificContent: {
@@ -760,12 +817,7 @@ async function publishToLinkedIn(userId: string, post: any) {
               media: [
                 {
                   status: "READY",
-                  description: {
-                    text: post.content?.substring(0, 200) || "Shared via Scheduler"
-                  },
-                  // Note: This requires a media URN from LinkedIn's upload API
-                  // For now, we'll try to push text-only if media upload isn't ready
-                  // but we'll include the media logic placeholder
+                  media: assetUrn
                 }
               ]
             }
@@ -774,28 +826,6 @@ async function publishToLinkedIn(userId: string, post: any) {
             "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
           }
         }
-
-        // If we don't have a media URN, we have to fall back to text-only or error
-        // Let's implement text-only first to ensure the connection works
-        const textOnlyBody = {
-          author: author,
-          lifecycleState: "PUBLISHED",
-          specificContent: {
-            "com.linkedin.ugc.ShareContent": {
-              shareCommentary: {
-                text: post.content || ""
-              },
-              shareMediaCategory: "NONE"
-            }
-          },
-          visibility: {
-            "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
-          }
-        }
-
-        // TODO: Implement LinkedIn media upload
-        // For now, sending text only since media URN is required for LinkedIn media
-        body = textOnlyBody
       } else {
         body = {
           author: author,
@@ -925,7 +955,8 @@ async function publishToBluesky(userId: string, post: any) {
     const result = await postToBluesky(
       identifier,
       bluesky.accessToken, // We store app password here
-      content
+      content,
+      post.mediaUrl
     )
 
     if (!result.success) {

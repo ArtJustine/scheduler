@@ -62,7 +62,7 @@ export async function fetchBlueskyStats(identifier: string, appPassword: string)
     }
 }
 
-export async function postToBluesky(identifier: string, appPassword: string, text: string) {
+export async function postToBluesky(identifier: string, appPassword: string, text: string, mediaUrl?: string) {
     const agent = new BskyAgent({
         service: "https://bsky.social",
     })
@@ -73,9 +73,46 @@ export async function postToBluesky(identifier: string, appPassword: string, tex
             password: appPassword,
         })
 
+        let embed: any = undefined;
+
+        if (mediaUrl) {
+            const mediaRes = await fetch(mediaUrl);
+            if (!mediaRes.ok) throw new Error("Failed to fetch media from storage for Bluesky upload");
+            
+            const mediaBlob = await mediaRes.blob();
+            const arrayBuffer = await mediaBlob.arrayBuffer();
+            const buffer = new Uint8Array(arrayBuffer);
+            const contentType = mediaRes.headers.get("Content-Type") || "image/jpeg";
+            
+            // Upload the blob
+            const uploadedBlob = await agent.uploadBlob(buffer, {
+                encoding: contentType,
+            });
+
+            const isVideo = contentType.includes("video") || mediaUrl.match(/\.(mp4|mov|webm)$/i);
+            
+            if (isVideo) {
+               embed = {
+                   $type: 'app.bsky.embed.video',
+                   video: uploadedBlob.data.blob,
+               }
+            } else {
+               embed = {
+                   $type: 'app.bsky.embed.images',
+                   images: [
+                       {
+                           alt: text.substring(0, 100),
+                           image: uploadedBlob.data.blob,
+                       }
+                   ]
+               }
+            }
+        }
+
         await agent.post({
             text: text,
             createdAt: new Date().toISOString(),
+            embed: embed
         })
 
         return { success: true }

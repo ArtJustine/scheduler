@@ -356,6 +356,7 @@ async function publishToInstagram(userId: string, post: any) {
       // Explicitly support Reels if selected
       if (post.instagramPostType === "reel") {
         containerParams.media_type = "REELS"
+        containerParams.share_to_feed = true // Ensure it appears on the grid
       } else {
         containerParams.media_type = "VIDEO"
       }
@@ -613,8 +614,11 @@ async function publishToTikTok(userId: string, post: any, preFetchedBlob: Blob |
       }
 
       // 3. Perform the actual binary upload
-      const contentType = mediaBlob.type || "video/mp4"
-      console.log(`TikTok: Uploading binary data (Type: ${contentType})...`)
+      let contentType = mediaBlob.type
+      if (!contentType || contentType === "application/octet-stream") {
+        contentType = "video/mp4" // Standard fallback for TikTok
+      }
+      console.log(`TikTok: Uploading binary data (Size: ${videoSize}, Type: ${contentType})...`)
 
       const uploadRes = await fetch(uploadUrl, {
         method: "PUT",

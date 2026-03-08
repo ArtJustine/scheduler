@@ -123,7 +123,23 @@ export async function GET(request: NextRequest) {
 
           tokenData.user_id = igAccount.id
           username = igAccount.username
-          profilePicture = igAccount.profile_picture_url || null
+          // Try multiple fields for profile picture
+          profilePicture = igAccount.profile_picture_url || igAccount.profile_pic || igAccount.profile_picture || null
+
+          // If still null, try a direct fetch for the business account details
+          if (!profilePicture) {
+            try {
+              const detailsRes = await fetch(`https://graph.facebook.com/v${config.instagram.apiVersion}/${igAccount.id}?fields=profile_picture_url,username&access_token=${tokenData.access_token}`)
+              if (detailsRes.ok) {
+                const detailsData = await detailsRes.json()
+                profilePicture = detailsData.profile_picture_url || profilePicture
+                console.log("Direct details fetch for IG picture status:", !!profilePicture)
+              }
+            } catch (pErr) {
+              console.warn("Direct IG details fetch failed:", pErr)
+            }
+          }
+
           followerCount = Number(igAccount.followers_count) || 0
           postsCount = Number(igAccount.media_count) || 0
         } else {
@@ -176,7 +192,7 @@ export async function GET(request: NextRequest) {
       platform: "instagram",
       id: finalInstagramId,
       username,
-      // profileImage: profilePicture, // Removed to save space in cookie
+      profileImage: profilePicture,
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token || null,
       expiresAt: tokenData.expires_in

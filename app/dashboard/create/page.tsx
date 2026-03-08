@@ -209,7 +209,6 @@ export default function CreatePostPage() {
       }
     }
   }
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) {
@@ -229,6 +228,26 @@ export default function CreatePostPage() {
         return
       }
 
+      // 1. Basic Validation (Matching MediaUploader)
+      if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload an image or video file",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const maxSize = 100 * 1024 * 1024 // 100MB
+      if (file.size > maxSize) {
+        toast({
+          title: "File too large",
+          description: "Please upload a file smaller than 100MB",
+          variant: "destructive",
+        })
+        return
+      }
+
       if (!firebaseStorage) {
         console.error("Firebase Storage not initialized")
         toast({
@@ -241,7 +260,7 @@ export default function CreatePostPage() {
 
       setIsUploadingMedia(true)
       setMediaUploadProgress(0)
-      
+
       toast({
         title: "Starting Upload",
         description: `Uploading ${file.name}...`,
@@ -251,61 +270,47 @@ export default function CreatePostPage() {
       const fileName = `${timestamp}_${file.name}`
       const storageRef = ref(firebaseStorage, `media/${user.uid}/${fileName}`)
 
-      console.log("Uploading bytes to:", storageRef.fullPath)
+      console.log("Starting upload to:", storageRef.fullPath)
       const uploadTask = uploadBytesResumable(storageRef, file)
 
-      // Monitor upload
-      uploadTask.on('state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-          setMediaUploadProgress(progress)
-          console.log(`Manual upload progress: ${Math.round(progress)}%`)
-        },
-        (error) => {
-          console.error("Upload task failed:", error)
-          toast({
-            title: "Upload Failed",
-            description: error.message || "Failed to upload media to storage.",
-            variant: "destructive"
-          })
-          setIsUploadingMedia(false)
-          setMediaUploadProgress(0)
-        },
-        async () => {
-          try {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
-            console.log("Manual upload complete. URL:", downloadURL)
+      // Use a Promise to track completion more reliably
+      await new Promise<void>((resolve, reject) => {
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            setMediaUploadProgress(progress)
+            console.log(`Manual upload progress: ${Math.round(progress)}%`)
+          },
+          (error) => {
+            console.error("Upload failed in task.on:", error)
+            reject(error)
+          },
+          async () => {
+            try {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
+              const type = file.type.startsWith("video/") ? "video" : "image"
 
-            const type = file.type.startsWith("video/") ? "video" : "image"
+              await registerMediaMetadata({
+                url: downloadURL,
+                title: file.name,
+                type: type,
+                fileName: file.name,
+                fileSize: file.size,
+                storagePath: storageRef.fullPath,
+              })
 
-            await registerMediaMetadata({
-              url: downloadURL,
-              title: file.name,
-              type: type,
-              fileName: file.name,
-              fileSize: file.size,
-              storagePath: storageRef.fullPath,
-            })
-
-            handleMediaUpload(downloadURL, type)
-            toast({
-              title: "Upload Complete",
-              description: `${file.name} is ready.`,
-            })
-          } catch (err: any) {
-            console.error("Error finalizing manual upload:", err)
-            toast({
-              title: "Finalization Failed",
-              description: "Media uploaded but failed to save to library.",
-              variant: "destructive"
-            })
-          } finally {
-            setIsUploadingMedia(false)
-            setMediaUploadProgress(0)
-            if (e.target) e.target.value = ""
+              handleMediaUpload(downloadURL, type)
+              toast({
+                title: "Upload Complete",
+                description: `${file.name} is ready.`,
+              })
+              resolve()
+            } catch (err) {
+              reject(err)
+            }
           }
-        }
-      )
+        )
+      })
     } catch (err: any) {
       console.error("Manual upload process error:", err)
       toast({
@@ -313,6 +318,7 @@ export default function CreatePostPage() {
         description: err.message || "An unexpected error occurred during upload.",
         variant: "destructive"
       })
+    } finally {
       setIsUploadingMedia(false)
       setMediaUploadProgress(0)
       if (e.target) e.target.value = ""
@@ -885,13 +891,6 @@ export default function CreatePostPage() {
                             </div>
                           </div>
                         </DropdownMenuItem>
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          className="hidden"
-                          accept="image/*,video/*"
-                          onChange={handleFileChange}
-                        />
 
                         {mediaItems.length > 0 && (
                           <>
@@ -916,6 +915,15 @@ export default function CreatePostPage() {
                       </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
+
+                  {/* Hidden Input moved outside dropdown to prevent unmounting issues */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*,video/*"
+                    onChange={handleFileChange}
+                  />
 
                   <Button variant="ghost" size="icon" className="h-10 w-10 text-primary hover:bg-primary/5" title="Add emoji">
                     <Smile className="h-5 w-5" />
@@ -988,10 +996,10 @@ export default function CreatePostPage() {
                 )}
               </div>
             </CardContent>
-          </Card>
+          </Card >
 
           {/* Media Uploader Section */}
-          <Collapsible open={showMediaUploader} onOpenChange={setShowMediaUploader}>
+          < Collapsible open={showMediaUploader} onOpenChange={setShowMediaUploader} >
             <CollapsibleContent className="space-y-4">
               <Card className="shadow-sm border-dashed">
                 <CardContent className="p-6">
@@ -999,10 +1007,10 @@ export default function CreatePostPage() {
                 </CardContent>
               </Card>
             </CollapsibleContent>
-          </Collapsible>
+          </Collapsible >
 
           {/* Media Library Dialog */}
-          <Dialog open={showMediaLibrary} onOpenChange={setShowMediaLibrary}>
+          < Dialog open={showMediaLibrary} onOpenChange={setShowMediaLibrary} >
             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Select from Media Library</DialogTitle>
@@ -1076,26 +1084,28 @@ export default function CreatePostPage() {
                 )}
               </div>
             </DialogContent>
-          </Dialog>
+          </Dialog >
 
           {/* Success Alert */}
-          {success && (
-            <Alert className="mb-6 border-green-200 bg-green-50 text-green-800 animate-in fade-in slide-in-from-top-2">
-              <div className="flex items-center gap-2">
-                <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center">
-                  <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
+          {
+            success && (
+              <Alert className="mb-6 border-green-200 bg-green-50 text-green-800 animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center">
+                    <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <div>
+                    <AlertTitle className="text-green-900 font-bold">Post Scheduled Successfully!</AlertTitle>
+                    <AlertDescription className="text-green-700">
+                      Your post has been added to the calendar. Redirecting to calendar...
+                    </AlertDescription>
+                  </div>
                 </div>
-                <div>
-                  <AlertTitle className="text-green-900 font-bold">Post Scheduled Successfully!</AlertTitle>
-                  <AlertDescription className="text-green-700">
-                    Your post has been added to the calendar. Redirecting to calendar...
-                  </AlertDescription>
-                </div>
-              </div>
-            </Alert>
-          )}
+              </Alert>
+            )
+          }
 
 
 
@@ -1174,248 +1184,258 @@ export default function CreatePostPage() {
           </Card>
 
           {/* YouTube Specific Options */}
-          {selectedPlatforms.includes("youtube") && (
-            <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
-              <CardContent className="p-8 space-y-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
-                      {getPlatformIcon("youtube", "h-7 w-7")}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-sm">YouTube Settings</h3>
-                      <p className="text-[10px] text-muted-foreground font-medium">Fine-tune your video publication</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Category</Label>
-                      <Select value={youtubeCategory} onValueChange={setYoutubeCategory}>
-                        <SelectTrigger className="rounded-2xl h-11 border-muted/20 focus:ring-primary/20">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-white/20 backdrop-blur-xl">
-                          <SelectItem value="22">People & Blogs</SelectItem>
-                          <SelectItem value="10">Music</SelectItem>
-                          <SelectItem value="23">Comedy</SelectItem>
-                          <SelectItem value="24">Entertainment</SelectItem>
-                          <SelectItem value="20">Gaming</SelectItem>
-                          <SelectItem value="1">Film & Animation</SelectItem>
-                          <SelectItem value="27">Education</SelectItem>
-                          <SelectItem value="28">Science & Tech</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Format</Label>
-                      <Select value={youtubeAspectRatio || "9:16"} onValueChange={(val: any) => setYoutubeAspectRatio(val)}>
-                        <SelectTrigger className="rounded-2xl h-11 border-muted/20 focus:ring-primary/20">
-                          <SelectValue placeholder="Aspect Ratio" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-white/20 backdrop-blur-xl">
-                          <SelectItem value="9:16">Shorts (9:16)</SelectItem>
-                          <SelectItem value="16:9">Wide (16:9)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Tags</Label>
-                    <Input
-                      placeholder="vlog, tutorial, funny (max 500 chars)"
-                      value={youtubeTags}
-                      onChange={(e) => setYoutubeTags(e.target.value)}
-                      className="rounded-2xl h-11 border-muted/20 focus:ring-primary/20"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <div className="flex items-center justify-between space-x-2 border border-muted/10 rounded-2xl p-4 bg-muted/5 group hover:bg-muted/10 transition-colors">
-                      <div className="flex flex-col gap-0.5">
-                        <Label htmlFor="kids" className="text-xs font-bold cursor-pointer">Made for Kids</Label>
-                        <span className="text-[10px] text-muted-foreground font-medium">Is this content for children?</span>
+          {
+            selectedPlatforms.includes("youtube") && (
+              <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+                <CardContent className="p-8 space-y-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
+                        {getPlatformIcon("youtube", "h-7 w-7")}
                       </div>
-                      <Switch
-                        id="kids"
-                        checked={youtubeMadeForKids}
-                        onCheckedChange={setYoutubeMadeForKids}
-                        className="data-[state=checked]:bg-rose-500"
+                      <div>
+                        <h3 className="font-bold text-sm">YouTube Settings</h3>
+                        <p className="text-[10px] text-muted-foreground font-medium">Fine-tune your video publication</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Category</Label>
+                        <Select value={youtubeCategory} onValueChange={setYoutubeCategory}>
+                          <SelectTrigger className="rounded-2xl h-11 border-muted/20 focus:ring-primary/20">
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl border-white/20 backdrop-blur-xl">
+                            <SelectItem value="22">People & Blogs</SelectItem>
+                            <SelectItem value="10">Music</SelectItem>
+                            <SelectItem value="23">Comedy</SelectItem>
+                            <SelectItem value="24">Entertainment</SelectItem>
+                            <SelectItem value="20">Gaming</SelectItem>
+                            <SelectItem value="1">Film & Animation</SelectItem>
+                            <SelectItem value="27">Education</SelectItem>
+                            <SelectItem value="28">Science & Tech</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Format</Label>
+                        <Select value={youtubeAspectRatio || "9:16"} onValueChange={(val: any) => setYoutubeAspectRatio(val)}>
+                          <SelectTrigger className="rounded-2xl h-11 border-muted/20 focus:ring-primary/20">
+                            <SelectValue placeholder="Aspect Ratio" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl border-white/20 backdrop-blur-xl">
+                            <SelectItem value="9:16">Shorts (9:16)</SelectItem>
+                            <SelectItem value="16:9">Wide (16:9)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Tags</Label>
+                      <Input
+                        placeholder="vlog, tutorial, funny (max 500 chars)"
+                        value={youtubeTags}
+                        onChange={(e) => setYoutubeTags(e.target.value)}
+                        className="rounded-2xl h-11 border-muted/20 focus:ring-primary/20"
                       />
                     </div>
 
-                    <div className="flex items-center justify-between space-x-2 border border-muted/10 rounded-2xl p-4 bg-muted/5 group hover:bg-muted/10 transition-colors">
-                      <div className="flex flex-col gap-0.5">
-                        <Label htmlFor="age" className="text-xs font-bold cursor-pointer">Age Restricted</Label>
-                        <span className="text-[10px] text-muted-foreground font-medium">18+ content only</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                      <div className="flex items-center justify-between space-x-2 border border-muted/10 rounded-2xl p-4 bg-muted/5 group hover:bg-muted/10 transition-colors">
+                        <div className="flex flex-col gap-0.5">
+                          <Label htmlFor="kids" className="text-xs font-bold cursor-pointer">Made for Kids</Label>
+                          <span className="text-[10px] text-muted-foreground font-medium">Is this content for children?</span>
+                        </div>
+                        <Switch
+                          id="kids"
+                          checked={youtubeMadeForKids}
+                          onCheckedChange={setYoutubeMadeForKids}
+                          className="data-[state=checked]:bg-rose-500"
+                        />
                       </div>
-                      <Switch
-                        id="age"
-                        checked={youtubeAgeRestriction}
-                        onCheckedChange={setYoutubeAgeRestriction}
-                        className="data-[state=checked]:bg-rose-500"
-                      />
+
+                      <div className="flex items-center justify-between space-x-2 border border-muted/10 rounded-2xl p-4 bg-muted/5 group hover:bg-muted/10 transition-colors">
+                        <div className="flex flex-col gap-0.5">
+                          <Label htmlFor="age" className="text-xs font-bold cursor-pointer">Age Restricted</Label>
+                          <span className="text-[10px] text-muted-foreground font-medium">18+ content only</span>
+                        </div>
+                        <Switch
+                          id="age"
+                          checked={youtubeAgeRestriction}
+                          onCheckedChange={setYoutubeAgeRestriction}
+                          className="data-[state=checked]:bg-rose-500"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            )
+          }
 
           {/* Instagram Specific Options */}
-          {selectedPlatforms.includes("instagram") && (
-            <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
-              <CardContent className="p-8 space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
-                    {getPlatformIcon("instagram", "h-7 w-7")}
+          {
+            selectedPlatforms.includes("instagram") && (
+              <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+                <CardContent className="p-8 space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
+                      {getPlatformIcon("instagram", "h-7 w-7")}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm">Instagram Settings</h3>
+                      <p className="text-[10px] text-muted-foreground font-medium">Choose your post format</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-sm">Instagram Settings</h3>
-                    <p className="text-[10px] text-muted-foreground font-medium">Choose your post format</p>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2 p-1 bg-muted/20 rounded-2xl border border-muted/20">
-                  {(["post", "reel", "story"] as const).map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => setInstagramPostType(type)}
-                      className={cn(
-                        "flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all",
-                        instagramPostType === type
-                          ? "bg-white dark:bg-slate-800 shadow-sm text-pink-600"
-                          : "text-muted-foreground hover:bg-white/50 dark:hover:bg-slate-800/50"
-                      )}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                  <div className="flex items-center gap-2 p-1 bg-muted/20 rounded-2xl border border-muted/20">
+                    {(["post", "reel", "story"] as const).map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setInstagramPostType(type)}
+                        className={cn(
+                          "flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all",
+                          instagramPostType === type
+                            ? "bg-white dark:bg-slate-800 shadow-sm text-pink-600"
+                            : "text-muted-foreground hover:bg-white/50 dark:hover:bg-slate-800/50"
+                        )}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          }
 
           {/* TikTok Specific Options */}
-          {selectedPlatforms.includes("tiktok") && (
-            <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
-              <CardContent className="p-8 space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
-                    {getPlatformIcon("tiktok", "h-7 w-7")}
+          {
+            selectedPlatforms.includes("tiktok") && (
+              <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+                <CardContent className="p-8 space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
+                      {getPlatformIcon("tiktok", "h-7 w-7")}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm">TikTok Settings</h3>
+                      <p className="text-[10px] text-muted-foreground font-medium">Privacy and interactions</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-sm">TikTok Settings</h3>
-                    <p className="text-[10px] text-muted-foreground font-medium">Privacy and interactions</p>
+
+                  <Alert className="bg-blue-50/50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-900/30">
+                    <Info className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-[10px] text-blue-700 dark:text-blue-400 font-medium leading-relaxed">
+                      TikTok's Direct Post API requires your account to be set to <strong>Public</strong> in the TikTok app settings.
+                      If your account is private, automated posting will fail.
+                    </AlertDescription>
+                  </Alert>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Privacy</Label>
+                      <Select value={tiktokPrivacy} onValueChange={(val: any) => setTiktokPrivacy(val)}>
+                        <SelectTrigger className="rounded-2xl h-11 border-muted/20">
+                          <SelectValue placeholder="Who can watch?" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-white/20">
+                          <SelectItem value="public">Public (Everyone)</SelectItem>
+                          <SelectItem value="friends">Friends Only</SelectItem>
+                          <SelectItem value="self">Private (Only Me)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center justify-between p-3 border border-muted/10 rounded-2xl bg-muted/5 group">
+                        <Label htmlFor="tt-comments" className="text-[10px] font-bold cursor-pointer">Allow Comments</Label>
+                        <Switch id="tt-comments" checked={tiktokAllowComments} onCheckedChange={setTiktokAllowComments} />
+                      </div>
+                      <div className="flex items-center justify-between p-3 border border-muted/10 rounded-2xl bg-muted/5 group">
+                        <Label htmlFor="tt-duet" className="text-[10px] font-bold cursor-pointer">Allow Duet</Label>
+                        <Switch id="tt-duet" checked={tiktokAllowDuet} onCheckedChange={setTiktokAllowDuet} />
+                      </div>
+                      <div className="flex items-center justify-between p-3 border border-muted/10 rounded-2xl bg-muted/5 group col-span-2">
+                        <Label htmlFor="tt-stitch" className="text-[10px] font-bold cursor-pointer">Allow Stitch</Label>
+                        <Switch id="tt-stitch" checked={tiktokAllowStitch} onCheckedChange={setTiktokAllowStitch} />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
+            )
+          }
 
-                <Alert className="bg-blue-50/50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-900/30">
-                  <Info className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-[10px] text-blue-700 dark:text-blue-400 font-medium leading-relaxed">
-                    TikTok's Direct Post API requires your account to be set to <strong>Public</strong> in the TikTok app settings.
-                    If your account is private, automated posting will fail.
-                  </AlertDescription>
-                </Alert>
+          {/* Threads Specific Options */}
+          {
+            selectedPlatforms.includes("threads") && (
+              <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+                <CardContent className="p-8 space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
+                      {getPlatformIcon("threads", "h-7 w-7")}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm">Threads Settings</h3>
+                      <p className="text-[10px] text-muted-foreground font-medium">Thread interaction policy</p>
+                    </div>
+                  </div>
 
-                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Privacy</Label>
-                    <Select value={tiktokPrivacy} onValueChange={(val: any) => setTiktokPrivacy(val)}>
+                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Who can reply?</Label>
+                    <Select value={threadsReplyPolicy} onValueChange={(val: any) => setThreadsReplyPolicy(val)}>
                       <SelectTrigger className="rounded-2xl h-11 border-muted/20">
-                        <SelectValue placeholder="Who can watch?" />
+                        <SelectValue placeholder="Select policy" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-white/20">
-                        <SelectItem value="public">Public (Everyone)</SelectItem>
-                        <SelectItem value="friends">Friends Only</SelectItem>
-                        <SelectItem value="self">Private (Only Me)</SelectItem>
+                        <SelectItem value="everyone">Anyone</SelectItem>
+                        <SelectItem value="followed">Profiles you follow</SelectItem>
+                        <SelectItem value="mentioned">Only mentioned profiles</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center justify-between p-3 border border-muted/10 rounded-2xl bg-muted/5 group">
-                      <Label htmlFor="tt-comments" className="text-[10px] font-bold cursor-pointer">Allow Comments</Label>
-                      <Switch id="tt-comments" checked={tiktokAllowComments} onCheckedChange={setTiktokAllowComments} />
-                    </div>
-                    <div className="flex items-center justify-between p-3 border border-muted/10 rounded-2xl bg-muted/5 group">
-                      <Label htmlFor="tt-duet" className="text-[10px] font-bold cursor-pointer">Allow Duet</Label>
-                      <Switch id="tt-duet" checked={tiktokAllowDuet} onCheckedChange={setTiktokAllowDuet} />
-                    </div>
-                    <div className="flex items-center justify-between p-3 border border-muted/10 rounded-2xl bg-muted/5 group col-span-2">
-                      <Label htmlFor="tt-stitch" className="text-[10px] font-bold cursor-pointer">Allow Stitch</Label>
-                      <Switch id="tt-stitch" checked={tiktokAllowStitch} onCheckedChange={setTiktokAllowStitch} />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Threads Specific Options */}
-          {selectedPlatforms.includes("threads") && (
-            <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
-              <CardContent className="p-8 space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
-                    {getPlatformIcon("threads", "h-7 w-7")}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm">Threads Settings</h3>
-                    <p className="text-[10px] text-muted-foreground font-medium">Thread interaction policy</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Who can reply?</Label>
-                  <Select value={threadsReplyPolicy} onValueChange={(val: any) => setThreadsReplyPolicy(val)}>
-                    <SelectTrigger className="rounded-2xl h-11 border-muted/20">
-                      <SelectValue placeholder="Select policy" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-white/20">
-                      <SelectItem value="everyone">Anyone</SelectItem>
-                      <SelectItem value="followed">Profiles you follow</SelectItem>
-                      <SelectItem value="mentioned">Only mentioned profiles</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            )
+          }
 
           {/* LinkedIn Specific Options */}
-          {selectedPlatforms.includes("linkedin") && (
-            <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
-              <CardContent className="p-8 space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
-                    {getPlatformIcon("linkedin", "h-7 w-7")}
+          {
+            selectedPlatforms.includes("linkedin") && (
+              <Card className="shadow-2xl border-white/20 bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+                <CardContent className="p-8 space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-2xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-black/5">
+                      {getPlatformIcon("linkedin", "h-7 w-7")}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm">LinkedIn Settings</h3>
+                      <p className="text-[10px] text-muted-foreground font-medium">Post visibility options</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-sm">LinkedIn Settings</h3>
-                    <p className="text-[10px] text-muted-foreground font-medium">Post visibility options</p>
-                  </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Visibility</Label>
-                  <Select value={linkedinVisibility} onValueChange={(val: any) => setLinkedinVisibility(val)}>
-                    <SelectTrigger className="rounded-2xl h-11 border-muted/20">
-                      <SelectValue placeholder="Who can see your post?" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-white/20">
-                      <SelectItem value="PUBLIC">Anyone (Public)</SelectItem>
-                      <SelectItem value="CONNECTIONS">Connections only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                  <div className="space-y-2">
+                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 ml-1">Visibility</Label>
+                    <Select value={linkedinVisibility} onValueChange={(val: any) => setLinkedinVisibility(val)}>
+                      <SelectTrigger className="rounded-2xl h-11 border-muted/20">
+                        <SelectValue placeholder="Who can see your post?" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-white/20">
+                        <SelectItem value="PUBLIC">Anyone (Public)</SelectItem>
+                        <SelectItem value="CONNECTIONS">Connections only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          }
 
 
           {/* Guidelines Section */}
@@ -1448,10 +1468,10 @@ export default function CreatePostPage() {
               </Card>
             </CollapsibleContent>
           </Collapsible>
-        </div>
+        </div >
 
         {/* Right Column - Preview */}
-        <div className="space-y-4">
+        < div className="space-y-4" >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold tracking-tight">Preview</h2>
             <Tabs value={previewView} onValueChange={setPreviewView} className="w-auto">
@@ -1784,14 +1804,16 @@ export default function CreatePostPage() {
             )}
           </Button>
 
-          {error && (
-            <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
-              <Info className="h-4 w-4" />
-              <AlertDescription className="text-xs font-medium ml-2">{error}</AlertDescription>
-            </Alert>
-          )}
-        </div>
-      </div>
-    </div>
+          {
+            error && (
+              <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
+                <Info className="h-4 w-4" />
+                <AlertDescription className="text-xs font-medium ml-2">{error}</AlertDescription>
+              </Alert>
+            )
+          }
+        </div >
+      </div >
+    </div >
   )
 }

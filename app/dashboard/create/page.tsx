@@ -62,6 +62,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Progress } from "@/components/ui/progress"
 import { registerMediaMetadata, getMediaLibrary } from "@/lib/firebase/media"
 import { firebaseStorage } from "@/lib/firebase-client"
 import { ref, getDownloadURL, uploadString, uploadBytes, uploadBytesResumable } from "firebase/storage"
@@ -87,6 +88,8 @@ export default function CreatePostPage() {
     return format(now, "HH:mm")
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false)
+  const [mediaUploadProgress, setMediaUploadProgress] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showMediaUploader, setShowMediaUploader] = useState(false)
@@ -236,7 +239,9 @@ export default function CreatePostPage() {
         return
       }
 
-      setIsSubmitting(true)
+      setIsUploadingMedia(true)
+      setMediaUploadProgress(0)
+      
       toast({
         title: "Starting Upload",
         description: `Uploading ${file.name}...`,
@@ -253,6 +258,7 @@ export default function CreatePostPage() {
       uploadTask.on('state_changed',
         (snapshot) => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          setMediaUploadProgress(progress)
           console.log(`Manual upload progress: ${Math.round(progress)}%`)
         },
         (error) => {
@@ -262,7 +268,8 @@ export default function CreatePostPage() {
             description: error.message || "Failed to upload media to storage.",
             variant: "destructive"
           })
-          setIsSubmitting(false)
+          setIsUploadingMedia(false)
+          setMediaUploadProgress(0)
         },
         async () => {
           try {
@@ -293,7 +300,8 @@ export default function CreatePostPage() {
               variant: "destructive"
             })
           } finally {
-            setIsSubmitting(false)
+            setIsUploadingMedia(false)
+            setMediaUploadProgress(0)
             if (e.target) e.target.value = ""
           }
         }
@@ -305,7 +313,8 @@ export default function CreatePostPage() {
         description: err.message || "An unexpected error occurred during upload.",
         variant: "destructive"
       })
-      setIsSubmitting(false)
+      setIsUploadingMedia(false)
+      setMediaUploadProgress(0)
       if (e.target) e.target.value = ""
     }
   }
@@ -812,6 +821,29 @@ export default function CreatePostPage() {
                 </div>
               )}
 
+              {/* Media Upload Progress Indicator */}
+              {isUploadingMedia && (
+                <div className="px-6 pb-6 animate-in fade-in slide-in-from-top-2">
+                  <div className="bg-primary/5 border border-primary/10 rounded-2xl p-5 space-y-4 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Upload className="h-5 w-5 text-primary animate-bounce" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-primary">Uploading Media...</p>
+                          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest leading-none mt-1">Please keep this page open</p>
+                        </div>
+                      </div>
+                      <div className="bg-primary text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+                        {Math.round(mediaUploadProgress)}%
+                      </div>
+                    </div>
+                    <Progress value={mediaUploadProgress} className="h-2 rounded-full bg-primary/10" />
+                  </div>
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="border-t px-6 py-4 flex items-center justify-between bg-muted/5">
                 <div className="flex items-center gap-3">
@@ -821,10 +853,20 @@ export default function CreatePostPage() {
                       <Button
                         variant="default"
                         size="sm"
-                        className="gap-2 px-8 h-12 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl border-none rounded-full transition-all hover:scale-[1.05] active:scale-[0.95] font-bold"
+                        disabled={isUploadingMedia}
+                        className="gap-2 px-8 h-12 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl border-none rounded-full transition-all hover:scale-[1.05] active:scale-[0.95] font-bold disabled:opacity-70"
                       >
-                        <Plus className="h-5 w-5" />
-                        <span>Add Media</span>
+                        {isUploadingMedia ? (
+                          <>
+                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            <span>Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="h-5 w-5" />
+                            <span>Add Media</span>
+                          </>
+                        )}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" sideOffset={8} className="w-[240px] p-1.5 shadow-2xl border border-white/10 rounded-2xl bg-white/90 dark:bg-black/90 backdrop-blur-xl animate-in zoom-in-95 duration-200">
@@ -1443,15 +1485,6 @@ export default function CreatePostPage() {
                 {getPlatformIcon(platform, "h-10 w-10", true)}
               </button>
             ))}
-            {!connectedPlatforms.includes("linkedin") && (
-              <button
-                disabled
-                className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted/10 border border-border/20 opacity-30 cursor-not-allowed grayscale"
-                title="LinkedIn (Not connected)"
-              >
-                <img src="/linkedin.webp" className="h-4 w-4 object-contain" />
-              </button>
-            )}
           </div>
 
           <Tabs value={previewPlatform} onValueChange={setPreviewPlatform} className="w-full">
@@ -1725,12 +1758,17 @@ export default function CreatePostPage() {
           <Button
             className="w-full h-14 text-lg font-bold shadow-lg rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] gap-3"
             onClick={() => handleSubmit()}
-            disabled={isSubmitting || !content || selectedPlatforms.length === 0}
+            disabled={isSubmitting || isUploadingMedia || !content || selectedPlatforms.length === 0}
           >
             {isSubmitting ? (
               <>
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
                 Scheduling...
+              </>
+            ) : isUploadingMedia ? (
+              <>
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
+                Uploading Media...
               </>
             ) : (
               <>

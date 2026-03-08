@@ -380,55 +380,64 @@ async function publishToInstagram(userId: string, post: any) {
 
     const creationId = containerData.id
 
-    // 2. Poll for Status (Optimized)
-    let isReady = false
-    let attempts = 0
-    const maxAttempts = 15 // Wait up to ~75 seconds 
-    let lastStatus = "UNKNOWN"
+    // 2. Poll for Status — only needed for video/reel, images are ready instantly
+    if (isVideo) {
+      let isReady = false
+      let attempts = 0
+      const maxAttempts = 15 // Wait up to ~75 seconds 
+      let lastStatus = "UNKNOWN"
 
-    console.log(`Instagram: Waiting for media ${creationId} to process...`)
+      console.log(`Instagram: Waiting for video ${creationId} to process...`)
 
-    while (!isReady && attempts < maxAttempts) {
-      // Sleep at the START of the loop to allow processing time (5s)
-      await new Promise(resolve => setTimeout(resolve, 5000))
+      while (!isReady && attempts < maxAttempts) {
+        // Sleep at the START of the loop to allow processing time (5s)
+        await new Promise(resolve => setTimeout(resolve, 5000))
 
-      const statusRes = await fetch(`https://graph.facebook.com/v${config.instagram.apiVersion}/${creationId}?fields=status_code,status,error_message&access_token=${accessToken}`)
-      const statusData = await statusRes.json()
+        // IMPORTANT: Only request 'status_code' — 'error_message' does NOT exist in Graph API v18.0+
+        const statusRes = await fetch(`https://graph.facebook.com/v${config.instagram.apiVersion}/${creationId}?fields=status_code&access_token=${accessToken}`)
+        const statusData = await statusRes.json()
 
-      if (statusData.error) {
-        console.error("Instagram status check error:", JSON.stringify(statusData.error))
-        throw new Error(`Meta API Status Error: ${statusData.error.message}`)
+        if (statusData.error) {
+          console.error("Instagram status check error:", JSON.stringify(statusData.error))
+          throw new Error(`Instagram status check failed: ${statusData.error.message}`)
+        }
+
+        lastStatus = statusData.status_code || "IN_PROGRESS"
+        console.log(`Instagram status check (${attempts + 1}/${maxAttempts}): ${lastStatus}`)
+
+        if (lastStatus === "FINISHED") {
+          isReady = true
+        } else if (lastStatus === "ERROR") {
+          throw new Error("Instagram video processing failed. Check video codec (H.264), size (< 100MB), and duration (3s–60min).")
+        } else if (lastStatus === "EXPIRED") {
+          throw new Error("Instagram media container expired before it could be published.")
+        }
+
+        attempts++
       }
 
-      lastStatus = statusData.status_code || statusData.status
-      console.log(`Instagram status check (${attempts + 1}/${maxAttempts}): ${lastStatus}`)
-
-      if (lastStatus === "FINISHED") {
-        isReady = true
-      } else if (lastStatus === "ERROR") {
-        throw new Error(`Instagram processing failed: ${statusData.error_message || "Video processing error (likely codec or size issue)"}`)
-      } else if (lastStatus === "EXPIRED") {
-        throw new Error("Instagram media container expired before it could be published.")
-      }
-
-      attempts++
+      if (!isReady) throw new Error("Instagram timed out waiting for video to process.")
+    } else {
+      // For images, just a small delay to let the container finalize
+      console.log("Instagram: Image container — skipping polling, publishing directly...")
+      await new Promise(resolve => setTimeout(resolve, 2000))
     }
-
-    if (!isReady) throw new Error("Instagram timed out waiting for media to process.")
 
     // 3. Publish Media
     console.log(`Instagram: Publishing media ${creationId}...`)
-    const publishRes = await fetch(`https://graph.facebook.com/v${config.instagram.apiVersion}/${igUserId}/media_publish`, {
+    const publishRes = await fetch(`https://graph.facebook.com/v${config.instagram.apiVersion}/${igUserId}/media_publish?access_token=${accessToken}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         creation_id: creationId,
-        access_token: accessToken,
       }),
     })
 
     const publishData = await publishRes.json()
-    if (publishData.error) throw new Error(publishData.error.message)
+    if (publishData.error) {
+      console.error("Instagram publish error:", JSON.stringify(publishData.error))
+      throw new Error(publishData.error.message)
+    }
 
     return { success: true, platformId: publishData.id }
   } catch (error: any) {
@@ -572,10 +581,11 @@ async function publishToTikTok(userId: string, post: any, preFetchedBlob: Blob |
 
       // 2. Initialize the upload
       const initUrl = "https://open.tiktokapis.com/v2/post/publish/video/init/"
+      // TikTok uses 'title' as the video caption (max 150 chars for direct post)
+      const caption = (post.content || post.title || post.description || "").substring(0, 150)
       const initBody = {
         post_info: {
-          title: (post.title || post.content || "Video").substring(0, 80),
-          description: post.content || post.description || "",
+          title: caption,
           privacy_level: post.tiktokOptions?.privacy === "public" ? "PUBLIC_TO_EVERYONE" :
             post.tiktokOptions?.privacy === "friends" ? "FRIENDS" : "SELF_ONLY",
           disable_comment: post.tiktokOptions?.allowComments === false,

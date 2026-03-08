@@ -95,46 +95,63 @@ export async function publishPost(userId: string, postId: string, post: any) {
   try {
     if (!adminDb) throw new Error("Database not initialized")
 
-    // Update the post status to "publishing"
     const postRef = adminDb.collection("posts").doc(postId)
-    console.log(`publishPost: Setting status to 'publishing' for ${postId}...`)
     await postRef.update({
       status: "publishing",
       updatedAt: new Date().toISOString()
     })
-    console.log(`publishPost: Status updated to 'publishing' for ${postId}`)
 
-    // Determine which platforms to publish to
-    const platforms: string[] = post.platforms || [post.platform]
+    const platforms: string[] = post.platforms || (post.platform ? [post.platform] : [])
     const results: Record<string, any> = {}
 
-    console.log(`publishPost: Parallel publishing to [${platforms.join(", ")}]...`)
+    // Pre-fetch media if needed by platforms that require binary data
+    let sharedMediaBlob: Blob | null = null
+    const needsBinaryMedia = platforms.some(p => ["youtube", "tiktok", "linkedin", "pinterest"].includes(p))
 
-    // Run all platforms in parallel to avoid Vercel Hobby 60s timeout
-    const publishPromises = platforms.map(async (platform) => {
+    if (needsBinaryMedia && post.mediaUrl) {
+      console.log(`publishPost: Pre-fetching media for platforms: ${post.mediaUrl}`)
       try {
-        let result
+        const mediaRes = await fetch(post.mediaUrl)
+        if (mediaRes.ok) {
+          sharedMediaBlob = await mediaRes.blob()
+          console.log(`publishPost: Media fetched successfully (${sharedMediaBlob.size} bytes)`)
+        } else {
+          console.error(`publishPost: Failed to fetch media: ${mediaRes.statusText}`)
+        }
+      } catch (err) {
+        console.error(`publishPost: Error fetching shared media:`, err)
+      }
+    }
+
+    // Process platforms SEQUENTIALLY to stay within memory limits and provide per-platform status
+    let successCount = 0
+    let failureCount = 0
+
+    for (const platform of platforms) {
+      console.log(`publishPost: Processing ${platform}...`)
+      try {
+        let result: any
         switch (platform) {
           case "instagram":
             result = await publishToInstagram(userId, post)
             break
           case "youtube":
-            result = await publishToYouTube(userId, post)
+            result = await publishToYouTube(userId, post, sharedMediaBlob)
             break
           case "tiktok":
-            result = await publishToTikTok(userId, post)
+            result = await publishToTikTok(userId, post, sharedMediaBlob)
             break
           case "threads":
             result = await publishToThreads(userId, post)
             break
           case "linkedin":
-            result = await publishToLinkedIn(userId, post)
+            result = await publishToLinkedIn(userId, post, sharedMediaBlob)
             break
           case "facebook":
             result = await publishToFacebook(userId, post)
             break
           case "pinterest":
-            result = await publishToPinterest(userId, post)
+            result = await publishToPinterest(userId, post, sharedMediaBlob)
             break
           case "bluesky":
             result = await publishToBluesky(userId, post)
@@ -142,30 +159,29 @@ export async function publishPost(userId: string, postId: string, post: any) {
           default:
             result = { success: false, error: `Unsupported platform: ${platform}` }
         }
-        return { platform, result }
+
+        results[platform] = result
+        if (result.success) {
+          successCount++
+        } else {
+          failureCount++
+        }
+
+        // Update progress in DB after each platform for better tracking
+        await postRef.update({
+          platformResults: results,
+          updatedAt: new Date().toISOString()
+        })
+
       } catch (err: any) {
-        console.error(`publishPost: Error in parallel execution for ${platform}:`, err)
-        return { platform, result: { success: false, error: err.message || "Parallel execution error" } }
+        console.error(`publishPost: Error processing ${platform}:`, err)
+        results[platform] = { success: false, error: err.message || "Unknown execution error" }
+        failureCount++
       }
-    })
+    }
 
-    const resultsArray = await Promise.all(publishPromises)
-    let allSuccessful = true
-    let successCount = 0
-
-    resultsArray.forEach(({ platform, result }) => {
-      results[platform] = result
-      if (result.success) {
-        successCount++
-      } else {
-        allSuccessful = false
-      }
-    })
-
-    console.log(`publishPost: All promises finished. Results:`, JSON.stringify(results))
-
-    // Update the post with individual platform status and overall status
-    if (allSuccessful) {
+    // Final Status Update
+    if (failureCount === 0) {
       await postRef.update({
         status: "published",
         publishedAt: new Date().toISOString(),
@@ -174,39 +190,35 @@ export async function publishPost(userId: string, postId: string, post: any) {
       })
       console.log(`Successfully published post ${postId} to all platforms`)
     } else if (successCount > 0) {
-      // Partial success - some platforms succeeded, some failed
-      const failedPlatforms = Object.entries(results)
+      const failedList = Object.entries(results)
         .filter(([, r]: [string, any]) => !r.success)
-        .map(([platform, r]: [string, any]) => `${platform}: ${r.error}`)
+        .map(([p, r]: [string, any]) => `${p}: ${r.error}`)
         .join("; ")
       await postRef.update({
         status: "partial",
         publishedAt: new Date().toISOString(),
         platformResults: results,
-        error: `Partial publish. Failed platforms — ${failedPlatforms}`
+        error: `Partial success. Failures: ${failedList}`
       })
-      console.warn(`Partially published post ${postId}. Failures: ${failedPlatforms}`)
+      console.warn(`Partially published post ${postId}.`)
     } else {
-      // Extract the first error message to show to the user
-      const firstError = Object.values(results).find(r => !r.success)?.error || "One or more platforms failed to publish"
-
-      // If any platform failed, mark as failed overall but store details
+      const firstError = Object.values(results).find(r => !r.success)?.error || "All platforms failed"
       await postRef.update({
         status: "failed",
         platformResults: results,
         error: firstError,
       })
-      console.error(`Failed to publish post ${postId} to some platforms: ${firstError}`)
+      console.error(`Failed to publish post ${postId}: ${firstError}`)
     }
   } catch (error: any) {
-    console.error(`Error publishing post ${postId}:`, error)
-
-    if (!adminDb) throw new Error("Database not initialized")
-    const postRef = adminDb.collection("posts").doc(postId)
-    await postRef.update({
-      status: "failed",
-      error: error.message,
-    })
+    console.error(`Error in publishPost for ${postId}:`, error)
+    if (adminDb) {
+      await adminDb.collection("posts").doc(postId).update({
+        status: "failed",
+        error: error.message,
+        updatedAt: new Date().toISOString()
+      })
+    }
   }
 }
 
@@ -320,60 +332,82 @@ async function publishToInstagram(userId: string, post: any) {
     const instagram = await getSocialData(userId, post.workspaceId, "instagram")
     if (!instagram || !instagram.accessToken) throw new Error("Instagram account not connected")
 
-    // Instagram requires media - cannot post text-only
     if (!post.mediaUrl) {
-      return { success: false, error: "Instagram requires an image or video. Text-only posts are not supported." }
+      return { success: false, error: "Instagram requires an image or video." }
     }
 
-    const igUserId = instagram.id || instagram.username
+    const igUserId = instagram.id
+    if (!igUserId || igUserId.startsWith("unknown_")) {
+      throw new Error("Instagram Business ID missing. Please reconnect your account and ensure your Instagram account is a Business account linked to a Facebook Page.")
+    }
     const accessToken = instagram.accessToken
 
     // 1. Create Media Container
-    const containerUrl = `https://graph.facebook.com/v18.0/${igUserId}/media`
+    const containerUrl = `https://graph.facebook.com/v${config.instagram.apiVersion}/${igUserId}/media`
+    const isVideo = post.contentType === "video" || post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i)
+
     const containerParams: any = {
       caption: post.content || post.description || "",
       access_token: accessToken,
     }
 
-    const isVideo = post.contentType === "video" || post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i)
     if (isVideo) {
       containerParams.video_url = post.mediaUrl
-      containerParams.media_type = "VIDEO"
+      // Explicitly support Reels if selected
+      if (post.instagramPostType === "reel") {
+        containerParams.media_type = "REELS"
+      } else {
+        containerParams.media_type = "VIDEO"
+      }
     } else {
       containerParams.image_url = post.mediaUrl
       containerParams.media_type = "IMAGE"
     }
 
-    const containerResponse = await fetch(containerUrl, {
+    console.log(`Instagram: Creating container (${containerParams.media_type})...`)
+    const containerRes = await fetch(containerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(containerParams),
     })
 
-    const containerData = await containerResponse.json()
-    if (containerData.error) throw new Error(containerData.error.message)
+    const containerData = await containerRes.json()
+    if (containerData.error) {
+      console.error("Instagram container error:", containerData.error)
+      throw new Error(containerData.error.message || "Failed to create media container")
+    }
 
     const creationId = containerData.id
 
-    // 2. Poll for Status (Wait for processing to finish)
+    // 2. Poll for Status (Optimized)
     let isReady = false
     let attempts = 0
-    const maxAttempts = 20 // Wait up to 100 seconds total
+    const maxAttempts = 15 // Wait up to ~75 seconds 
+    let lastStatus = "UNKNOWN"
 
     console.log(`Instagram: Waiting for media ${creationId} to process...`)
 
     while (!isReady && attempts < maxAttempts) {
-      if (attempts > 0) await new Promise(resolve => setTimeout(resolve, 5000))
+      // Sleep at the START of the loop to allow processing time (5s)
+      await new Promise(resolve => setTimeout(resolve, 5000))
 
-      const statusResponse = await fetch(`https://graph.facebook.com/v18.0/${creationId}?fields=status_code,status,error_message&access_token=${accessToken}`)
-      const statusData = await statusResponse.json()
+      const statusRes = await fetch(`https://graph.facebook.com/v${config.instagram.apiVersion}/${creationId}?fields=status_code,status,error_message&access_token=${accessToken}`)
+      const statusData = await statusRes.json()
 
-      console.log(`Instagram status check (attempt ${attempts + 1}):`, statusData.status_code || statusData.status)
+      if (statusData.error) {
+        console.error("Instagram status check error:", JSON.stringify(statusData.error))
+        throw new Error(`Meta API Status Error: ${statusData.error.message}`)
+      }
 
-      if (statusData.status_code === "FINISHED" || statusData.status === "FINISHED") {
+      lastStatus = statusData.status_code || statusData.status
+      console.log(`Instagram status check (${attempts + 1}/${maxAttempts}): ${lastStatus}`)
+
+      if (lastStatus === "FINISHED") {
         isReady = true
-      } else if (statusData.status_code === "ERROR" || statusData.status === "ERROR") {
-        throw new Error(`Instagram processing failed: ${statusData.error_message || "Unknown error"}`)
+      } else if (lastStatus === "ERROR") {
+        throw new Error(`Instagram processing failed: ${statusData.error_message || "Video processing error (likely codec or size issue)"}`)
+      } else if (lastStatus === "EXPIRED") {
+        throw new Error("Instagram media container expired before it could be published.")
       }
 
       attempts++
@@ -382,8 +416,8 @@ async function publishToInstagram(userId: string, post: any) {
     if (!isReady) throw new Error("Instagram timed out waiting for media to process.")
 
     // 3. Publish Media
-    const publishUrl = `https://graph.facebook.com/v18.0/${igUserId}/media_publish`
-    const publishResponse = await fetch(publishUrl, {
+    console.log(`Instagram: Publishing media ${creationId}...`)
+    const publishRes = await fetch(`https://graph.facebook.com/v${config.instagram.apiVersion}/${igUserId}/media_publish`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -392,7 +426,7 @@ async function publishToInstagram(userId: string, post: any) {
       }),
     })
 
-    const publishData = await publishResponse.json()
+    const publishData = await publishRes.json()
     if (publishData.error) throw new Error(publishData.error.message)
 
     return { success: true, platformId: publishData.id }
@@ -403,7 +437,7 @@ async function publishToInstagram(userId: string, post: any) {
 }
 
 // Function to publish a post to YouTube
-async function publishToYouTube(userId: string, post: any) {
+async function publishToYouTube(userId: string, post: any, preFetchedBlob: Blob | null = null) {
   let accessToken: string | null = null
   let refreshToken: string | null = null
 
@@ -450,12 +484,15 @@ async function publishToYouTube(userId: string, post: any) {
       if (!uploadUrl) throw new Error("Failed to get YouTube upload URL")
 
       // Step 2: Upload Video binary
-      if (!post.mediaUrl) throw new Error("No media file provided for YouTube upload")
+      let mediaBlob = preFetchedBlob
+      if (!mediaBlob) {
+        if (!post.mediaUrl) throw new Error("No media file provided for YouTube upload")
+        console.log("YouTube: Fetching media blob (not pre-fetched)...")
+        const mediaRes = await fetch(post.mediaUrl)
+        if (!mediaRes.ok) throw new Error("Failed to fetch media file from storage")
+        mediaBlob = await mediaRes.blob()
+      }
 
-      const mediaResponse = await fetch(post.mediaUrl)
-      if (!mediaResponse.ok) throw new Error("Failed to fetch media file from storage")
-
-      const mediaBlob = await mediaResponse.blob()
       const uploadResponse = await fetch(uploadUrl, {
         method: "PUT",
         headers: { "Content-Type": "video/*" },
@@ -501,7 +538,7 @@ async function publishToYouTube(userId: string, post: any) {
 }
 
 // Function to publish a post to TikTok
-async function publishToTikTok(userId: string, post: any) {
+async function publishToTikTok(userId: string, post: any, preFetchedBlob: Blob | null = null) {
   let accessToken: string | null = null
   let refreshToken: string | null = null
 
@@ -513,22 +550,22 @@ async function publishToTikTok(userId: string, post: any) {
     refreshToken = tiktok.refreshToken
 
     async function attemptPublish(token: string) {
-      // Switch to FILE_UPLOAD to bypass TikTok domain verification requirements
-      // Documentation: https://developers.tiktok.com/doc/content-posting-api-v2-direct-post/
+      if (!post.mediaUrl && !preFetchedBlob) throw new Error("No media provided for TikTok upload")
 
-      if (!post.mediaUrl) throw new Error("No media URL provided for TikTok upload")
+      // 1. Get the media blob
+      let mediaBlob = preFetchedBlob
+      if (!mediaBlob) {
+        console.log("TikTok: Fetching media from Firebase (not pre-fetched):", post.mediaUrl)
+        const mediaRes = await fetch(post.mediaUrl)
+        if (!mediaRes.ok) throw new Error("Failed to fetch media file from storage")
+        mediaBlob = await mediaRes.blob()
+      }
 
-      // 1. Fetch the media to get its size and data
-      console.log("Fetching media from Firebase for TikTok upload:", post.mediaUrl)
-      const mediaResponse = await fetch(post.mediaUrl)
-      if (!mediaResponse.ok) throw new Error("Failed to fetch media file from storage")
-
-      const mediaBlob = await mediaResponse.blob()
       const videoSize = mediaBlob.size
-      console.log(`Video size detected: ${videoSize} bytes`)
+      console.log(`TikTok: Video size detected: ${videoSize} bytes`)
 
       // 2. Initialize the upload
-      const publishUrl = "https://open.tiktokapis.com/v2/post/publish/video/init/"
+      const initUrl = "https://open.tiktokapis.com/v2/post/publish/video/init/"
       const initBody = {
         post_info: {
           title: post.title || post.content?.substring(0, 80) || "Scheduled Post",
@@ -542,12 +579,13 @@ async function publishToTikTok(userId: string, post: any) {
         source_info: {
           source: "FILE_UPLOAD",
           video_size: videoSize,
-          chunk_size: videoSize, // Sending as a single chunk for simplicity
+          chunk_size: videoSize,
           total_chunk_count: 1
         }
       }
 
-      const initResponse = await fetch(publishUrl, {
+      console.log("TikTok: Initializing upload...")
+      const initRes = await fetch(initUrl, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -556,26 +594,29 @@ async function publishToTikTok(userId: string, post: any) {
         body: JSON.stringify(initBody),
       })
 
-      if (initResponse.status === 401 && refreshToken) {
+      if (initRes.status === 401 && refreshToken) {
         return { retry: true }
       }
 
-      const initData = await initResponse.json()
+      const initData = await initRes.json()
       console.log("TikTok Init Response:", JSON.stringify(initData))
 
-      if (initData.error && initData.error.code !== "ok" && initData.error.code !== 0) {
-        throw new Error(`TikTok API Error (${initData.error.code}): ${initData.error.message || "Init failed"}`)
+      // Check for errors in initData.error (v2 format)
+      const errorCode = initData.error?.code
+      if (errorCode !== undefined && errorCode !== "ok" && errorCode !== 0 && errorCode !== "0") {
+        throw new Error(`TikTok API Error (${errorCode}): ${initData.error.message || "Init failed"}`)
       }
 
-      const uploadUrl = initData.data.upload_url
-      if (!uploadUrl) throw new Error("No upload URL returned from TikTok")
-
-      // Detect Content-Type based on extension or mediaResponse headers
-      const contentType = mediaResponse.headers.get("Content-Type") || "video/mp4"
+      const uploadUrl = initData.data?.upload_url
+      if (!uploadUrl) {
+        throw new Error(`TikTok failed to provide upload URL. Response: ${JSON.stringify(initData)}`)
+      }
 
       // 3. Perform the actual binary upload
-      console.log(`Uploading bytes to TikTok (Type: ${contentType})...`)
-      const uploadResponse = await fetch(uploadUrl, {
+      const contentType = mediaBlob.type || "video/mp4"
+      console.log(`TikTok: Uploading binary data (Type: ${contentType})...`)
+
+      const uploadRes = await fetch(uploadUrl, {
         method: "PUT",
         headers: {
           "Content-Type": contentType,
@@ -584,12 +625,13 @@ async function publishToTikTok(userId: string, post: any) {
         body: mediaBlob
       })
 
-      if (!uploadResponse.ok) {
-        const errText = await uploadResponse.text()
-        console.error("TikTok Upload Error Body:", errText)
-        throw new Error(`TikTok binary upload failed: ${uploadResponse.statusText}`)
+      if (!uploadRes.ok) {
+        const errText = await uploadRes.text().catch(() => "Unknown upload error")
+        console.error("TikTok Binary Upload Error:", errText)
+        throw new Error(`TikTok binary upload failed (${uploadRes.status}): ${errText || uploadRes.statusText}`)
       }
 
+      console.log("TikTok: Binary upload completed successfully.")
       return initData.data
     }
 
@@ -711,7 +753,7 @@ async function publishToThreads(userId: string, post: any) {
 }
 
 // Function to publish a post to LinkedIn
-async function publishToLinkedIn(userId: string, post: any) {
+async function publishToLinkedIn(userId: string, post: any, preFetchedBlob: Blob | null = null) {
   let accessToken: string | null = null
   let refreshToken: string | null = null
 
@@ -726,10 +768,6 @@ async function publishToLinkedIn(userId: string, post: any) {
     async function attemptPublish(token: string) {
       const author = `urn:li:person:${personId}`
 
-      // If there's media, we should ideally upload it first
-      // For now, let's implement text-only or basic share with image URL if possible
-      // Actually, LinkedIn requires uploading images to their servers first.
-
       let body: any = {
         author: author,
         lifecycleState: "PUBLISHED",
@@ -737,7 +775,7 @@ async function publishToLinkedIn(userId: string, post: any) {
       }
 
       const hasMedia = !!post.mediaUrl
-      const isVideo = post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i) || post.contentType === "video"
+      const isVideo = (post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i) || post.contentType === "video") && hasMedia
       let assetUrn: string | null = null
 
       if (hasMedia) {
@@ -779,20 +817,24 @@ async function publishToLinkedIn(userId: string, post: any) {
         const uploadUrl = registerData.value.uploadMechanism["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"].uploadUrl;
         assetUrn = registerData.value.asset;
 
-        // Step 2: Fetch media from Storage
-        const mediaRes = await fetch(post.mediaUrl);
-        if (!mediaRes.ok) throw new Error("Failed to fetch media from storage for LinkedIn upload");
-        const mediaBlob = await mediaRes.blob();
+        // Step 2: Get media blob
+        let mediaBlob = preFetchedBlob
+        if (!mediaBlob) {
+          if (!post.mediaUrl) throw new Error("No media URL")
+          const mediaRes = await fetch(post.mediaUrl);
+          if (!mediaRes.ok) throw new Error("Failed to fetch media from storage for LinkedIn upload");
+          mediaBlob = await mediaRes.blob();
+        }
 
         // Step 3: Upload binary to LinkedIn
+        const contentType = mediaBlob.type || (isVideo ? "video/mp4" : "image/jpeg")
         const uploadHeaders: any = {
-           "Content-Type": mediaRes.headers.get("Content-Type") || (isVideo ? "video/mp4" : "image/jpeg")
+          "Content-Type": contentType
         };
-        // For image uploads, include token. For video, LinkedIn docs say not to use the 'Authorization' header in PUT
         if (!isVideo) {
           uploadHeaders["Authorization"] = `Bearer ${token}`;
         }
-        
+
         const uploadRes = await fetch(uploadUrl, {
           method: "PUT",
           headers: uploadHeaders,
@@ -800,8 +842,8 @@ async function publishToLinkedIn(userId: string, post: any) {
         });
 
         if (!uploadRes.ok) {
-           const errText = await uploadRes.text();
-           throw new Error(`LinkedIn Binary Upload Error (${uploadRes.status}): ${errText}`);
+          const errText = await uploadRes.text();
+          throw new Error(`LinkedIn Binary Upload Error (${uploadRes.status}): ${errText}`);
         }
 
         // Setup the UGC post body with media
@@ -970,7 +1012,7 @@ async function publishToBluesky(userId: string, post: any) {
   }
 }
 
-async function publishToPinterest(userId: string, post: any) {
+async function publishToPinterest(userId: string, post: any, preFetchedBlob: Blob | null = null) {
   try {
     const pinterest = await getSocialData(userId, post.workspaceId, "pinterest")
     if (!pinterest || !pinterest.accessToken) throw new Error("Pinterest account not connected")

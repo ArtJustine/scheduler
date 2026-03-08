@@ -348,7 +348,6 @@ async function publishToInstagram(userId: string, post: any) {
 
     const containerParams: any = {
       caption: post.content || post.description || "",
-      access_token: accessToken,
     }
 
     if (isVideo) {
@@ -362,11 +361,12 @@ async function publishToInstagram(userId: string, post: any) {
       }
     } else {
       containerParams.image_url = post.mediaUrl
-      containerParams.media_type = "IMAGE"
+      // IMPORTANT: DO NOT set media_type = 'IMAGE' as it's not a valid parameter for image containers
     }
 
-    console.log(`Instagram: Creating container (${containerParams.media_type})...`)
-    const containerRes = await fetch(containerUrl, {
+    console.log(`Instagram: Creating container (${containerParams.media_type || 'IMAGE'})...`)
+    // Moving access_token to query params for better reliability
+    const containerRes = await fetch(`${containerUrl}?access_token=${accessToken}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(containerParams),
@@ -565,11 +565,17 @@ async function publishToTikTok(userId: string, post: any, preFetchedBlob: Blob |
       const videoSize = mediaBlob.size
       console.log(`TikTok: Video size detected: ${videoSize} bytes`)
 
+      const isVideo = post.contentType === "video" || post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i)
+      if (!isVideo) {
+        return { success: false, error: "TikTok only supports video posts. Images cannot be published to TikTok." }
+      }
+
       // 2. Initialize the upload
       const initUrl = "https://open.tiktokapis.com/v2/post/publish/video/init/"
       const initBody = {
         post_info: {
-          title: post.title || post.content?.substring(0, 80) || "Scheduled Post",
+          title: (post.title || post.content || "Video").substring(0, 80),
+          description: post.content || post.description || "",
           privacy_level: post.tiktokOptions?.privacy === "public" ? "PUBLIC_TO_EVERYONE" :
             post.tiktokOptions?.privacy === "friends" ? "FRIENDS" : "SELF_ONLY",
           disable_comment: post.tiktokOptions?.allowComments === false,

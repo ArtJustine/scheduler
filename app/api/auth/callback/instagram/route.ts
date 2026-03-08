@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
       // For Meta-based apps, we first get the user's Facebook Pages
       // then check which page has an 'instagram_business_account' linked to it.
       const pagesRes = await fetch(
-        `https://graph.facebook.com/v${config.instagram.apiVersion}/me/accounts?fields=instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count},name&access_token=${tokenData.access_token}`
+        `https://graph.facebook.com/v${config.instagram.apiVersion}/me/accounts?fields=instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count},name,picture{url}&access_token=${tokenData.access_token}`
       )
 
       if (pagesRes.ok) {
@@ -123,8 +123,10 @@ export async function GET(request: NextRequest) {
 
           tokenData.user_id = igAccount.id
           username = igAccount.username
-          // Try multiple fields for profile picture
-          profilePicture = igAccount.profile_picture_url || igAccount.profile_pic || igAccount.profile_picture || null
+
+          // 1. Try IG Business Account specific field
+          // 2. Try the linked Facebook Page's profile picture as fallback
+          profilePicture = igAccount.profile_picture_url || pageWithIg.picture?.data?.url || null
 
           // If still null, try a direct fetch for the business account details
           if (!profilePicture) {

@@ -342,43 +342,58 @@ async function publishToInstagram(userId: string, post: any) {
     }
     const accessToken = instagram.accessToken
 
-    // 1. Create Media Container
-    const containerUrl = `https://graph.facebook.com/v${config.instagram.apiVersion}/${igUserId}/media`
+    // Auto-detect media type from post data
     const isVideo = post.contentType === "video" || post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i)
 
-    const containerParams: any = {
-      caption: post.content || post.description || "",
+    // Auto-detect Instagram post type if not explicitly set
+    let igPostType = post.instagramPostType || (isVideo ? "reel" : "post")
+    console.log(`Instagram: Detected media=${isVideo ? "video" : "image"}, postType=${igPostType}`)
+
+    // Story publishing is NOT supported via the Content Publishing API
+    if (igPostType === "story") {
+      return { success: false, error: "Instagram Stories cannot be published via the API. Please use Post or Reel instead." }
     }
+
+    // 1. Create Media Container using URL-encoded params (Meta's standard format)
+    const containerUrl = `https://graph.facebook.com/v${config.instagram.apiVersion}/${igUserId}/media`
+    const params = new URLSearchParams()
+    params.append("access_token", accessToken)
+    params.append("caption", post.content || post.description || "")
 
     if (isVideo) {
-      containerParams.video_url = post.mediaUrl
-      // Explicitly support Reels if selected
-      if (post.instagramPostType === "reel") {
-        containerParams.media_type = "REELS"
-        containerParams.share_to_feed = true // Ensure it appears on the grid
+      params.append("video_url", post.mediaUrl)
+      if (igPostType === "reel") {
+        params.append("media_type", "REELS")
+        params.append("share_to_feed", "true")
       } else {
-        containerParams.media_type = "VIDEO"
+        params.append("media_type", "VIDEO")
       }
     } else {
-      containerParams.image_url = post.mediaUrl
-      // IMPORTANT: DO NOT set media_type = 'IMAGE' as it's not a valid parameter for image containers
+      params.append("image_url", post.mediaUrl)
+      // For images: do NOT set media_type — Meta infers it automatically
     }
 
-    console.log(`Instagram: Creating container (${containerParams.media_type || 'IMAGE'})...`)
-    // Moving access_token to query params for better reliability
-    const containerRes = await fetch(`${containerUrl}?access_token=${accessToken}`, {
+    console.log(`Instagram: Creating container (${isVideo ? (igPostType === "reel" ? "REELS" : "VIDEO") : "IMAGE"})...`)
+    console.log(`Instagram: Media URL: ${post.mediaUrl.substring(0, 80)}...`)
+
+    const containerRes = await fetch(containerUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(containerParams),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
     })
 
     const containerData = await containerRes.json()
+    console.log("Instagram container response:", JSON.stringify(containerData))
+
     if (containerData.error) {
-      console.error("Instagram container error:", containerData.error)
+      console.error("Instagram container error:", JSON.stringify(containerData.error))
       throw new Error(containerData.error.message || "Failed to create media container")
     }
 
     const creationId = containerData.id
+    if (!creationId) {
+      throw new Error("Instagram did not return a container ID. Response: " + JSON.stringify(containerData))
+    }
 
     // 2. Poll for Status — only needed for video/reel, images are ready instantly
     if (isVideo) {
@@ -390,10 +405,8 @@ async function publishToInstagram(userId: string, post: any) {
       console.log(`Instagram: Waiting for video ${creationId} to process...`)
 
       while (!isReady && attempts < maxAttempts) {
-        // Sleep at the START of the loop to allow processing time (5s)
         await new Promise(resolve => setTimeout(resolve, 5000))
 
-        // IMPORTANT: Only request 'status_code' — 'error_message' does NOT exist in Graph API v18.0+
         const statusRes = await fetch(`https://graph.facebook.com/v${config.instagram.apiVersion}/${creationId}?fields=status_code&access_token=${accessToken}`)
         const statusData = await statusRes.json()
 
@@ -418,22 +431,25 @@ async function publishToInstagram(userId: string, post: any) {
 
       if (!isReady) throw new Error("Instagram timed out waiting for video to process.")
     } else {
-      // For images, just a small delay to let the container finalize
-      console.log("Instagram: Image container — skipping polling, publishing directly...")
+      console.log("Instagram: Image container — publishing after brief delay...")
       await new Promise(resolve => setTimeout(resolve, 2000))
     }
 
     // 3. Publish Media
     console.log(`Instagram: Publishing media ${creationId}...`)
-    const publishRes = await fetch(`https://graph.facebook.com/v${config.instagram.apiVersion}/${igUserId}/media_publish?access_token=${accessToken}`, {
+    const publishParams = new URLSearchParams()
+    publishParams.append("creation_id", creationId)
+    publishParams.append("access_token", accessToken)
+
+    const publishRes = await fetch(`https://graph.facebook.com/v${config.instagram.apiVersion}/${igUserId}/media_publish`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        creation_id: creationId,
-      }),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: publishParams.toString(),
     })
 
     const publishData = await publishRes.json()
+    console.log("Instagram publish response:", JSON.stringify(publishData))
+
     if (publishData.error) {
       console.error("Instagram publish error:", JSON.stringify(publishData.error))
       throw new Error(publishData.error.message)

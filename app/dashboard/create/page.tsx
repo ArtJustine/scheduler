@@ -1289,12 +1289,14 @@ export default function CreatePostPage() {
                     </div>
                     <div>
                       <h3 className="font-bold text-sm">Instagram Settings</h3>
-                      <p className="text-[10px] text-muted-foreground font-medium">Choose your post format</p>
+                      <p className="text-[10px] text-muted-foreground font-medium">
+                        {mediaType === "video" ? "Video detected → Reel" : mediaType === "image" ? "Image detected → Post" : "Auto-detects from media type"}
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 p-1 bg-muted/20 rounded-2xl border border-muted/20">
-                    {(["post", "reel", "story"] as const).map((type) => (
+                    {(["post", "reel"] as const).map((type) => (
                       <button
                         key={type}
                         onClick={() => setInstagramPostType(type)}
@@ -1305,10 +1307,15 @@ export default function CreatePostPage() {
                             : "text-muted-foreground hover:bg-white/50 dark:hover:bg-slate-800/50"
                         )}
                       >
-                        {type}
+                        {type === "post" ? "📷 Post" : "🎬 Reel"}
                       </button>
                     ))}
                   </div>
+
+                  <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
+                    <strong>Note:</strong> Instagram Stories are not supported via the Content Publishing API.
+                    Videos default to Reel, images default to Post. You can change it above.
+                  </p>
                 </CardContent>
               </Card>
             )

@@ -61,7 +61,7 @@ export interface PostType {
     scheduledFor: string;
     mediaUrl: string | null;
     thumbnailUrl?: string | null;
-    status: 'scheduled' | 'published' | 'failed';
+    status: 'scheduled' | 'published' | 'failed' | 'partial';
     error?: string | null;
     createdAt: string;
     content?: string;
@@ -73,6 +73,8 @@ export interface PostType {
         impressions: number;
     };
     aspectRatio?: '9:16' | '16:9' | 'community';
+    timezone?: string;
+    // YouTube
     youtubePostType?: 'video' | 'short' | 'community';
     youtubeOptions?: {
         playlist?: string;
@@ -82,6 +84,25 @@ export interface PostType {
         tags?: string[];
         category?: string;
     };
+    // Instagram
+    instagramPostType?: 'post' | 'reel' | 'story';
+    // TikTok
+    tiktokOptions?: {
+        privacy?: 'public' | 'friends' | 'self';
+        allowComments?: boolean;
+        allowDuet?: boolean;
+        allowStitch?: boolean;
+    };
+    // Threads
+    threadsOptions?: {
+        replyPolicy?: 'everyone' | 'followed' | 'mentioned';
+    };
+    // LinkedIn
+    linkedinOptions?: {
+        visibility?: 'PUBLIC' | 'CONNECTIONS';
+    };
+    // Platform results
+    platformResults?: Record<string, { success: boolean; error?: string; platformId?: string }>;
 }
 
 // ── Workspaces (web: types/workspace.ts) ────────────────────────

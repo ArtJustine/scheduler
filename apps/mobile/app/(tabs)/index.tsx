@@ -65,12 +65,14 @@ const platformIcons: Record<string, React.ComponentProps<typeof Ionicons>['name'
 };
 
 function PostRow({ post, colors, isLast }: { post: PostType; colors: (typeof Colors)['light']; isLast?: boolean }) {
-  const iconName = platformIcons[post.platform] ?? 'globe-outline';
+  const platformKey = post.platforms?.[0] || post.platform;
+  const iconName = platformIcons[platformKey] ?? 'globe-outline';
   const statusMap: Record<string, { color: string; label: string }> = {
     scheduled: { color: colors.brand, label: 'Scheduled' },
     published: { color: '#34C759', label: 'Published' },
     failed: { color: '#FF3B30', label: 'Failed' },
     partial: { color: '#FF9500', label: 'Partial' },
+    publishing: { color: '#AF52DE', label: 'Publishing' },
   };
   const status = statusMap[post.status] ?? { color: colors.mutedForeground, label: post.status };
 

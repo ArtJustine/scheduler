@@ -78,7 +78,8 @@ export const getPostStats = async (workspaceId?: string) => {
         const stats = {
             scheduled: 0,
             published: 0,
-            failed: 0
+            failed: 0,
+            partial: 0
         };
 
         snapshot.docs.forEach(doc => {
@@ -86,12 +87,13 @@ export const getPostStats = async (workspaceId?: string) => {
             if (data.status === 'scheduled') stats.scheduled++;
             else if (data.status === 'published') stats.published++;
             else if (data.status === 'failed') stats.failed++;
+            else if (data.status === 'partial') stats.partial++;
         });
 
         return stats;
     } catch (error) {
         console.error('[posts] getPostStats error:', error);
-        return { scheduled: 0, published: 0, failed: 0 };
+        return { scheduled: 0, published: 0, failed: 0, partial: 0 };
     }
 };
 

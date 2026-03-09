@@ -25,7 +25,7 @@ import type { PostType } from '@/types';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher';
 
-type FilterType = 'all' | 'scheduled' | 'published' | 'failed';
+type FilterType = 'all' | 'scheduled' | 'published' | 'failed' | 'partial';
 
 const platformIcons: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
     instagram: 'logo-instagram',
@@ -64,6 +64,7 @@ export default function ScheduleScreen() {
 
     const onRefresh = () => { setRefreshing(true); fetchPosts(); };
     const filteredPosts = filter === 'all' ? posts : posts.filter((p) => p.status === filter);
+    const partialCount = posts.filter(p => p.status === 'partial').length;
 
     if (loading && !refreshing) {
         return (
@@ -87,7 +88,7 @@ export default function ScheduleScreen() {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.filtersRow}
                 >
-                    {(['all', 'scheduled', 'published', 'failed'] as FilterType[]).map((f) => {
+                    {(['all', 'scheduled', 'published', 'failed', ...(partialCount > 0 ? ['partial'] : [])] as FilterType[]).map((f) => {
                         const active = filter === f;
                         return (
                             <TouchableOpacity
@@ -131,9 +132,10 @@ export default function ScheduleScreen() {
                     </GlassCard>
                 ) : (
                     filteredPosts.map((post) => {
-                        const iconName = platformIcons[post.platform] ?? 'globe-outline';
+                        const platformKey = post.platforms?.[0] || post.platform;
+                        const iconName = platformIcons[platformKey] ?? 'globe-outline';
                         const statusColors: Record<string, string> = {
-                            scheduled: colors.brand, published: '#34C759', failed: '#FF3B30', partial: '#FF9500',
+                            scheduled: colors.brand, published: '#34C759', failed: '#FF3B30', partial: '#FF9500', publishing: '#AF52DE',
                         };
                         const sc = statusColors[post.status] ?? colors.mutedForeground;
 
@@ -153,7 +155,7 @@ export default function ScheduleScreen() {
                                 </Text>
                                 <View style={styles.postFooter}>
                                     <Text style={[styles.postMeta, { color: colors.mutedForeground }]}>
-                                        {post.platform} · {new Date(post.scheduledFor).toLocaleDateString()}
+                                        {post.platforms?.join(', ') || post.platform} · {new Date(post.scheduledFor).toLocaleDateString()}
                                     </Text>
                                 </View>
                             </GlassCard>

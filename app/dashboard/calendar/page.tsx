@@ -85,7 +85,7 @@ export default function CalendarPage() {
         postDate.getMonth() === selectedDate.getMonth() &&
         postDate.getFullYear() === selectedDate.getFullYear()
       )
-    })
+    }).sort((a, b) => new Date(b.scheduledFor).getTime() - new Date(a.scheduledFor).getTime())
     : []
 
   // Function to get posts for a specific date (used for calendar day rendering)

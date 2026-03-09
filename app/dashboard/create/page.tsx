@@ -975,25 +975,6 @@ export default function CreatePostPage() {
                   )}
                 </div>
 
-                {/* YouTube Aspect Ratio Selection */}
-                {selectedPlatforms.includes("youtube") && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Format:</span>
-                    <Select
-                      value={youtubeAspectRatio}
-                      onValueChange={(val: "9:16" | "16:9") => setYoutubeAspectRatio(val)}
-                    >
-                      <SelectTrigger className="h-9 w-[130px] text-[10px] bg-background border-muted/30 shadow-sm font-medium">
-                        <SelectValue placeholder="Select ratio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="9:16" className="text-[10px] py-2">Shorts (9:16)</SelectItem>
-                        <SelectItem value="16:9" className="text-[10px] py-2">Video (16:9)</SelectItem>
-                        <SelectItem value="community" className="text-[10px] py-2">Community Post</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card >

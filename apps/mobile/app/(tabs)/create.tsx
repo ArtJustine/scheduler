@@ -18,7 +18,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DateTimePicker from '@react-native-community/datetimepicker';
+
+// Try to load native DateTimePicker, fallback to JS picker if not available (e.g. Expo Go)
+let NativeDateTimePicker: any = null;
+try {
+    NativeDateTimePicker = require('@react-native-community/datetimepicker').default;
+} catch (e) {
+    console.log('DateTimePicker native module not available, using JS fallback');
+}
 
 import Colors from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
@@ -453,13 +460,13 @@ export default function CreatePostScreen() {
                     <Text style={[styles.timezoneText, { color: colors.mutedForeground }]}>{timezoneLabel}</Text>
                 </GlassCard>
 
-                {showDatePicker && (
-                    <DateTimePicker
+                {showDatePicker && NativeDateTimePicker && (
+                    <NativeDateTimePicker
                         value={scheduledDate}
                         mode="date"
                         display={RNPlatform.OS === 'ios' ? 'spinner' : 'default'}
                         minimumDate={new Date()}
-                        onChange={(event, date) => {
+                        onChange={(event: any, date: Date | undefined) => {
                             setShowDatePicker(RNPlatform.OS === 'ios');
                             if (date) {
                                 const updated = new Date(scheduledDate);
@@ -470,12 +477,12 @@ export default function CreatePostScreen() {
                     />
                 )}
 
-                {showTimePicker && (
-                    <DateTimePicker
+                {showTimePicker && NativeDateTimePicker && (
+                    <NativeDateTimePicker
                         value={scheduledDate}
                         mode="time"
                         display={RNPlatform.OS === 'ios' ? 'spinner' : 'default'}
-                        onChange={(event, date) => {
+                        onChange={(event: any, date: Date | undefined) => {
                             setShowTimePicker(RNPlatform.OS === 'ios');
                             if (date) {
                                 const updated = new Date(scheduledDate);
@@ -484,6 +491,93 @@ export default function CreatePostScreen() {
                             }
                         }}
                     />
+                )}
+
+                {/* JS Fallback Date Picker (when native not available) */}
+                {showDatePicker && !NativeDateTimePicker && (
+                    <Modal visible transparent animationType="slide" onRequestClose={() => setShowDatePicker(false)}>
+                        <View style={styles.modalOverlay}>
+                            <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                                <View style={styles.modalHeader}>
+                                    <Text style={[styles.modalTitle, { color: colors.foreground }]}>Select Date</Text>
+                                    <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                                        <Ionicons name="close-circle" size={28} color={colors.mutedForeground} />
+                                    </TouchableOpacity>
+                                </View>
+                                {(() => {
+                                    const days: Date[] = [];
+                                    for (let i = 0; i < 30; i++) {
+                                        const d = new Date();
+                                        d.setDate(d.getDate() + i);
+                                        days.push(d);
+                                    }
+                                    return (
+                                        <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+                                            {days.map((d, idx) => {
+                                                const isSelected = d.toDateString() === scheduledDate.toDateString();
+                                                return (
+                                                    <TouchableOpacity
+                                                        key={idx}
+                                                        style={[styles.modalOption, isSelected && { backgroundColor: `${colors.brand}15` }]}
+                                                        onPress={() => {
+                                                            const updated = new Date(scheduledDate);
+                                                            updated.setFullYear(d.getFullYear(), d.getMonth(), d.getDate());
+                                                            setScheduledDate(updated);
+                                                            setShowDatePicker(false);
+                                                        }}
+                                                    >
+                                                        <Text style={[styles.modalOptionText, { color: colors.foreground }]}>
+                                                            {d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                                        </Text>
+                                                        {isSelected && <Ionicons name="checkmark-circle" size={22} color={colors.brand} />}
+                                                    </TouchableOpacity>
+                                                );
+                                            })}
+                                        </ScrollView>
+                                    );
+                                })()}
+                            </View>
+                        </View>
+                    </Modal>
+                )}
+
+                {/* JS Fallback Time Picker */}
+                {showTimePicker && !NativeDateTimePicker && (
+                    <Modal visible transparent animationType="slide" onRequestClose={() => setShowTimePicker(false)}>
+                        <View style={styles.modalOverlay}>
+                            <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                                <View style={styles.modalHeader}>
+                                    <Text style={[styles.modalTitle, { color: colors.foreground }]}>Select Time</Text>
+                                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                                        <Ionicons name="close-circle" size={28} color={colors.mutedForeground} />
+                                    </TouchableOpacity>
+                                </View>
+                                <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+                                    {Array.from({ length: 48 }, (_, i) => {
+                                        const h = Math.floor(i / 2);
+                                        const m = (i % 2) * 30;
+                                        const label = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                                        const isSelected = scheduledDate.getHours() === h && Math.abs(scheduledDate.getMinutes() - m) < 15;
+                                        return (
+                                            <TouchableOpacity
+                                                key={i}
+                                                style={[styles.modalOption, isSelected && { backgroundColor: `${colors.brand}15` }]}
+                                                onPress={() => {
+                                                    const updated = new Date(scheduledDate);
+                                                    updated.setHours(h, m);
+                                                    setScheduledDate(updated);
+                                                    setShowTimePicker(false);
+                                                }}
+                                            >
+                                                <Text style={[styles.modalOptionText, { color: colors.foreground }]}>{label}</Text>
+                                                {isSelected && <Ionicons name="checkmark-circle" size={22} color={colors.brand} />}
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </ScrollView>
+                            </View>
+                        </View>
+                    </Modal>
                 )}
 
                 {/* ─── Instagram Settings ─── */}

@@ -61,7 +61,7 @@ export default {
         },
         "owner": "artjustine",
         "runtimeVersion": {
-            "policy": "appVersion"
+            "policy": "sdkVersion"
         },
         "updates": {
             "url": "https://u.expo.dev/de63071c-4aee-4335-8b3a-8c4b5de5d547"

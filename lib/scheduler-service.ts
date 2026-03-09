@@ -346,7 +346,13 @@ async function publishToInstagram(userId: string, post: any) {
     const isVideo = post.contentType === "video" || post.mediaUrl?.match(/\.(mp4|mov|avi|wmv|flv)$/i)
 
     // Auto-detect Instagram post type if not explicitly set
+    // IMPORTANT: Meta deprecated the VIDEO media_type. ALL videos must use REELS now.
     let igPostType = post.instagramPostType || (isVideo ? "reel" : "post")
+    // Force video posts to use REELS since VIDEO is deprecated
+    if (isVideo && igPostType === "post") {
+      console.log(`Instagram: Overriding postType from 'post' to 'reel' — VIDEO media_type is deprecated by Meta`)
+      igPostType = "reel"
+    }
     console.log(`Instagram: Detected media=${isVideo ? "video" : "image"}, postType=${igPostType}`)
 
     // Story publishing is NOT supported via the Content Publishing API
@@ -361,19 +367,16 @@ async function publishToInstagram(userId: string, post: any) {
     params.append("caption", post.content || post.description || "")
 
     if (isVideo) {
+      // All video content uses REELS (Meta deprecated VIDEO media_type)
       params.append("video_url", post.mediaUrl)
-      if (igPostType === "reel") {
-        params.append("media_type", "REELS")
-        params.append("share_to_feed", "true")
-      } else {
-        params.append("media_type", "VIDEO")
-      }
+      params.append("media_type", "REELS")
+      params.append("share_to_feed", "true")
     } else {
       params.append("image_url", post.mediaUrl)
       // For images: do NOT set media_type — Meta infers it automatically
     }
 
-    console.log(`Instagram: Creating container (${isVideo ? (igPostType === "reel" ? "REELS" : "VIDEO") : "IMAGE"})...`)
+    console.log(`Instagram: Creating container (${isVideo ? "REELS" : "IMAGE"})...`)
     console.log(`Instagram: Media URL: ${post.mediaUrl.substring(0, 80)}...`)
 
     const containerRes = await fetch(containerUrl, {
@@ -599,11 +602,26 @@ async function publishToTikTok(userId: string, post: any, preFetchedBlob: Blob |
       const initUrl = "https://open.tiktokapis.com/v2/post/publish/video/init/"
       // TikTok uses 'title' as the video caption (max 150 chars for direct post)
       const caption = (post.content || post.title || post.description || "").substring(0, 150)
+
+      // IMPORTANT: Unaudited TikTok apps can ONLY post to private accounts with SELF_ONLY privacy.
+      // Until the TikTok app passes their audit, we must force SELF_ONLY.
+      // Once audited, the user's privacy selection will be respected.
+      let privacyLevel = "SELF_ONLY"
+      const requestedPrivacy = post.tiktokOptions?.privacy
+      if (requestedPrivacy === "public") {
+        privacyLevel = "SELF_ONLY" // Force SELF_ONLY for unaudited apps (PUBLIC_TO_EVERYONE is rejected)
+        console.log("TikTok: Note — forcing SELF_ONLY privacy (app not yet audited by TikTok). Video will be private.")
+      } else if (requestedPrivacy === "friends") {
+        privacyLevel = "SELF_ONLY" // FRIENDS also requires audit
+        console.log("TikTok: Note — forcing SELF_ONLY privacy (app not yet audited by TikTok). Video will be private.")
+      } else {
+        privacyLevel = "SELF_ONLY"
+      }
+
       const initBody = {
         post_info: {
           title: caption,
-          privacy_level: post.tiktokOptions?.privacy === "public" ? "PUBLIC_TO_EVERYONE" :
-            post.tiktokOptions?.privacy === "friends" ? "FRIENDS" : "SELF_ONLY",
+          privacy_level: privacyLevel,
           disable_comment: post.tiktokOptions?.allowComments === false,
           disable_duet: post.tiktokOptions?.allowDuet === false,
           disable_stitch: post.tiktokOptions?.allowStitch === false,

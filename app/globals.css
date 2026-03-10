@@ -62,7 +62,7 @@
 /* Minimalist UI Utilities */
 @layer utilities {
   .glass-card {
-    @apply border bg-background/50 backdrop-blur-xl transition-all duration-300;
+    @apply border bg-card transition-all duration-300;
   }
 
   .shadow-soft {

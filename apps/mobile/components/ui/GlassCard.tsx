@@ -25,8 +25,9 @@ export function GlassCard({ children, style, noPadding, variant = 'default' }: G
                 styles.card,
                 variant === 'default' && (isDark ? styles.shadowDark : styles.shadowLight),
                 {
-                    backgroundColor: isDark ? 'rgba(28, 28, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                    backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+                    // Border removed to prevent nested rounded rectangle outlines
+                    borderWidth: 0,
                 },
                 style,
             ]}
@@ -41,22 +42,21 @@ export function GlassCard({ children, style, noPadding, variant = 'default' }: G
 const styles = StyleSheet.create({
     card: {
         borderRadius: 16,
-        borderWidth: 0.5,
         overflow: 'hidden',
     },
     shadowLight: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 3,
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+        elevation: 2,
     },
     shadowDark: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
         shadowRadius: 8,
-        elevation: 3,
+        elevation: 4,
     },
     content: {
         padding: 16,

@@ -102,6 +102,7 @@ export default function CreatePostPage() {
   const [isCapturing, setIsCapturing] = useState(false)
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [showMediaLibrary, setShowMediaLibrary] = useState(false)
+  const [showMediaUploadModal, setShowMediaUploadModal] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   // YouTube Specific Options
@@ -853,62 +854,82 @@ export default function CreatePostPage() {
               {/* Action Buttons */}
               <div className="border-t px-6 py-4 flex items-center justify-between bg-muted/5">
                 <div className="flex items-center gap-3">
-                  {/* Media Button - More Prominent */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        disabled={isUploadingMedia}
-                        className="gap-2 px-8 h-12 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl border-none rounded-full transition-all hover:scale-[1.05] active:scale-[0.95] font-bold disabled:opacity-70"
-                      >
-                        {isUploadingMedia ? (
-                          <>
-                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                            <span>Uploading...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="h-5 w-5" />
-                            <span>Add Media</span>
-                          </>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" sideOffset={8} className="w-56 p-1 shadow-lg border rounded-lg">
-                      <DropdownMenuItem
-                        className="cursor-pointer gap-3 py-2.5 px-3 rounded-md focus:bg-accent"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                          <Upload className="h-4 w-4" />
-                        </div>
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-sm font-medium">Upload New Media</span>
-                          <span className="text-xs text-muted-foreground">Select from your device</span>
-                        </div>
-                      </DropdownMenuItem>
-
-                      {mediaItems.length > 0 && (
+                  {/* Media Button - Opens Upload Modal */}
+                  <Dialog open={showMediaUploadModal} onOpenChange={setShowMediaUploadModal}>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      disabled={isUploadingMedia}
+                      onClick={() => setShowMediaUploadModal(true)}
+                      className="gap-2 px-8 h-12 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl border-none rounded-full transition-all hover:scale-[1.05] active:scale-[0.95] font-bold disabled:opacity-70"
+                    >
+                      {isUploadingMedia ? (
                         <>
-                          <DropdownMenuSeparator className="my-1" />
-
-                          <DropdownMenuItem
-                            className="cursor-pointer gap-3 py-2.5 px-3 rounded-md focus:bg-accent"
-                            onClick={() => setShowMediaLibrary(true)}
-                          >
-                            <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center text-muted-foreground shrink-0">
-                              <ImageIconLucide className="h-4 w-4" />
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-sm font-medium">Select from Library</span>
-                              <span className="text-xs text-muted-foreground">{mediaItems.length} items available</span>
-                            </div>
-                          </DropdownMenuItem>
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          <span>Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-5 w-5" />
+                          <span>Add Media</span>
                         </>
                       )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    </Button>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Upload Media</DialogTitle>
+                        <DialogDescription>
+                          Add images or videos to your post.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 pt-2">
+                        {/* Upload Area */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            fileInputRef.current?.click()
+                            setShowMediaUploadModal(false)
+                          }}
+                          className="w-full border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center gap-3 hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer group"
+                        >
+                          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            <Upload className="h-5 w-5" />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-medium">Click to upload</p>
+                            <p className="text-xs text-muted-foreground mt-1">Supports images and videos</p>
+                          </div>
+                        </button>
+
+                        {/* Library Option */}
+                        {mediaItems.length > 0 && (
+                          <>
+                            <div className="relative flex items-center">
+                              <div className="flex-grow border-t border-border" />
+                              <span className="px-3 text-xs text-muted-foreground">or</span>
+                              <div className="flex-grow border-t border-border" />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowMediaLibrary(true)
+                                setShowMediaUploadModal(false)
+                              }}
+                              className="w-full flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-accent transition-colors text-left"
+                            >
+                              <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground shrink-0">
+                                <ImageIconLucide className="h-5 w-5" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">Select from Library</p>
+                                <p className="text-xs text-muted-foreground">{mediaItems.length} items available</p>
+                              </div>
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
 
                   {/* Hidden Input moved outside dropdown to prevent unmounting issues */}
                   <input

@@ -107,16 +107,16 @@
   }
 
   /* Accordion/FAQ Minimal Styling */
-  [data-orientation="vertical"]>div {
+  .accordion-item {
     @apply rounded-xl mb-3 border border-border overflow-hidden transition-all duration-300;
     background: transparent;
   }
 
-  [data-orientation="vertical"] button[data-state] {
+  .accordion-trigger {
     @apply px-6 py-5 !important;
   }
 
-  div[data-state="open"]>div {
+  .accordion-item[data-state="open"] .accordion-content {
     @apply px-6 pt-0 pb-6 text-base !important;
   }
 }

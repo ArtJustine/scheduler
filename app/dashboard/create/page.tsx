@@ -875,44 +875,38 @@ export default function CreatePostPage() {
                         )}
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" sideOffset={8} className="w-[240px] p-1.5 shadow-2xl border border-white/10 rounded-2xl bg-white/90 dark:bg-black/90 backdrop-blur-xl animate-in zoom-in-95 duration-200">
-                      <div className="flex flex-col gap-1">
-                        <DropdownMenuItem
-                          className="cursor-pointer py-3 px-3 rounded-xl transition-all group/item focus:bg-primary/10 focus:text-primary data-[highlighted]:bg-primary/10"
-                          onClick={() => fileInputRef.current?.click()}
-                        >
-                          <div className="flex items-center gap-3 w-full">
-                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover/item:bg-primary group-hover/item:text-primary-foreground transition-colors shrink-0">
-                              <Upload className="h-4 w-4" />
-                            </div>
-                            <div className="flex flex-col gap-0.5 flex-1">
-                              <span className="text-sm font-semibold leading-none">Upload New Media</span>
-                              <span className="text-xs text-muted-foreground leading-none">Select from your device</span>
-                            </div>
-                          </div>
-                        </DropdownMenuItem>
+                    <DropdownMenuContent align="start" sideOffset={8} className="w-56 p-1 shadow-lg border rounded-lg">
+                      <DropdownMenuItem
+                        className="cursor-pointer gap-3 py-2.5 px-3 rounded-md focus:bg-accent"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                          <Upload className="h-4 w-4" />
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-medium">Upload New Media</span>
+                          <span className="text-xs text-muted-foreground">Select from your device</span>
+                        </div>
+                      </DropdownMenuItem>
 
-                        {mediaItems.length > 0 && (
-                          <>
-                            <div className="mx-2 my-1 h-px bg-border/50" />
+                      {mediaItems.length > 0 && (
+                        <>
+                          <DropdownMenuSeparator className="my-1" />
 
-                            <DropdownMenuItem
-                              className="cursor-pointer py-3 px-3 rounded-xl transition-all group/item focus:bg-secondary focus:text-secondary-foreground data-[highlighted]:bg-secondary"
-                              onClick={() => setShowMediaLibrary(true)}
-                            >
-                              <div className="flex items-center gap-3 w-full">
-                                <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover/item:bg-foreground group-hover/item:text-background transition-colors shrink-0">
-                                  <ImageIconLucide className="h-4 w-4" />
-                                </div>
-                                <div className="flex flex-col gap-0.5 flex-1">
-                                  <span className="text-sm font-semibold leading-none">Select from Library</span>
-                                  <span className="text-xs text-muted-foreground leading-none">{mediaItems.length} items available</span>
-                                </div>
-                              </div>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </div>
+                          <DropdownMenuItem
+                            className="cursor-pointer gap-3 py-2.5 px-3 rounded-md focus:bg-accent"
+                            onClick={() => setShowMediaLibrary(true)}
+                          >
+                            <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center text-muted-foreground shrink-0">
+                              <ImageIconLucide className="h-4 w-4" />
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-sm font-medium">Select from Library</span>
+                              <span className="text-xs text-muted-foreground">{mediaItems.length} items available</span>
+                            </div>
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
 

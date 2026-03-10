@@ -137,29 +137,29 @@ export function WorkspaceSwitcher() {
                         <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[280px] p-2" align="start">
+                <DropdownMenuContent className="w-[260px] p-1" align="start">
                     {workspaces.length > 0 && (
                         <>
-                            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 px-3 py-2">
+                            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60 px-2 py-1.5">
                                 Your Brands
                             </DropdownMenuLabel>
-                            <div className="space-y-1">
+                            <div className="space-y-0.5">
                                 {workspaces.map((w) => (
                                     <DropdownMenuItem
                                         key={w.id}
                                         onClick={() => handleSwitch(w.id)}
-                                        className="flex items-center justify-between p-2.5 rounded-xl cursor-pointer hover:bg-muted/50 transition-colors"
+                                        className="flex items-center justify-between py-2 px-2 rounded-md cursor-pointer"
                                     >
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2.5">
                                             <div className={cn(
-                                                "h-8 w-8 rounded-lg flex items-center justify-center transition-colors",
-                                                activeWorkspace?.id === w.id ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-400"
+                                                "h-7 w-7 rounded-md flex items-center justify-center transition-colors",
+                                                activeWorkspace?.id === w.id ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                                             )}>
-                                                <Building2 className="h-4 w-4" />
+                                                <Building2 className="h-3.5 w-3.5" />
                                             </div>
                                             <span className={cn(
                                                 "text-sm",
-                                                activeWorkspace?.id === w.id ? "font-bold" : "font-medium"
+                                                activeWorkspace?.id === w.id ? "font-semibold" : "font-medium"
                                             )}>
                                                 {w.name}
                                             </span>
@@ -168,14 +168,14 @@ export function WorkspaceSwitcher() {
                                     </DropdownMenuItem>
                                 ))}
                             </div>
-                            <DropdownMenuSeparator className="my-2" />
+                            <DropdownMenuSeparator className="my-1" />
                         </>
                     )}
 
                     <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                         <DialogTrigger asChild>
                             <button
-                                className="flex items-center gap-3 w-full p-3 text-sm font-semibold rounded-xl hover:bg-primary/5 text-primary transition-colors text-left"
+                                className="flex items-center gap-2.5 w-full py-2 px-2.5 text-sm font-medium rounded-md hover:bg-primary/5 text-primary transition-colors text-left"
                                 onClick={(e) => {
                                     e.stopPropagation()
                                 }}

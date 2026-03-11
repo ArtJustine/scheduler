@@ -26,8 +26,8 @@ export async function checkScheduledPosts() {
     let processedCount = 0
     let publishedCount = 0
 
-    // Iterate through each scheduled post
-    for (const doc of snapshot.docs) {
+    // Iterate through each scheduled post in parallel
+    const publishPromises = snapshot.docs.map(async (doc) => {
       const post = doc.data()
       console.log(`checkScheduledPosts: Analyzing post ${doc.id} | Scheduled for: ${post.scheduledFor}`)
 
@@ -44,7 +44,9 @@ export async function checkScheduledPosts() {
       } else {
         console.log(`checkScheduledPosts: Post ${doc.id} is scheduled for the future (${post.scheduledFor}). Skipping.`)
       }
-    }
+    })
+
+    await Promise.allSettled(publishPromises)
 
     console.log(`checkScheduledPosts: Finished. Processed ${processedCount} due posts, ${publishedCount} succeeded.`)
   } catch (error) {
@@ -123,11 +125,11 @@ export async function publishPost(userId: string, postId: string, post: any) {
       }
     }
 
-    // Process platforms SEQUENTIALLY to stay within memory limits and provide per-platform status
+    // Process platforms IN PARALLEL to prevent Vercel maximum execution limits and timeouts
     let successCount = 0
     let failureCount = 0
 
-    for (const platform of platforms) {
+    const platformPromises = platforms.map(async (platform) => {
       console.log(`publishPost: Processing ${platform}...`)
       try {
         let result: any
@@ -166,19 +168,14 @@ export async function publishPost(userId: string, postId: string, post: any) {
         } else {
           failureCount++
         }
-
-        // Update progress in DB after each platform for better tracking
-        await postRef.update({
-          platformResults: results,
-          updatedAt: new Date().toISOString()
-        })
-
       } catch (err: any) {
         console.error(`publishPost: Error processing ${platform}:`, err)
         results[platform] = { success: false, error: err.message || "Unknown execution error" }
         failureCount++
       }
-    }
+    })
+
+    await Promise.all(platformPromises)
 
     // Final Status Update
     if (failureCount === 0) {

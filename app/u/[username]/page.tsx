@@ -3,21 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { Loader2, ExternalLink, Share2, Globe, Heart } from "lucide-react"
-
-interface BioLink {
-    id: string
-    title: string
-    url: string
-    enabled: boolean
-}
-
-interface BioProfile {
-    displayName: string
-    bio: string
-    profileImage?: string
-    theme?: string
-    links: BioLink[]
-}
+import { getPublicBioProfile, type BioProfile } from "@/lib/firebase/link-in-bio"
 
 export default function PublicBioPage() {
     const params = useParams()
@@ -26,25 +12,11 @@ export default function PublicBioPage() {
     const [profile, setProfile] = useState<BioProfile | null>(null)
 
     useEffect(() => {
-        // In a real app, this would fetch from Firestore based on the username
         const fetchProfile = async () => {
             try {
                 setIsLoading(true)
-                // Simulate network delay
-                await new Promise(resolve => setTimeout(resolve, 800))
-
-                // Mock data
-                setProfile({
-                    displayName: username.charAt(0).toUpperCase() + username.slice(1),
-                    bio: "Digital creator and social media strategist. Building the future of distribution.",
-                    theme: "glass",
-                    links: [
-                        { id: "1", title: "Join my Newsletter", url: "#", enabled: true },
-                        { id: "2", title: "Latest YouTube Video", url: "#", enabled: true },
-                        { id: "3", title: "Scale Your Distribution", url: "#", enabled: true },
-                        { id: "4", title: "Work with Me", url: "#", enabled: true }
-                    ]
-                })
+                const data = await getPublicBioProfile(username)
+                setProfile(data)
             } catch (err) {
                 console.error("Error fetching bio profile:", err)
             } finally {
@@ -75,23 +47,49 @@ export default function PublicBioPage() {
         )
     }
 
+    const theme = profile.theme || "Default"
+    const bgClass = {
+        "Default": "bg-slate-900",
+        "Glass": "bg-slate-50",
+        "Night": "bg-black",
+        "Forest": "bg-emerald-950",
+        "Ocean": "bg-blue-950",
+        "Sunset": "bg-orange-950"
+    }[theme] || "bg-black"
+
+    const textClass = theme === "Glass" ? "text-slate-900" : "text-white"
+    const isLight = theme === "Glass"
+    
+    // Generate valid URL for hrefs
+    const formatUrl = (url: string) => {
+        if (!url) return "#"
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            return `https://${url}`
+        }
+        return url
+    }
+
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-primary/30">
+        <div className={`min-h-screen ${bgClass} ${textClass} selection:bg-primary/30 transition-colors duration-500`}>
             {/* Dynamic Background Effects - Minimal */}
             <div className="fixed inset-0 overflow-hidden -z-10">
-                <div className="absolute top-[-20%] left-[-10%] w-[1000px] h-[1000px] bg-primary/10 rounded-full blur-[140px] opacity-40" />
+                <div className={`absolute top-[-20%] left-[-10%] w-[1000px] h-[1000px] bg-primary/10 rounded-full blur-[140px] opacity-40`} />
             </div>
 
             <main className="max-w-2xl mx-auto px-6 py-20 flex flex-col items-center">
                 {/* Profile Header */}
                 <div className="flex flex-col items-center mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
                     <div className="h-24 w-24 rounded-full bg-primary p-[2px] mb-6 shadow-2xl">
-                        <div className="h-full w-full rounded-full bg-black flex items-center justify-center overflow-hidden">
-                            <span className="text-3xl font-bold">{profile.displayName.charAt(0)}</span>
+                        <div className={`h-full w-full rounded-full ${bgClass} flex items-center justify-center overflow-hidden`}>
+                            {profile.profileImage ? (
+                                <img src={profile.profileImage} alt={profile.displayName} className="h-full w-full object-cover" />
+                            ) : (
+                                <span className={`text-3xl font-bold ${textClass}`}>{profile.displayName.charAt(0)}</span>
+                            )}
                         </div>
                     </div>
                     <h1 className="text-2xl font-bold mb-2 tracking-tight">@{username}</h1>
-                    <p className="text-zinc-500 text-center max-w-sm leading-relaxed">{profile.bio}</p>
+                    <p className={`${isLight ? 'text-slate-600' : 'text-slate-300'} text-center max-w-sm leading-relaxed`}>{profile.bio}</p>
                 </div>
 
                 {/* Social Bar - Simplified for now */}
@@ -102,16 +100,16 @@ export default function PublicBioPage() {
                 </div>
 
                 <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-12 duration-700 delay-200">
-                    {profile.links.filter(l => l.enabled).map((link, index) => (
+                    {profile.links?.filter(l => l.enabled).map((link, index) => (
                         <a
                             key={link.id}
-                            href={link.url}
+                            href={formatUrl(link.url)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group block w-full p-4 bg-[#111] hover:bg-zinc-900 border border-zinc-800 hover:border-primary rounded-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden active:scale-[0.98]"
+                            className={`group block w-full p-4 ${isLight ? 'bg-white hover:bg-slate-100 border-slate-200' : 'bg-white/5 hover:bg-white/10 border-white/10'} border hover:border-primary rounded-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden active:scale-[0.98]`}
                         >
                             <div className="relative z-10 flex items-center justify-between">
-                                <span className="font-semibold text-lg">{link.title}</span>
+                                <span className="font-semibold text-lg">{link.title || "Untitled Link"}</span>
                                 <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
                         </a>

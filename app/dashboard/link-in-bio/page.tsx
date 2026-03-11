@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-provider"
+import { getUserBioProfile, saveBioProfile, isUsernameAvailable, type BioLink } from "@/lib/firebase/link-in-bio"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -23,32 +25,45 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
-interface BioLink {
-    id: string
-    title: string
-    url: string
-    enabled: boolean
-}
-
 export default function LinkInBioPage() {
     const { user } = useAuth()
     const [isLoading, setIsLoading] = useState(false)
     const [username, setUsername] = useState("")
     const [displayName, setDisplayName] = useState("")
     const [bio, setBio] = useState("")
+    const [theme, setTheme] = useState("Default")
     const [links, setLinks] = useState<BioLink[]>([
         { id: "1", title: "My YouTube Channel", url: "https://youtube.com", enabled: true },
         { id: "2", title: "Latest Product Launch", url: "https://example.com", enabled: true }
     ])
 
     useEffect(() => {
-        if (user) {
-            setDisplayName(user.displayName || "")
-            // Generate a default username if not set
-            if (!username) {
-                setUsername(user.email?.split("@")[0].replace(/[^a-z0-9]/g, "") || "user")
+        const loadProfile = async () => {
+            if (!user) return
+            
+            try {
+                const profile = await getUserBioProfile(user.uid)
+                if (profile) {
+                    setUsername(profile.username || "")
+                    setDisplayName(profile.displayName || "")
+                    setBio(profile.bio || "")
+                    setTheme(profile.theme || "Default")
+                    if (profile.links && profile.links.length > 0) {
+                        setLinks(profile.links)
+                    }
+                } else {
+                    setDisplayName(user.displayName || "")
+                    if (!username) {
+                        setUsername(user.email?.split("@")[0].replace(/[^a-z0-9]/g, "") || "user")
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load bio profile", error)
+                toast.error("Failed to load your profile data")
             }
         }
+        
+        loadProfile()
     }, [user])
 
     const addLink = () => {
@@ -70,12 +85,36 @@ export default function LinkInBioPage() {
     }
 
     const saveProfile = async () => {
+        if (!user) return
+        if (!username) {
+            toast.error("Please set a username")
+            return
+        }
+        
         setIsLoading(true)
-        // Simulate save
-        setTimeout(() => {
+        try {
+            const available = await isUsernameAvailable(username, user.uid)
+            if (!available) {
+                toast.error("This username is already taken. Please choose another.")
+                setIsLoading(false)
+                return
+            }
+            
+            await saveBioProfile(user.uid, {
+                username,
+                displayName,
+                bio,
+                theme,
+                links,
+                profileImage: user.photoURL || null
+            })
+            toast.success("Digital identity updated successfully!")
+        } catch (error) {
+            console.error("Failed to save bio profile", error)
+            toast.error("Something went wrong saving your profile")
+        } finally {
             setIsLoading(false)
-            alert("Digital identity updated successfully!")
-        }, 1000)
+        }
     }
 
     if (!user) return null
@@ -221,15 +260,21 @@ export default function LinkInBioPage() {
                                             { name: "Forest", bg: "bg-emerald-950", accent: "bg-emerald-400" },
                                             { name: "Ocean", bg: "bg-blue-950", accent: "bg-cyan-400" },
                                             { name: "Sunset", bg: "bg-orange-950", accent: "bg-orange-400" },
-                                        ].map((theme) => (
-                                            <div key={theme.name} className="border border-border/50 rounded-xl p-2 cursor-pointer hover:border-primary transition-all group">
-                                                <div className={`aspect-[4/3] rounded-lg ${theme.bg} relative overflow-hidden mb-2`}>
-                                                    <div className={`absolute bottom-2 left-2 right-2 h-1 ${theme.accent} rounded-full opacity-50`} />
-                                                    <div className={`absolute bottom-5 left-2 right-2 h-1 ${theme.accent} rounded-full opacity-30`} />
+                                        ].map((t) => (
+                                                <div 
+                                                    key={t.name} 
+                                                    className={`border rounded-xl p-2 cursor-pointer hover:border-primary transition-all group ${theme === t.name ? 'border-primary ring-2 ring-primary/20' : 'border-border/50'}`}
+                                                    onClick={() => setTheme(t.name)}
+                                                >
+                                                    <div className={`aspect-[4/3] rounded-lg ${t.bg} relative overflow-hidden mb-2`}>
+                                                        <div className={`absolute bottom-2 left-2 right-2 h-1 ${t.accent} rounded-full opacity-50`} />
+                                                        <div className={`absolute bottom-5 left-2 right-2 h-1 ${t.accent} rounded-full opacity-30`} />
+                                                    </div>
+                                                    <span className={`text-[10px] font-bold uppercase tracking-widest ${theme === t.name ? 'text-primary' : 'text-muted-foreground'} group-hover:text-primary`}>
+                                                        {t.name}
+                                                    </span>
                                                 </div>
-                                                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary">{theme.name}</span>
-                                            </div>
-                                        ))}
+                                            ))}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -263,7 +308,16 @@ export default function LinkInBioPage() {
                                                 <p className="text-xs text-muted-foreground">https://chiyu.io/u/{username}</p>
                                             </div>
                                         </div>
-                                        <Button size="sm" variant="ghost">Copy Link</Button>
+                                        <Button 
+                                            size="sm" 
+                                            variant="ghost"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(`https://chiyusocial.com/u/${username}`)
+                                                toast.success("Link copied to clipboard!")
+                                            }}
+                                        >
+                                            Copy Link
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -281,7 +335,14 @@ export default function LinkInBioPage() {
                             </Badge>
                         </div>
 
-                        <div className="relative mx-auto w-full max-w-[300px] aspect-[9/19] bg-slate-950 rounded-[3rem] border-8 border-slate-900 shadow-2xl p-6 overflow-hidden flex flex-col">
+                        <div className={`relative mx-auto w-full max-w-[300px] aspect-[9/19] ${
+                                theme === 'Glass' ? 'bg-slate-50' :
+                                theme === 'Night' ? 'bg-black' :
+                                theme === 'Forest' ? 'bg-emerald-950' :
+                                theme === 'Ocean' ? 'bg-blue-950' : 
+                                theme === 'Sunset' ? 'bg-orange-950' :
+                                'bg-slate-950'
+                            } rounded-[3rem] border-8 border-slate-900 shadow-2xl p-6 overflow-hidden flex flex-col`}>
                             {/* Device Top Bar */}
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-20 flex items-center justify-center gap-1">
                                 <div className="w-10 h-1 bg-white/10 rounded-full" />

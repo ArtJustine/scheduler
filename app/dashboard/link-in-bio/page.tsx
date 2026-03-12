@@ -29,6 +29,48 @@ import {
 import { getSocialAccounts } from "@/lib/data-service"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+function SortableLinkItem({ id, children }: { id: string, children: (props: any) => React.ReactNode }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        position: 'relative' as const,
+        zIndex: isDragging ? 50 : 1,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style}>
+            {children({ listeners, attributes })}
+        </div>
+    );
+}
 
 export default function LinkInBioPage() {
     const { user } = useAuth()
@@ -76,6 +118,30 @@ export default function LinkInBioPage() {
         
         loadProfile()
     }, [user])
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            setLinks((items) => {
+                const oldIndex = items.findIndex((item) => item.id === active.id);
+                const newIndex = items.findIndex((item) => item.id === over.id);
+                
+                return arrayMove(items, oldIndex, newIndex);
+            });
+        }
+    };
 
     const addBlock = (type: 'link' | 'heading' | 'subheading' | 'social') => {
         let defaultUrl = "https://"
@@ -206,13 +272,28 @@ export default function LinkInBioPage() {
                             </div>
 
                             <div className="space-y-4">
-                                {links.map((link) => (
-                                    <Card key={link.id} className="overflow-hidden border-border/50 bg-card/30 backdrop-blur-sm group hover:border-primary/30 transition-all">
-                                        <CardContent className="p-4 flex items-start gap-4">
-                                            <div className="mt-2 text-muted-foreground cursor-grab active:cursor-grabbing">
-                                                <GripVertical className="h-5 w-5" />
-                                            </div>
-                                            <div className="flex-1 space-y-3">
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleDragEnd}
+                                >
+                                    <SortableContext
+                                        items={links.map(l => l.id)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        {links.map((link) => (
+                                            <SortableLinkItem key={link.id} id={link.id}>
+                                                {({ listeners, attributes }) => (
+                                                    <Card className="overflow-hidden border-border/50 bg-card/30 backdrop-blur-sm group hover:border-primary/30 transition-all">
+                                                        <CardContent className="p-4 flex items-start gap-4">
+                                                            <div 
+                                                                className="mt-2 text-muted-foreground cursor-grab active:cursor-grabbing hover:text-primary transition-colors focus:outline-none rounded -ml-1 px-1 touch-none"
+                                                                {...listeners}
+                                                                {...attributes}
+                                                            >
+                                                                <GripVertical className="h-5 w-5" />
+                                                            </div>
+                                                            <div className="flex-1 space-y-3">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <Badge variant="secondary" className="text-[10px] uppercase font-bold">{link.type || 'link'}</Badge>
                                                 </div>
@@ -352,7 +433,11 @@ export default function LinkInBioPage() {
                                             </div>
                                         </CardContent>
                                     </Card>
-                                ))}
+                                                )}
+                                            </SortableLinkItem>
+                                        ))}
+                                    </SortableContext>
+                                </DndContext>
                             </div>
                         </TabsContent>
 

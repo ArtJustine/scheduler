@@ -112,6 +112,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="bio"
+        options={{
+          title: 'Link in Bio',
+          tabBarIcon: ({ color }) => <TabBarIcon name="link-outline" color={color} />,
+          headerTitle: 'Link in Bio',
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',

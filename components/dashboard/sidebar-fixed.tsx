@@ -67,11 +67,6 @@ const sidebarItems = [
     title: "Content Library",
     icon: ImageIcon,
     href: "/dashboard/library",
-    items: [
-      { title: "Media", href: "/dashboard/library?tab=media" },
-      { title: "Hashtags", href: "/dashboard/library?tab=hashtags" },
-      { title: "Descriptions", href: "/dashboard/library?tab=descriptions" },
-    ]
   },
   {
     title: "Link-in-Bio",
@@ -344,7 +339,7 @@ export function DashboardSidebar() {
         <SidebarMenu className="gap-2 z-10">
           {sidebarItems.map((item) => (
             <SidebarMenuItem key={item.href} onMouseEnter={handleMouseEnter}>
-              {item.items ? (
+              {(item as any).items ? (
                 <Collapsible defaultOpen={pathname === item.href || currentPathWithTab.startsWith(item.href)} className="group/collapsible">
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton
@@ -358,7 +353,7 @@ export function DashboardSidebar() {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      {item.items.map((subItem) => (
+                      {((item as any).items as any[]).map((subItem) => (
                         <SidebarMenuSubItem key={subItem.href} onMouseEnter={(e) => {
                           e.stopPropagation();
                           handleMouseEnter(e);

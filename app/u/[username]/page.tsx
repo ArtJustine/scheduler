@@ -100,20 +100,67 @@ export default function PublicBioPage() {
                 </div>
 
                 <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-12 duration-700 delay-200">
-                    {profile.links?.filter(l => l.enabled).map((link, index) => (
-                        <a
-                            key={link.id}
-                            href={formatUrl(link.url)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`group block w-full p-4 ${isLight ? 'bg-white hover:bg-slate-100 border-slate-200' : 'bg-white/5 hover:bg-white/10 border-white/10'} border hover:border-primary rounded-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden active:scale-[0.98]`}
-                        >
-                            <div className="relative z-10 flex items-center justify-between">
-                                <span className="font-semibold text-lg">{link.title || "Untitled Link"}</span>
-                                <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                        </a>
-                    ))}
+                    {profile.links?.filter(l => l.enabled).map((link, index) => {
+                        if (link.type === 'heading' || link.type === 'subheading') {
+                            return (
+                                <div 
+                                    key={link.id} 
+                                    className="w-full"
+                                    style={{ 
+                                        textAlign: link.layout as any || 'center',
+                                        color: link.fontColor || (isLight ? '#000000' : '#ffffff'),
+                                        fontWeight: link.type === 'heading' ? 'bold' : '600',
+                                        fontSize: link.type === 'heading' ? '1.5rem' : '1.125rem',
+                                        marginTop: link.type === 'heading' ? '2rem' : '1rem'
+                                    }}
+                                >
+                                    {link.title}
+                                </div>
+                            )
+                        }
+
+                        if (link.type === 'social') {
+                            return (
+                                <a 
+                                    key={link.id}
+                                    href={formatUrl(link.url)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full p-4 rounded-2xl flex items-center justify-center gap-2 text-lg font-semibold hover:-translate-y-1 transition-all duration-300 shadow-lg"
+                                    style={{
+                                        backgroundColor: link.backgroundColor || (isLight ? '#f1f5f9' : '#111111'),
+                                        color: link.fontColor || (isLight ? '#0f172a' : '#ffffff'),
+                                    }}
+                                >
+                                    <Share2 className="h-5 w-5" />
+                                    <span className="capitalize">{link.platform || 'Social'}</span>
+                                </a>
+                            )
+                        }
+
+                        return (
+                            <a
+                                key={link.id}
+                                href={formatUrl(link.url)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`group block w-full p-4 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden active:scale-[0.98] ${link.layout === 'solid' ? 'shadow-lg' : isLight ? 'bg-white hover:bg-slate-100 border-slate-200 border hover:border-primary' : 'bg-white/5 hover:bg-white/10 border-white/10 border hover:border-primary'}`}
+                                style={link.layout === 'solid' ? {
+                                    backgroundColor: link.backgroundColor || (isLight ? '#ffffff' : '#111111'),
+                                    color: link.fontColor || (isLight ? '#0f172a' : '#ffffff')
+                                } : {
+                                    color: link.fontColor || (isLight ? '#0f172a' : '#ffffff')
+                                }}
+                            >
+                                <div className={`relative z-10 flex items-center ${link.layout === 'center' || (!link.layout && link.type === 'link') ? 'justify-between' : 'justify-center'}`}>
+                                    <span className="font-semibold text-lg">{link.title || "Untitled Link"}</span>
+                                    {link.layout !== 'solid' && (
+                                        <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    )}
+                                </div>
+                            </a>
+                        )
+                    })}
                 </div>
 
                 {/* Footer Branding */}

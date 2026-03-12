@@ -6,6 +6,12 @@ export interface BioLink {
     title: string
     url: string
     enabled: boolean
+    type?: 'link' | 'heading' | 'subheading' | 'social'
+    platform?: string
+    fontFamily?: string
+    fontColor?: string
+    backgroundColor?: string
+    layout?: string
 }
 
 export interface BioProfile {

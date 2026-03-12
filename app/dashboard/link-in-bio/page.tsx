@@ -21,8 +21,13 @@ import {
     Palette,
     Layout,
     Share2,
-    Eye
+    Eye,
+    Heading1,
+    Heading2,
+    Link as LinkIcon
 } from "lucide-react"
+import { getSocialAccounts } from "@/lib/data-service"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 
 export default function LinkInBioPage() {
@@ -31,15 +36,21 @@ export default function LinkInBioPage() {
     const [username, setUsername] = useState("")
     const [displayName, setDisplayName] = useState("")
     const [bio, setBio] = useState("")
+    const [socialAccounts, setSocialAccounts] = useState<any>(null)
     const [theme, setTheme] = useState("Default")
     const [links, setLinks] = useState<BioLink[]>([
-        { id: "1", title: "My YouTube Channel", url: "https://youtube.com", enabled: true },
-        { id: "2", title: "Latest Product Launch", url: "https://example.com", enabled: true }
+        { id: "1", title: "My YouTube Channel", url: "https://youtube.com", enabled: true, type: "link", layout: "classic" },
+        { id: "2", title: "Latest Product Launch", url: "https://example.com", enabled: true, type: "link", layout: "classic" }
     ])
 
     useEffect(() => {
         const loadProfile = async () => {
             if (!user) return
+            
+            try {
+                const accounts = await getSocialAccounts(user.uid)
+                setSocialAccounts(accounts)
+            } catch (err) { }
             
             try {
                 const profile = await getUserBioProfile(user.uid)
@@ -66,12 +77,24 @@ export default function LinkInBioPage() {
         loadProfile()
     }, [user])
 
-    const addLink = () => {
+    const addBlock = (type: 'link' | 'heading' | 'subheading' | 'social') => {
+        let defaultUrl = "https://"
+        if (type === 'social') {
+            if (socialAccounts?.instagram?.username) defaultUrl = `https://instagram.com/${socialAccounts.instagram.username}`
+            else if (socialAccounts?.youtube?.id) defaultUrl = `https://youtube.com/channel/${socialAccounts.youtube.id}`
+            else if (socialAccounts?.tiktok?.username) defaultUrl = `https://tiktok.com/@${socialAccounts.tiktok.username}`
+        }
+
         const newLink: BioLink = {
             id: Math.random().toString(36).substr(2, 9),
-            title: "New Link",
-            url: "https://",
-            enabled: true
+            title: type === 'heading' ? "My Heading" : type === 'subheading' ? "My Subheading" : type === 'social' ? 'instagram' : "New Link",
+            url: type === 'social' ? defaultUrl : (type === 'link' ? "https://" : ""),
+            enabled: true,
+            type: type,
+            platform: type === 'social' ? 'instagram' : undefined,
+            layout: type === 'link' ? 'classic' : 'center',
+            backgroundColor: type === 'link' ? '#ffffff' : undefined,
+            fontColor: '#000000'
         }
         setLinks([...links, newLink])
     }
@@ -157,11 +180,29 @@ export default function LinkInBioPage() {
 
                         <TabsContent value="links" className="space-y-6">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold">Your Links</h3>
-                                <Button onClick={addLink} size="sm" className="rounded-full">
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Add Link
-                                </Button>
+                                <h3 className="text-lg font-semibold">Your Content</h3>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button size="sm" className="rounded-full">
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Add Block
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => addBlock('link')}>
+                                            <LinkIcon className="mr-2 h-4 w-4" /> Link
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => addBlock('heading')}>
+                                            <Heading1 className="mr-2 h-4 w-4" /> Heading
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => addBlock('subheading')}>
+                                            <Heading2 className="mr-2 h-4 w-4" /> Subheading
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => addBlock('social')}>
+                                            <Share2 className="mr-2 h-4 w-4" /> Social Icon
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
 
                             <div className="space-y-4">
@@ -172,20 +213,126 @@ export default function LinkInBioPage() {
                                                 <GripVertical className="h-5 w-5" />
                                             </div>
                                             <div className="flex-1 space-y-3">
-                                                <div className="grid gap-2">
-                                                    <Input
-                                                        value={link.title}
-                                                        onChange={(e) => updateLink(link.id, { title: e.target.value })}
-                                                        placeholder="Link Title"
-                                                        className="font-semibold text-base border-none p-0 h-auto focus-visible:ring-0"
-                                                    />
-                                                    <Input
-                                                        value={link.url}
-                                                        onChange={(e) => updateLink(link.id, { url: e.target.value })}
-                                                        placeholder="https://your-link.com"
-                                                        className="text-sm text-muted-foreground border-none p-0 h-auto focus-visible:ring-0"
-                                                    />
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Badge variant="secondary" className="text-[10px] uppercase font-bold">{link.type || 'link'}</Badge>
                                                 </div>
+                                                
+                                                {(link.type === 'heading' || link.type === 'subheading') && (
+                                                    <div className="grid gap-4">
+                                                        <Input
+                                                            value={link.title}
+                                                            onChange={(e) => updateLink(link.id, { title: e.target.value })}
+                                                            placeholder={link.type === 'heading' ? "Heading Text" : "Subheading Text"}
+                                                            className={`${link.type === 'heading' ? 'font-bold text-xl' : 'font-semibold text-lg'} border-none p-0 h-auto focus-visible:ring-0`}
+                                                        />
+                                                        <div className="flex gap-4 items-center">
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">Alignment</Label>
+                                                                <select 
+                                                                    className="w-full text-sm rounded bg-background border p-1"
+                                                                    value={link.layout || 'center'}
+                                                                    onChange={(e) => updateLink(link.id, { layout: e.target.value })}
+                                                                >
+                                                                    <option value="left">Left</option>
+                                                                    <option value="center">Center</option>
+                                                                    <option value="right">Right</option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">Font Color</Label>
+                                                                <div className="flex items-center gap-2">
+                                                                    <input type="color" className="h-6 w-6 rounded border-0 p-0" value={link.fontColor || '#ffffff'} onChange={(e) => updateLink(link.id, { fontColor: e.target.value })} />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {link.type === 'social' && (
+                                                    <div className="grid gap-4">
+                                                        <div className="flex gap-2">
+                                                            <select 
+                                                                className="w-1/3 text-sm rounded bg-background border p-1"
+                                                                value={link.platform || 'instagram'}
+                                                                onChange={(e) => updateLink(link.id, { platform: e.target.value, title: e.target.value })}
+                                                            >
+                                                                <option value="instagram">Instagram</option>
+                                                                <option value="youtube">YouTube</option>
+                                                                <option value="tiktok">TikTok</option>
+                                                                <option value="threads">Threads</option>
+                                                                <option value="linkedin">LinkedIn</option>
+                                                                <option value="facebook">Facebook</option>
+                                                                <option value="pinterest">Pinterest</option>
+                                                                <option value="bluesky">BlueSky</option>
+                                                                <option value="twitter">X (Twitter)</option>
+                                                            </select>
+                                                            <Input
+                                                                value={link.url}
+                                                                onChange={(e) => updateLink(link.id, { url: e.target.value })}
+                                                                placeholder="https://social.com/username"
+                                                                className="text-sm border-none p-1 h-auto flex-1 focus-visible:ring-0"
+                                                            />
+                                                        </div>
+                                                        <div className="flex gap-4 items-center">
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">Icon Color</Label>
+                                                                <div className="flex items-center gap-2">
+                                                                    <input type="color" className="h-6 w-6 rounded border-0 p-0" value={link.fontColor || '#ffffff'} onChange={(e) => updateLink(link.id, { fontColor: e.target.value })} />
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">Background</Label>
+                                                                <div className="flex items-center gap-2">
+                                                                    <input type="color" className="h-6 w-6 rounded border-0 p-0" value={link.backgroundColor || '#000000'} onChange={(e) => updateLink(link.id, { backgroundColor: e.target.value })} />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {(!link.type || link.type === 'link') && (
+                                                    <div className="grid gap-4">
+                                                        <div className="grid gap-2">
+                                                            <Input
+                                                                value={link.title}
+                                                                onChange={(e) => updateLink(link.id, { title: e.target.value })}
+                                                                placeholder="Link Title"
+                                                                className="font-semibold text-base border-none p-0 h-auto focus-visible:ring-0"
+                                                            />
+                                                            <Input
+                                                                value={link.url}
+                                                                onChange={(e) => updateLink(link.id, { url: e.target.value })}
+                                                                placeholder="https://your-link.com"
+                                                                className="text-sm text-muted-foreground border-none p-0 h-auto focus-visible:ring-0"
+                                                            />
+                                                        </div>
+                                                        <div className="flex gap-4 items-center">
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">Layout</Label>
+                                                                <select 
+                                                                    className="w-full text-sm rounded bg-background border p-1"
+                                                                    value={link.layout || 'classic'}
+                                                                    onChange={(e) => updateLink(link.id, { layout: e.target.value })}
+                                                                >
+                                                                    <option value="classic">Classic (Outline)</option>
+                                                                    <option value="solid">Solid Block</option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">Text</Label>
+                                                                <div className="flex items-center gap-2">
+                                                                    <input type="color" className="h-6 w-6 rounded border-0 p-0" value={link.fontColor || '#000000'} onChange={(e) => updateLink(link.id, { fontColor: e.target.value })} />
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">Background</Label>
+                                                                <div className="flex items-center gap-2">
+                                                                    <input type="color" className="h-6 w-6 rounded border-0 p-0" value={link.backgroundColor || '#ffffff'} onChange={(e) => updateLink(link.id, { backgroundColor: e.target.value })} />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="flex flex-col items-center gap-2">
                                                 <input
@@ -354,11 +501,62 @@ export default function LinkInBioPage() {
                                 <p className="text-xs text-slate-400 mb-8 text-center">{bio || "Add a bio to tell the world about yourself"}</p>
 
                                 <div className="w-full space-y-3">
-                                    {links.filter(l => l.enabled).map(link => (
-                                        <div key={link.id} className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-2xl text-center text-sm font-semibold text-white hover:scale-[1.02] transition-transform duration-300">
-                                            {link.title || "Untitled Link"}
-                                        </div>
-                                    ))}
+                                    {links.filter(l => l.enabled).map(link => {
+                                        if (link.type === 'heading' || link.type === 'subheading') {
+                                            return (
+                                                <div 
+                                                    key={link.id} 
+                                                    className="w-full"
+                                                    style={{ 
+                                                        textAlign: link.layout as any || 'center',
+                                                        color: link.fontColor || '#ffffff',
+                                                        fontWeight: link.type === 'heading' ? 'bold' : '600',
+                                                        fontSize: link.type === 'heading' ? '1.25rem' : '1rem',
+                                                        marginTop: link.type === 'heading' ? '1.5rem' : '0.5rem'
+                                                    }}
+                                                >
+                                                    {link.title}
+                                                </div>
+                                            )
+                                        }
+
+                                        if (link.type === 'social') {
+                                            return (
+                                                <a 
+                                                    key={link.id}
+                                                    href={link.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-full py-3 px-4 rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold hover:scale-[1.02] transition-transform duration-300"
+                                                    style={{
+                                                        backgroundColor: link.backgroundColor || '#000000',
+                                                        color: link.fontColor || '#ffffff',
+                                                    }}
+                                                >
+                                                    <Share2 className="h-4 w-4" />
+                                                    <span className="capitalize">{link.platform || 'Social'}</span>
+                                                </a>
+                                            )
+                                        }
+
+                                        return (
+                                            <a 
+                                                key={link.id} 
+                                                href={link.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={`w-full py-3 px-4 rounded-2xl text-center text-sm font-semibold hover:scale-[1.02] transition-transform duration-300 block ${link.layout === 'solid' ? '' : 'border border-white/10 bg-white/5'}`}
+                                                style={link.layout === 'solid' ? {
+                                                    backgroundColor: link.backgroundColor || '#ffffff',
+                                                    color: link.fontColor || '#000000'
+                                                } : {
+                                                    color: link.fontColor || '#ffffff'
+                                                }}
+                                            >
+                                                {link.title || "Untitled Link"}
+                                            </a>
+                                        )
+                                    })}
                                 </div>
 
                                 <div className="mt-auto pt-8 flex gap-4 opacity-50">

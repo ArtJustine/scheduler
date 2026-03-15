@@ -22,7 +22,10 @@ import {
   Search,
   ArrowRight,
   ExternalLink,
-  Settings
+  Settings,
+  Smartphone,
+  Monitor,
+  X
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -107,10 +110,14 @@ export default function TrendsPage() {
         })
       } else {
         const errorData = await response.json()
-        if (errorData.error?.includes("generativelanguage.googleapis.com") || errorData.error?.includes("403")) {
+        const errorMsg = errorData.error || ""
+        if (errorMsg.includes("generativelanguage.googleapis.com") || errorMsg.includes("403")) {
+          if (errorMsg.includes("API_KEY_SERVICE_BLOCKED")) {
+            throw new Error("API Key Blocked: Your key doesn't have permission for Gemini. Create a dedicated key at aistudio.google.com")
+          }
           throw new Error("AI API is disabled. Please enable 'Generative Language API' in your Google Cloud Console.")
         }
-        throw new Error(errorData.error || "Failed to sync")
+        throw new Error(errorMsg || "Failed to sync")
       }
     } catch (error: any) {
       console.error("Sync error:", error)
@@ -176,20 +183,31 @@ export default function TrendsPage() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-6 right-6 z-50 bg-white dark:bg-slate-900 shadow-2xl rounded-2xl border border-primary/20 p-4 w-80 backdrop-blur-xl"
+            className="fixed bottom-6 right-6 z-50 bg-white/90 dark:bg-slate-900/90 shadow-2xl rounded-2xl border border-primary/20 p-4 w-80 backdrop-blur-xl pointer-events-auto"
           >
-            <div className="flex items-center gap-4">
-              <div className="relative flex-shrink-0">
-                <div className="h-10 w-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <RefreshCw className="h-4 w-4 text-primary" />
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="h-8 w-8 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <RefreshCw className="h-3 w-3 text-primary" />
+                  </div>
                 </div>
+                <h3 className="text-xs font-bold">Analyzing Niche</h3>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold truncate">Analyzing Your Niche</h3>
-                <p className="text-[10px] text-muted-foreground mt-0.5">Scanning TikTok, Instagram, & YouTube...</p>
-              </div>
+              <button 
+                onClick={() => setSyncing(false)}
+                className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                title="Run in background"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
             </div>
+            
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              Our AI is scanning TikTok, Instagram, and YouTube. You can continue using the app.
+            </p>
+
             <div className="mt-3 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div className="h-full bg-primary animate-progress-indeterminate" />
             </div>

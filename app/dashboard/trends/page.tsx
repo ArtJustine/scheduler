@@ -95,8 +95,8 @@ export default function TrendsPage() {
     try {
       // In a real app, you might call your API route
       // Here we'll call the sync logic directly or via fetch to our internal API
-      const response = await fetch("/api/trends/sync", {
-        method: "GET", // Cron usually uses GET
+      const response = await fetch(`/api/trends/sync?userId=${user.uid}`, {
+        method: "GET", 
       })
       
       if (response.ok) {
@@ -147,7 +147,7 @@ export default function TrendsPage() {
         <div className="max-w-md">
           <h2 className="text-2xl font-bold mb-2">Discover Your Niche Trends</h2>
           <p className="text-muted-foreground mb-6">
-            Tell us about your niche and competitors in Settings, and we'll use Gemini to find what's trending, who to watch, and how to grow.
+            Tell us about your niche and competitors in Settings, and we'll use AI to find what's trending, who to watch, and how to grow.
           </p>
           <div className="flex gap-3 justify-center">
             <Button onClick={() => router.push("/dashboard/settings?tab=trends")} variant="outline" className="rounded-full px-8">
@@ -174,7 +174,7 @@ export default function TrendsPage() {
             </Badge>
           </div>
           <p className="text-muted-foreground">
-            Gemini analysis of what's viral and high-engagement in your niche this week.
+            AI analysis of what's viral and high-engagement in your niche this week.
           </p>
         </div>
         <div className="flex gap-2">
@@ -319,7 +319,7 @@ export default function TrendsPage() {
               <CardHeader>
                 <CardTitle className="text-lg">Need Content Ideas?</CardTitle>
                 <CardDescription className="text-slate-400">
-                  Let Gemini generate a full script based on these trends.
+                  Let AI generate a full script based on these trends.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -335,7 +335,7 @@ export default function TrendsPage() {
       <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-8 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-          Powered by Gemini 1.5 Flash
+          Powered by AI (Gemini 1.5 Flash)
         </div>
         <div>
           Last synced: {trendsData?.lastSyncedAt ? new Date(trendsData.lastSyncedAt.seconds * 1000).toLocaleString() : "Recently"}

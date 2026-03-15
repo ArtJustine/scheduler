@@ -345,7 +345,7 @@ export default function SettingsPage() {
             <form onSubmit={handleProfileUpdate}>
               <CardHeader>
                 <CardTitle>Trends Configuration</CardTitle>
-                <CardDescription>Configure how we find trends for you using Gemini AI.</CardDescription>
+                <CardDescription>Configure how we find trends for you using AI.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
@@ -361,7 +361,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-4">
                   <Label>Competitor References (Links/Handles)</Label>
-                  <p className="text-sm text-muted-foreground">Add links to websites or social media pages you want Gemini to analyze as competition.</p>
+                  <p className="text-sm text-muted-foreground">Add links to websites or social media pages you want AI to analyze as competition.</p>
                   
                   <div className="space-y-3">
                     {competitors.map((comp, index) => (

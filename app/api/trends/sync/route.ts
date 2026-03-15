@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { getServerDb } from "@/lib/firebase-server"
-import { collection, query, where, getDocs, doc, setDoc, Timestamp } from "firebase/firestore"
+import { collection, query, where, getDocs, getDoc, doc, setDoc, Timestamp } from "firebase/firestore"
 import config from "@/lib/config"
 
 const genAI = new GoogleGenerativeAI(config.gemini.apiKey)
 
 export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const userIdParam = searchParams.get("userId")
   const authHeader = req.headers.get("authorization")
   
-  // Verify cron secret if provided, otherwise allow for development
-  if (config.app.environment === "production" && 
+  // Verify cron secret if provided and not a specific user request
+  if (!userIdParam && config.app.environment === "production" && 
       authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
@@ -21,24 +23,49 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Get all users who have a niche defined
-    const usersRef = collection(db, "users")
-    const q = query(usersRef, where("niche", "!=", ""))
-    const querySnapshot = await getDocs(q)
+    let userDataList: any[] = []
+
+    if (userIdParam) {
+      // Manual sync for a specific user
+      const userRef = doc(db, "users", userIdParam)
+      const userSnap = await getDoc(userRef)
+      if (userSnap.exists()) {
+        userDataList.push({ id: userSnap.id, ...userSnap.data() })
+      }
+    } else {
+      // Batch sync (Cron) - get all users with niche or competitors
+      const usersRef = collection(db, "users")
+      const nicheQuery = query(usersRef, where("niche", "!=", ""))
+      const nicheSnapshot = await getDocs(nicheQuery)
+      
+      const compQuery = query(usersRef, where("trendCompetitors", "!=", []))
+      const compSnapshot = await getDocs(compQuery)
+      
+      // Merge results
+      const userIds = new Set()
+      nicheSnapshot.forEach(doc => {
+        userIds.add(doc.id)
+        userDataList.push({ id: doc.id, ...doc.data() })
+      })
+      compSnapshot.forEach(doc => {
+        if (!userIds.has(doc.id)) {
+          userDataList.push({ id: doc.id, ...doc.data() })
+        }
+      })
+    }
     
     const results = []
 
-    for (const userDoc of querySnapshot.docs) {
-      const userData = userDoc.data()
-      const userId = userDoc.id
-      const niche = userData.niche
+    for (const userData of userDataList) {
+      const userId = userData.id
+      const niche = userData.niche || "General Content Creation"
+      const competitors = userData.trendCompetitors || []
 
-      if (!niche) continue
+      if (!userData.niche && competitors.length === 0) continue
 
-      // Generate trends using Gemini
+      // Generate trends using AI
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
       
-      const competitors = userData.trendCompetitors || []
       const competitorContext = competitors.length > 0 
         ? `Specifically look at these competitors/references for inspiration and comparison: ${competitors.join(", ")}.`
         : ""
@@ -67,19 +94,18 @@ export async function GET(req: NextRequest) {
           "suggestedKeywords": ["keyword1", "keyword2"]
         }
         
-        Return ONLY the JSON. No Markdown formatting, no code blocks.
+        Return ONLY the JSON. No Markdown formatting, no code blocks (no \`\`\`json).
       `
 
       const result = await model.generateContent(prompt)
       const responseText = result.response.text().trim()
       
-      // Attempt to parse JSON. Sometimes AI wraps in code blocks.
       let trendsData
       try {
         const cleanJson = responseText.replace(/```json|```/g, "").trim()
         trendsData = JSON.parse(cleanJson)
       } catch (e) {
-        console.error(`Failed to parse Gemini response for user ${userId}:`, responseText)
+        console.error(`Failed to parse AI response for user ${userId}:`, responseText)
         continue
       }
 

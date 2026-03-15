@@ -107,6 +107,9 @@ export default function TrendsPage() {
         })
       } else {
         const errorData = await response.json()
+        if (errorData.error?.includes("generativelanguage.googleapis.com") || errorData.error?.includes("403")) {
+          throw new Error("AI API is disabled. Please enable 'Generative Language API' in your Google Cloud Console.")
+        }
         throw new Error(errorData.error || "Failed to sync")
       }
     } catch (error: any) {
@@ -155,9 +158,9 @@ export default function TrendsPage() {
             <Button onClick={() => router.push("/dashboard/settings?tab=trends")} variant="outline" className="rounded-full px-8">
               Configure Niche
             </Button>
-            <Button onClick={handleSync} className="rounded-full px-8 shadow-lg shadow-primary/20">
+            <Button onClick={handleSync} disabled={syncing} className="rounded-full px-8 shadow-lg shadow-primary/20">
               <RefreshCw className={cn("mr-2 h-4 w-4", syncing && "animate-spin")} />
-              Sync Trends Now
+              {syncing ? "Analyzing..." : "Sync Trends Now"}
             </Button>
           </div>
         </div>
@@ -170,31 +173,26 @@ export default function TrendsPage() {
       <AnimatePresence>
         {syncing && (
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-md"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-6 right-6 z-50 bg-white dark:bg-slate-900 shadow-2xl rounded-2xl border border-primary/20 p-4 w-80 backdrop-blur-xl"
           >
-            <div className="relative">
-              <div className="h-24 w-24 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <RefreshCw className="h-8 w-8 text-primary animate-pulse" />
+            <div className="flex items-center gap-4">
+              <div className="relative flex-shrink-0">
+                <div className="h-10 w-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <RefreshCw className="h-4 w-4 text-primary" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold truncate">Analyzing Your Niche</h3>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Scanning TikTok, Instagram, & YouTube...</p>
               </div>
             </div>
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mt-8 text-center"
-            >
-              <h3 className="text-xl font-bold">Analyzing Your Niche</h3>
-              <p className="text-muted-foreground mt-2">Our AI is scanning TikTok, Instagram, and YouTube...</p>
-              <div className="mt-4 flex gap-2 justify-center">
-                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
-                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
-                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce" />
-              </div>
-            </motion.div>
+            <div className="mt-3 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-primary animate-progress-indeterminate" />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

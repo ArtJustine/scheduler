@@ -115,7 +115,8 @@ export const config = {
 
   // Gemini API Configuration
   gemini: {
-    apiKey: process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+    // Only use GEMINI_API_KEY on the server. On the client, this will be empty unless prefixed with NEXT_PUBLIC_
+    apiKey: process.env.GEMINI_API_KEY || (typeof window === 'undefined' ? process.env.NEXT_PUBLIC_FIREBASE_API_KEY : "") || "",
   },
 
   // General app configuration

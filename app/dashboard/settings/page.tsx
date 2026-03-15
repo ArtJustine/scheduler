@@ -13,11 +13,10 @@ import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/lib/auth-provider"
 import { updateUserProfile } from "@/lib/firebase/auth"
 import { useTheme } from "next-themes"
-import { Sun, Moon, Laptop, Copy, ExternalLink, Clock, ShieldCheck, Check, AlertCircle } from "lucide-react"
+import { Sun, Moon, Laptop, ShieldCheck } from "lucide-react"
 import { getSocialAccounts } from "@/lib/firebase/social-accounts"
 import type { SocialAccounts } from "@/types/social"
 import { useRouter } from "next/navigation"
-import { config } from "@/lib/config"
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -29,22 +28,7 @@ export default function SettingsPage() {
   const [currentTheme, setCurrentTheme] = useState(theme)
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
   const router = useRouter()
-  const [copied, setCopied] = useState(false)
-  const cronUrl = `${config.app.baseUrl}/api/cron/scheduler?secret=${config.app.cronSecret}`
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(cronUrl)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-      toast({
-        title: "URL Copied",
-        description: "The scheduler URL has been copied to your clipboard.",
-      })
-    } catch (err) {
-      console.error("Failed to copy: ", err)
-    }
-  }
 
   useEffect(() => {
     const loadSocialAccounts = async () => {
@@ -125,12 +109,6 @@ export default function SettingsPage() {
             className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
           >
             Connections
-          </TabsTrigger>
-          <TabsTrigger
-            value="scheduler"
-            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
-          >
-            Scheduler
           </TabsTrigger>
         </TabsList>
 
@@ -337,122 +315,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="scheduler" className="space-y-6">
-          <Card className="border-primary/20 shadow-sm overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5">
-              <Clock className="w-24 h-24" />
-            </div>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Clock className="w-5 h-5 text-primary" />
-                </div>
-                <CardTitle>Cron-job.org Integration</CardTitle>
-              </div>
-              <CardDescription>
-                Schedule your posts using an external cron service to bypass Vercel Hobby plan limitations.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-border/50">
-                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
-                  Your Scheduler Webhook URL
-                </Label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Input
-                      value={cronUrl}
-                      readOnly
-                      className="pr-10 bg-background font-mono text-sm border-primary/20 focus-visible:ring-primary/30"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      {config.app.cronSecret === "development" ? (
-                        <AlertCircle className="w-4 h-4 text-orange-500" />
-                      ) : (
-                        <ShieldCheck className="w-4 h-4 text-green-500" />
-                      )}
-                    </div>
-                  </div>
-                  <Button
-                    variant={copied ? "default" : "outline"}
-                    size="icon"
-                    onClick={copyToClipboard}
-                    className="shrink-0 transition-all duration-300"
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {config.app.cronSecret === "development" && (
-                  <p className="text-xs text-orange-500 mt-2 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    Using default secret. Set CRON_SECRET in your environment variables for better security.
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="font-semibold text-sm flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4" />
-                  How to setup with Cron-job.org
-                </h3>
-                <div className="grid gap-3">
-                  <div className="flex gap-3 items-start">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 mt-0.5">
-                      1
-                    </div>
-                    <p className="text-sm">
-                      Create a free account at{" "}
-                      <a
-                        href="https://cron-job.org"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline font-medium"
-                      >
-                        cron-job.org
-                      </a>
-                    </p>
-                  </div>
-                  <div className="flex gap-3 items-start">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 mt-0.5">
-                      2
-                    </div>
-                    <p className="text-sm">
-                      Click <span className="font-semibold">"Create Cronjob"</span> and paste the URL above.
-                    </p>
-                  </div>
-                  <div className="flex gap-3 items-start">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 mt-0.5">
-                      3
-                    </div>
-                    <p className="text-sm">
-                      Set the execution interval (e.g., <span className="font-semibold">every 1 minute</span> or 5
-                      minutes).
-                    </p>
-                  </div>
-                  <div className="flex gap-3 items-start">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 mt-0.5">
-                      4
-                    </div>
-                    <p className="text-sm">
-                      Save the cronjob. Your posts will now be published automatically even on the Vercel Hobby plan.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-border/50 px-6 py-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-muted-foreground hover:text-primary transition-colors pl-0"
-                onClick={() => window.open(cronUrl, "_blank")}
-              >
-                <ExternalLink className="h-3 w-3 mr-2" />
-                Test Webhook Manually
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   )

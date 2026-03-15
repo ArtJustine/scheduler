@@ -311,7 +311,9 @@ export function DashboardSidebar() {
         </Link>
       </SidebarHeader>
 
-      <WorkspaceSwitcher />
+      <div id="tour-workspace-switcher">
+        <WorkspaceSwitcher />
+      </div>
 
       <SidebarContent
         ref={contentRef}
@@ -367,7 +369,7 @@ export function DashboardSidebar() {
                   </CollapsibleContent>
                 </Collapsible>
               ) : (
-                <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
+                <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title} id={item.title === "Dashboard" ? "tour-dashboard" : item.title === "Create Post" ? "tour-create-post" : item.title === "Calendar" ? "tour-calendar" : undefined}>
                   <Link href={item.href} className={cn("flex items-center")}>
                     <item.icon className="mr-2 h-5 w-5" />
                     <span>{item.title}</span>
@@ -464,7 +466,7 @@ export function DashboardSidebar() {
         <SidebarMenu className="relative z-10 gap-1">
           {settingsItems.map((item) => (
             <SidebarMenuItem key={item.href} onMouseEnter={handleMouseEnter}>
-              <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
+              <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title} id={item.title === "Connections" ? "tour-connections" : undefined}>
                 <Link href={item.href} className={cn("flex items-center")}>
                   <item.icon className="mr-2 h-5 w-5" />
                   <span>{item.title}</span>

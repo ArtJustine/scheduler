@@ -3,6 +3,9 @@ import type { Metadata } from "next"
 import { DashboardSidebar } from "@/components/dashboard/sidebar-fixed"
 import { AuthProvider } from "@/lib/auth-provider"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppTour } from "@/components/dashboard/app-tour"
+import { useState, useEffect } from "react"
+import { checkTourStatus } from "@/lib/firebase/auth"
 
 export const dynamic = 'force-dynamic'
 
@@ -16,6 +19,19 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  const [showTour, setShowTour] = useState(false)
+
+  useEffect(() => {
+    const initTour = async () => {
+      const completed = await checkTourStatus()
+      if (!completed) {
+        // Delay a bit for full layout mount
+        setTimeout(() => setShowTour(true), 1500)
+      }
+    }
+    initTour()
+  }, [])
+
   return (
     <AuthProvider>
       <SidebarProvider defaultOpen={true}>
@@ -37,6 +53,7 @@ export default function DashboardLayout({
           </main>
         </div>
       </SidebarProvider>
+      {showTour && <AppTour />}
     </AuthProvider>
   )
 }

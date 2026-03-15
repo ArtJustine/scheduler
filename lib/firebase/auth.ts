@@ -241,3 +241,34 @@ export const getUserProfile = async () => {
     throw error
   }
 }
+
+// Onboarding Tour functions
+export const checkTourStatus = async (): Promise<boolean> => {
+  if (!firebaseAuth || !firebaseAuth.currentUser || !firebaseDb) return true
+
+  try {
+    const userDocRef = doc(firebaseDb, "users", firebaseAuth.currentUser.uid)
+    const userDoc = await getDoc(userDocRef)
+    
+    // If it's the first time/no field, they haven't completed it
+    const data = userDoc.data()
+    return data?.hasCompletedTour === true
+  } catch (error) {
+    console.error("Error checking tour status:", error)
+    return true // Assume completed on error to avoid blocking UX
+  }
+}
+
+export const completeTour = async () => {
+  if (!firebaseAuth || !firebaseAuth.currentUser || !firebaseDb) return
+
+  try {
+    const userDocRef = doc(firebaseDb, "users", firebaseAuth.currentUser.uid)
+    await updateDoc(userDocRef, {
+      hasCompletedTour: true,
+      updatedAt: new Date().toISOString(),
+    })
+  } catch (error) {
+    console.error("Error completing tour:", error)
+  }
+}

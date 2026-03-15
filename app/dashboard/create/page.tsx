@@ -36,6 +36,7 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar } from "@/components/ui/calendar"
@@ -787,16 +788,10 @@ export default function CreatePostPage() {
                           alt="Media preview"
                           className="w-full h-auto max-h-[400px] object-contain"
                         />
-                        <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="text-[10px] h-8 gap-2 shadow-lg bg-white/95"
-                            onClick={handleEditImage}
-                          >
-                            <Scissors className="h-3.5 w-3.5" />
-                            Edit / Crop Image
-                          </Button>
+                        <div className="absolute top-4 left-4">
+                          <Badge variant="secondary" className="text-[10px] backdrop-blur-md bg-white/70 dark:bg-black/70 border-none">
+                            Image Selected
+                          </Badge>
                         </div>
                       </div>
                     ) : (
@@ -986,6 +981,19 @@ export default function CreatePostPage() {
                       </div>
                     </DialogContent>
                   </Dialog>
+                  
+                  {/* Crop Image Option - High visibility next to Add Media */}
+                  {mediaUrl && mediaType === "image" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleEditImage}
+                      className="gap-2 h-12 px-6 rounded-full border-primary/20 hover:bg-primary/5 text-primary font-bold transition-all hover:scale-[1.05] active:scale-[0.95] dark:border-primary/40 dark:hover:bg-primary/10"
+                    >
+                      <Scissors className="h-5 w-5" />
+                      <span>Crop Image</span>
+                    </Button>
+                  )}
 
                   {/* Hidden Input moved outside dropdown to prevent unmounting issues */}
                   <input

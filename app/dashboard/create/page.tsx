@@ -30,7 +30,8 @@ import {
   Hash,
   Image as ImageIconLucide,
   Upload,
-  User
+  User,
+  Scissors
 } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -196,6 +197,11 @@ export default function CreatePostPage() {
         return [...prev, platform]
       }
     })
+  }
+  const handleEditImage = async () => {
+    if (!mediaUrl) return
+    setImageToCrop({ url: mediaUrl, file: new File([], "edited-image.jpg") })
+    setCropOpen(true)
   }
 
   const handleMediaUpload = (url: string, type: "image" | "video") => {
@@ -775,11 +781,24 @@ export default function CreatePostPage() {
                 <div className="px-6 pb-6">
                   <div className="border rounded-xl overflow-hidden relative group bg-black/5">
                     {mediaType !== "video" ? (
-                      <img
-                        src={mediaUrl}
-                        alt="Media preview"
-                        className="w-full h-auto max-h-[400px] object-contain"
-                      />
+                      <div className="relative">
+                        <img
+                          src={mediaUrl}
+                          alt="Media preview"
+                          className="w-full h-auto max-h-[400px] object-contain"
+                        />
+                        <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="text-[10px] h-8 gap-2 shadow-lg bg-white/95"
+                            onClick={handleEditImage}
+                          >
+                            <Scissors className="h-3.5 w-3.5" />
+                            Edit / Crop Image
+                          </Button>
+                        </div>
+                      </div>
                     ) : (
                       <div className="relative">
                         <video

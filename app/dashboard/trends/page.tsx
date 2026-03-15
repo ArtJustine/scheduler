@@ -106,13 +106,15 @@ export default function TrendsPage() {
           description: "We've fetched the latest trends for your niche.",
         })
       } else {
-        throw new Error("Failed to sync")
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to sync")
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Sync error:", error)
       toast({
         variant: "destructive",
         title: "Sync failed",
-        description: "Could not fetch trends. Please make sure you have a niche set in settings.",
+        description: error.message || "Could not fetch trends. Please make sure you have a niche set in settings.",
       })
     } finally {
       setSyncing(false)
@@ -164,7 +166,39 @@ export default function TrendsPage() {
   }
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="relative space-y-8 pb-12">
+      <AnimatePresence>
+        {syncing && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-md"
+          >
+            <div className="relative">
+              <div className="h-24 w-24 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <RefreshCw className="h-8 w-8 text-primary animate-pulse" />
+              </div>
+            </div>
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mt-8 text-center"
+            >
+              <h3 className="text-xl font-bold">Analyzing Your Niche</h3>
+              <p className="text-muted-foreground mt-2">Our AI is scanning TikTok, Instagram, and YouTube...</p>
+              <div className="mt-4 flex gap-2 justify-center">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
+                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
+                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce" />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">

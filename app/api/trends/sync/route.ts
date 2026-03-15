@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
-import { getServerDb } from "@/lib/firebase-server"
-import { collection, query, where, getDocs, getDoc, doc, setDoc, Timestamp } from "firebase/firestore"
+import { adminDb } from "@/lib/firebase-admin"
 import config from "@/lib/config"
+import { Timestamp } from "firebase-admin/firestore"
 
 const genAI = new GoogleGenerativeAI(config.gemini.apiKey)
 
@@ -17,29 +17,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const db = getServerDb()
-  if (!db) {
-    return NextResponse.json({ error: "Database not initialized" }, { status: 500 })
+  if (!adminDb) {
+    return NextResponse.json({ error: "Admin Database not initialized" }, { status: 500 })
   }
 
   try {
     let userDataList: any[] = []
 
     if (userIdParam) {
-      // Manual sync for a specific user
-      const userRef = doc(db, "users", userIdParam)
-      const userSnap = await getDoc(userRef)
-      if (userSnap.exists()) {
+      // Manual sync for a specific user using admin SDK to bypass client rules
+      const userRef = adminDb.collection("users").doc(userIdParam)
+      const userSnap = await userRef.get()
+      if (userSnap.exists) {
         userDataList.push({ id: userSnap.id, ...userSnap.data() })
       }
     } else {
-      // Batch sync (Cron) - get all users with niche or competitors
-      const usersRef = collection(db, "users")
-      const nicheQuery = query(usersRef, where("niche", "!=", ""))
-      const nicheSnapshot = await getDocs(nicheQuery)
+      // Batch sync (Cron) - using admin SDK
+      const usersRef = adminDb.collection("users")
       
-      const compQuery = query(usersRef, where("trendCompetitors", "!=", []))
-      const compSnapshot = await getDocs(compQuery)
+      // Get users with niche
+      const nicheSnapshot = await usersRef.where("niche", ">", "").get()
+      
+      // Get users with competitors
+      const compSnapshot = await usersRef.where("trendCompetitors", "!=", []).get()
       
       // Merge results
       const userIds = new Set()
@@ -109,9 +109,9 @@ export async function GET(req: NextRequest) {
         continue
       }
 
-      // Store in Firestore
-      const trendsRef = doc(db, "trends", userId)
-      await setDoc(trendsRef, {
+      // Store in Firestore using admin SDK
+      const trendsRef = adminDb.collection("trends").doc(userId)
+      await trendsRef.set({
         userId,
         niche,
         ...trendsData,

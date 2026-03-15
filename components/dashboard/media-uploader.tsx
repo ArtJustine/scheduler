@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { firebaseAuth, firebaseStorage } from "@/lib/firebase-client"
 import { Progress } from "@/components/ui/progress"
 import { registerMediaMetadata } from "@/lib/firebase/media"
+import { ImageCropper } from "./image-cropper"
 
 interface MediaUploaderProps {
   onUpload: (url: string, type: "image" | "video") => void
@@ -19,6 +20,8 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [cropOpen, setCropOpen] = useState(false)
+  const [imageToCrop, setImageToCrop] = useState<{ url: string; file: File } | null>(null)
   const { toast } = useToast()
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -70,11 +73,32 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
       return
     }
 
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        setImageToCrop({ url: reader.result as string, file })
+        setCropOpen(true)
+      }
+      reader.readAsDataURL(file)
+    } else {
+      await uploadFile(file, file.name)
+    }
+  }
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    setCropOpen(false)
+    if (imageToCrop) {
+      await uploadFile(croppedBlob, imageToCrop.file.name)
+    }
+    setImageToCrop(null)
+  }
+
+  const uploadFile = async (file: File | Blob, originalName: string) => {
     setIsUploading(true)
     setUploadProgress(0)
 
     try {
-      console.log("Initiating upload for file:", file.name, "size:", file.size)
+      console.log("Initiating upload for file:", originalName, "size:", file.size)
 
       const user = firebaseAuth?.currentUser
       if (!user) {
@@ -87,7 +111,7 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
 
       // Upload to Firebase Storage
       const timestamp = Date.now()
-      const fileName = `${timestamp}_${file.name}`
+      const fileName = `${timestamp}_${originalName}`
       const storageRef = ref(firebaseStorage, `media/${user.uid}/${fileName}`)
       console.log("Storage ref created:", storageRef.fullPath)
 
@@ -128,11 +152,12 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
 
               // Register in library
               try {
+                const type = originalName.toLowerCase().match(/\.(mp4|mov|avi|webm)$/) ? "video" : "image"
                 await registerMediaMetadata({
                   url: downloadURL,
-                  title: file.name,
-                  type: file.type.startsWith("video/") ? "video" : "image",
-                  fileName: file.name,
+                  title: originalName,
+                  type: type,
+                  fileName: originalName,
                   fileSize: file.size,
                   storagePath: storageRef.fullPath,
                 })
@@ -141,7 +166,7 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
                 // We still call onUpload even if library registration fails
               }
 
-              onUpload(downloadURL, file.type.startsWith("video/") ? "video" : "image")
+              onUpload(downloadURL, originalName.toLowerCase().match(/\.(mp4|mov|avi|webm)$/) ? "video" : "image")
               toast({
                 title: "Upload successful",
                 description: "Media uploaded and saved to library",
@@ -222,6 +247,18 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
           </div>
           <Progress value={uploadProgress} className="h-1 shadow-sm" />
         </div>
+      )}
+
+      {imageToCrop && (
+        <ImageCropper
+          imageSrc={imageToCrop.url}
+          open={cropOpen}
+          onCropComplete={handleCropComplete}
+          onCancel={() => {
+            setCropOpen(false)
+            setImageToCrop(null)
+          }}
+        />
       )}
     </div>
   )

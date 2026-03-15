@@ -42,6 +42,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { MediaUploader } from "@/components/dashboard/media-uploader"
+import { ImageCropper } from "@/components/dashboard/image-cropper"
 import { createPost } from "@/lib/firebase/posts"
 import { getSocialAccounts } from "@/lib/firebase/social-accounts"
 import { getCaptionTemplates, getHashtagGroups } from "@/lib/data-service"
@@ -115,6 +116,8 @@ export default function CreatePostPage() {
   const [success, setSuccess] = useState(false)
   const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
   const { toast } = useToast()
+  const [cropOpen, setCropOpen] = useState(false)
+  const [imageToCrop, setImageToCrop] = useState<{ url: string; file: File } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Instagram Specific Options
@@ -259,16 +262,51 @@ export default function CreatePostPage() {
         return
       }
 
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader()
+        reader.onload = () => {
+          setImageToCrop({ url: reader.result as string, file })
+          setCropOpen(true)
+        }
+        reader.readAsDataURL(file)
+        return
+      }
+
+      await executeUpload(file, file.name)
+    } catch (err: any) {
+      console.error("Manual upload process error:", err)
+      toast({
+        title: "Upload Error",
+        description: err.message || "An unexpected error occurred during upload.",
+        variant: "destructive"
+      })
+    } finally {
+      if (e.target) e.target.value = ""
+    }
+  }
+
+  const handleManualCropComplete = async (croppedBlob: Blob) => {
+    setCropOpen(false)
+    if (imageToCrop) {
+      await executeUpload(croppedBlob, imageToCrop.file.name)
+    }
+    setImageToCrop(null)
+  }
+
+  const executeUpload = async (file: File | Blob, originalName: string) => {
+    try {
       setIsUploadingMedia(true)
       setMediaUploadProgress(0)
 
       toast({
         title: "Starting Upload",
-        description: `Uploading ${file.name}...`,
+        description: `Uploading ${originalName}...`,
       })
 
+      if (!firebaseStorage || !user) return
+
       const timestamp = Date.now()
-      const fileName = `${timestamp}_${file.name}`
+      const fileName = `${timestamp}_${originalName}`
       const storageRef = ref(firebaseStorage, `media/${user.uid}/${fileName}`)
 
       console.log("Starting upload to:", storageRef.fullPath)
@@ -289,13 +327,13 @@ export default function CreatePostPage() {
           async () => {
             try {
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
-              const type = file.type.startsWith("video/") ? "video" : "image"
+              const type = originalName.toLowerCase().match(/\.(mp4|mov|avi|webm)$/) ? "video" : "image"
 
               await registerMediaMetadata({
                 url: downloadURL,
-                title: file.name,
+                title: originalName,
                 type: type,
-                fileName: file.name,
+                fileName: originalName,
                 fileSize: file.size,
                 storagePath: storageRef.fullPath,
               })
@@ -303,7 +341,7 @@ export default function CreatePostPage() {
               handleMediaUpload(downloadURL, type)
               toast({
                 title: "Upload Complete",
-                description: `${file.name} is ready.`,
+                description: `${originalName} is ready.`,
               })
               resolve()
             } catch (err) {
@@ -313,16 +351,15 @@ export default function CreatePostPage() {
         )
       })
     } catch (err: any) {
-      console.error("Manual upload process error:", err)
+      console.error("Upload execution error:", err)
       toast({
         title: "Upload Error",
-        description: err.message || "An unexpected error occurred during upload.",
+        description: err.message || "An error occurred during upload.",
         variant: "destructive"
       })
     } finally {
       setIsUploadingMedia(false)
       setMediaUploadProgress(0)
-      if (e.target) e.target.value = ""
     }
   }
 
@@ -1817,6 +1854,17 @@ export default function CreatePostPage() {
           }
         </div >
       </div >
+      {imageToCrop && (
+        <ImageCropper
+          imageSrc={imageToCrop.url}
+          open={cropOpen}
+          onCropComplete={handleManualCropComplete}
+          onCancel={() => {
+            setCropOpen(false)
+            setImageToCrop(null)
+          }}
+        />
+      )}
     </div >
   )
 }

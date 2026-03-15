@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
       if (!userData.niche && competitors.length === 0) continue
 
       // Generate trends using AI
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+      const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" })
       
       const competitorContext = competitors.length > 0 
         ? `Specifically look at these competitors/references for inspiration and comparison: ${competitors.join(", ")}.`

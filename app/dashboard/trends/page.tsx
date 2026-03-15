@@ -385,7 +385,7 @@ export default function TrendsPage() {
       <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-8 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-          Powered by AI (Gemini 1.5 Flash)
+          Powered by AI (Google AI)
         </div>
         <div>
           Last synced: {trendsData?.lastSyncedAt ? new Date(trendsData.lastSyncedAt.seconds * 1000).toLocaleString() : "Recently"}

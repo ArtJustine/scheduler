@@ -3,7 +3,7 @@ import type { MediaItem } from "@/types/media"
 import type { HashtagGroup } from "@/types/hashtag"
 import type { CaptionTemplate } from "@/types/caption"
 import type { SocialAccounts } from "@/types/social"
-import { signIn, signUp, getCurrentUser as firebaseGetCurrentUser, signOut } from "@/lib/firebase/auth"
+import { signIn, signUp, getCurrentUser as firebaseGetCurrentUser, signOut, signInWithGoogle } from "@/lib/firebase/auth"
 import {
   getScheduledPosts as firebaseGetScheduledPosts,
   getPost as firebaseGetPost,
@@ -67,6 +67,15 @@ export const loginUser = async (email: string, password: string) => {
     } else {
       throw new Error(error.message || "Couldn’t log you in. Please check your email and password and try again.")
     }
+  }
+}
+
+export const loginWithGoogle = async () => {
+  try {
+    const result = await signInWithGoogle()
+    return result.user
+  } catch (error: any) {
+    throw new Error(error.message || "Couldn’t log you in with Google. Please try again.")
   }
 }
 

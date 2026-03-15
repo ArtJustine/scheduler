@@ -6,6 +6,8 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   updateProfile,
+  signInWithPopup,
+  GoogleAuthProvider,
   type User,
 } from "firebase/auth"
 import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore"
@@ -70,6 +72,57 @@ export const signIn = async (email: string, password: string) => {
     return { user: userCredential.user }
   } catch (error: any) {
     console.error("Error signing in:", error)
+    throw error
+  }
+}
+
+// Sign in with Google
+export const signInWithGoogle = async () => {
+  if (!firebaseAuth) throw new Error("Authentication service is unavailable. Please refresh and try again.")
+
+  try {
+    const provider = new GoogleAuthProvider()
+    const userCredential = await signInWithPopup(firebaseAuth, provider)
+    
+    if (userCredential.user) {
+      const uid = userCredential.user.uid
+      const userDocRef = doc(firebaseDb!, "users", uid)
+      const userDoc = await getDoc(userDocRef)
+
+      if (!userDoc.exists()) {
+        // First time user - create document and workspace
+        await setDoc(userDocRef, {
+          uid,
+          email: userCredential.user.email,
+          displayName: userCredential.user.displayName,
+          photoURL: userCredential.user.photoURL,
+          createdAt: new Date().toISOString(),
+        })
+
+        // Create default workspace
+        try {
+          const { addDoc, collection: firestoreCollection } = await import("firebase/firestore")
+          const workspacesRef = firestoreCollection(firebaseDb!, "workspaces")
+          const workspaceRef = await addDoc(workspacesRef, {
+            name: "My Workspace",
+            ownerId: uid,
+            memberIds: [uid],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            accounts: {}
+          })
+          // Set as active workspace
+          await setDoc(userDocRef, { activeWorkspaceId: workspaceRef.id }, { merge: true })
+          console.log("signInWithGoogle: Created default workspace", workspaceRef.id, "for user", uid)
+        } catch (wsErr) {
+          console.warn("signInWithGoogle: Could not create default workspace:", wsErr)
+        }
+      }
+    }
+
+    return { user: userCredential.user }
+  } catch (error: any) {
+    console.error("Error signing in with Google:", error)
     throw error
   }
 }

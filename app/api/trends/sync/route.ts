@@ -38,9 +38,15 @@ export async function GET(req: NextRequest) {
       // Generate trends using Gemini
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
       
+      const competitors = userData.trendCompetitors || []
+      const competitorContext = competitors.length > 0 
+        ? `Specifically look at these competitors/references for inspiration and comparison: ${competitors.join(", ")}.`
+        : ""
+
       const prompt = `
         You are an expert social media strategist. 
         Analyze the current trends for the niche: "${niche}".
+        ${competitorContext}
         Focus on what's getting high engagement on TikTok, Instagram, and YouTube.
         
         Provide a JSON response with the following structure:

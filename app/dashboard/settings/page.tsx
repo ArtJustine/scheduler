@@ -11,12 +11,12 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/lib/auth-provider"
-import { updateUserProfile } from "@/lib/firebase/auth"
+import { updateUserProfile, getUserProfile } from "@/lib/firebase/auth"
 import { useTheme } from "next-themes"
 import { Sun, Moon, Laptop, ShieldCheck } from "lucide-react"
 import { getSocialAccounts } from "@/lib/firebase/social-accounts"
 import type { SocialAccounts } from "@/types/social"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -25,10 +25,13 @@ export default function SettingsPage() {
   const [name, setName] = useState(user?.displayName || "")
   const [email, setEmail] = useState(user?.email || "")
   const [niche, setNiche] = useState(user?.niche || "")
+  const [competitors, setCompetitors] = useState<string[]>(user?.trendCompetitors || [])
   const { theme, setTheme } = useTheme()
   const [currentTheme, setCurrentTheme] = useState(theme)
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const defaultTab = searchParams.get("tab") || "profile"
 
 
   useEffect(() => {
@@ -45,11 +48,22 @@ export default function SettingsPage() {
   }, [])
 
   useEffect(() => {
-    if (user) {
-      setName(user.displayName || "")
-      setEmail(user.email || "")
-      setNiche(user.niche || "")
+    const loadProfile = async () => {
+      if (user) {
+        setName(user.displayName || "")
+        setEmail(user.email || "")
+        try {
+          const profile: any = await getUserProfile()
+          if (profile) {
+            setNiche(profile.niche || "")
+            setCompetitors(profile.trendCompetitors || [])
+          }
+        } catch (error) {
+          console.error("Error loading user profile:", error)
+        }
+      }
     }
+    loadProfile()
   }, [user])
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -57,7 +71,11 @@ export default function SettingsPage() {
     setIsUpdating(true)
 
     try {
-      await updateUserProfile({ displayName: name, niche })
+      await updateUserProfile({ 
+        displayName: name, 
+        niche, 
+        trendCompetitors: competitors.filter(c => c.trim() !== "") 
+      })
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
@@ -80,7 +98,7 @@ export default function SettingsPage() {
         <p className="text-muted-foreground">Manage your account settings and preferences</p>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
         <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-border/50">
           <TabsTrigger
             value="profile"
@@ -112,6 +130,12 @@ export default function SettingsPage() {
           >
             Connections
           </TabsTrigger>
+          <TabsTrigger
+            value="trends"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
+          >
+            Trends Config
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6">
@@ -130,16 +154,6 @@ export default function SettingsPage() {
                   <Label htmlFor="email">Email</Label>
                   <Input id="email" type="email" value={email} disabled />
                   <p className="text-sm text-muted-foreground">Email cannot be changed</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="niche">My Niche / Industry</Label>
-                  <Input 
-                    id="niche" 
-                    placeholder="e.g. Minimalist Interior Design, AI Tech, Fitness Coaching" 
-                    value={niche} 
-                    onChange={(e) => setNiche(e.target.value)} 
-                  />
-                  <p className="text-sm text-muted-foreground">This helps us find relevant trends and content ideas for you.</p>
                 </div>
               </CardContent>
               <CardFooter>
@@ -324,6 +338,72 @@ export default function SettingsPage() {
                 Connecting your accounts allows for direct posting and analytics tracking.
               </p>
             </CardFooter>
+          </Card>
+        </TabsContent>
+        <TabsContent value="trends" className="space-y-6">
+          <Card>
+            <form onSubmit={handleProfileUpdate}>
+              <CardHeader>
+                <CardTitle>Trends Configuration</CardTitle>
+                <CardDescription>Configure how we find trends for you using Gemini AI.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="trends-niche">My Niche / Industry</Label>
+                  <Input 
+                    id="trends-niche" 
+                    placeholder="e.g. Minimalist Interior Design, AI Tech, Fitness Coaching" 
+                    value={niche} 
+                    onChange={(e) => setNiche(e.target.value)} 
+                  />
+                  <p className="text-sm text-muted-foreground">The primary topic you want to track.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <Label>Competitor References (Links/Handles)</Label>
+                  <p className="text-sm text-muted-foreground">Add links to websites or social media pages you want Gemini to analyze as competition.</p>
+                  
+                  <div className="space-y-3">
+                    {competitors.map((comp, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input 
+                          placeholder="e.g. youtube.com/c/competitor or @competitor" 
+                          value={comp} 
+                          onChange={(e) => {
+                            const newComps = [...competitors]
+                            newComps[index] = e.target.value
+                            setCompetitors(newComps)
+                          }}
+                        />
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-destructive"
+                          onClick={() => setCompetitors(competitors.filter((_, i) => i !== index))}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full border-dashed"
+                      onClick={() => setCompetitors([...competitors, ""])}
+                    >
+                      + Add Reference Link
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating ? "Saving..." : "Save Trends Config"}
+                </Button>
+              </CardFooter>
+            </form>
           </Card>
         </TabsContent>
 

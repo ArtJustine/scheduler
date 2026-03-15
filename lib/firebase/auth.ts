@@ -160,7 +160,7 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(firebaseAuth!, callback)
 }
 
-export const updateUserProfile = async (data: { displayName?: string; photoURL?: string; niche?: string }) => {
+export const updateUserProfile = async (data: { displayName?: string; photoURL?: string; niche?: string; trendCompetitors?: string[] }) => {
   if (!firebaseAuth || !firebaseAuth.currentUser) {
     throw new Error("User not authenticated")
   }

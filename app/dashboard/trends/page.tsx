@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-provider"
 import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore"
 import { firebaseDb } from "@/lib/firebase-client"
@@ -20,7 +21,8 @@ import {
   Users,
   Search,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  Settings
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -50,6 +52,7 @@ interface TrendsData {
 
 export default function TrendsPage() {
   const { user } = useAuth()
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [trendsData, setTrendsData] = useState<TrendsData | null>(null)
@@ -144,12 +147,17 @@ export default function TrendsPage() {
         <div className="max-w-md">
           <h2 className="text-2xl font-bold mb-2">Discover Your Niche Trends</h2>
           <p className="text-muted-foreground mb-6">
-            Tell us about your niche in Settings, and we'll use Gemini to find what's trending, who to watch, and how to grow.
+            Tell us about your niche and competitors in Settings, and we'll use Gemini to find what's trending, who to watch, and how to grow.
           </p>
-          <Button onClick={handleSync} className="rounded-full px-8">
-            <RefreshCw className={cn("mr-2 h-4 w-4", syncing && "animate-spin")} />
-            Sync Trends Now
-          </Button>
+          <div className="flex gap-3 justify-center">
+            <Button onClick={() => router.push("/dashboard/settings?tab=trends")} variant="outline" className="rounded-full px-8">
+              Configure Niche
+            </Button>
+            <Button onClick={handleSync} className="rounded-full px-8 shadow-lg shadow-primary/20">
+              <RefreshCw className={cn("mr-2 h-4 w-4", syncing && "animate-spin")} />
+              Sync Trends Now
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -169,15 +177,25 @@ export default function TrendsPage() {
             Gemini analysis of what's viral and high-engagement in your niche this week.
           </p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={handleSync} 
-          disabled={syncing}
-          className="rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-primary/20 hover:bg-primary/5 transition-all"
-        >
-          <RefreshCw className={cn("mr-2 h-4 w-4", syncing && "animate-spin")} />
-          {syncing ? "Analyzing..." : "Refresh Weekly Sync"}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => router.push("/dashboard/settings?tab=trends")}
+            className="rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-primary/20 hover:bg-primary/5 transition-all"
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Config
+          </Button>
+          <Button 
+            variant="default" 
+            onClick={handleSync} 
+            disabled={syncing}
+            className="rounded-full shadow-lg shadow-primary/20 transition-all"
+          >
+            <RefreshCw className={cn("mr-2 h-4 w-4", syncing && "animate-spin")} />
+            {syncing ? "Analyzing..." : "Refresh Weekly Sync"}
+          </Button>
+        </div>
       </div>
 
       <AnimatePresence mode="wait">

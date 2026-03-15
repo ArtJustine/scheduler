@@ -109,6 +109,7 @@ export function AppTour() {
 
   const handleComplete = () => {
     setIsVisible(false)
+    localStorage.setItem("chiyu-tour-completed", "true")
     completeTour()
   }
 

@@ -16,8 +16,9 @@ import {
   User,
   Share2,
   Link as LucideLink,
-  ChevronRight,
-  Youtube
+  Youtube,
+  TrendingUp,
+  ChevronRight
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -47,6 +48,11 @@ const sidebarItems = [
     title: "Dashboard",
     icon: Home,
     href: "/dashboard",
+  },
+  {
+    title: "Trends",
+    icon: TrendingUp,
+    href: "/dashboard/trends",
   },
   {
     title: "Create Post",

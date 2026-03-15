@@ -24,6 +24,7 @@ export default function SettingsPage() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [name, setName] = useState(user?.displayName || "")
   const [email, setEmail] = useState(user?.email || "")
+  const [niche, setNiche] = useState(user?.niche || "")
   const { theme, setTheme } = useTheme()
   const [currentTheme, setCurrentTheme] = useState(theme)
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
@@ -47,6 +48,7 @@ export default function SettingsPage() {
     if (user) {
       setName(user.displayName || "")
       setEmail(user.email || "")
+      setNiche(user.niche || "")
     }
   }, [user])
 
@@ -55,7 +57,7 @@ export default function SettingsPage() {
     setIsUpdating(true)
 
     try {
-      await updateUserProfile({ displayName: name })
+      await updateUserProfile({ displayName: name, niche })
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
@@ -128,6 +130,16 @@ export default function SettingsPage() {
                   <Label htmlFor="email">Email</Label>
                   <Input id="email" type="email" value={email} disabled />
                   <p className="text-sm text-muted-foreground">Email cannot be changed</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="niche">My Niche / Industry</Label>
+                  <Input 
+                    id="niche" 
+                    placeholder="e.g. Minimalist Interior Design, AI Tech, Fitness Coaching" 
+                    value={niche} 
+                    onChange={(e) => setNiche(e.target.value)} 
+                  />
+                  <p className="text-sm text-muted-foreground">This helps us find relevant trends and content ideas for you.</p>
                 </div>
               </CardContent>
               <CardFooter>

@@ -113,6 +113,11 @@ export const config = {
     service: process.env.BLUESKY_SERVICE || "https://bsky.social",
   },
 
+  // Gemini API Configuration
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+  },
+
   // General app configuration
   app: {
     baseUrl:

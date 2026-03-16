@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { adminDb } from "@/lib/firebase-admin"
 import { checkScheduledPosts, publishPost } from "@/lib/scheduler-service"
 
-export const maxDuration = 60; // Allow up to 60 seconds for execution (Vercel Hobby Limit)
+export const maxDuration = 300; // Allow up to 300 seconds for execution (Vercel Pro Limit)
 export const dynamic = 'force-dynamic';
 
 export async function POST(

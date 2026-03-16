@@ -15,7 +15,12 @@ export const metadata: Metadata = {
   icons: {
     icon: '/logo-light.png',
     apple: '/logo-light.png',
-  }
+  },
+  verification: {
+    other: {
+      'tiktok-developers-site-verification': ['zgDYjp9is7mmObhEghWencW7XqASt1nr'],
+    },
+  },
 }
 
 import { AuthProvider } from "@/lib/auth-provider"

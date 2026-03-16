@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/lib/auth-provider"
 import { updateUserProfile, getUserProfile } from "@/lib/firebase/auth"
 import { useTheme } from "next-themes"
-import { Sun, Moon, Laptop, ShieldCheck } from "lucide-react"
+import { Sun, Moon, Laptop, ShieldCheck, Activity, RefreshCw, ExternalLink, Info } from "lucide-react"
 import { getSocialAccounts } from "@/lib/firebase/social-accounts"
 import type { SocialAccounts } from "@/types/social"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -135,6 +136,12 @@ export default function SettingsPage() {
             className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
           >
             Trends Config
+          </TabsTrigger>
+          <TabsTrigger
+            value="scheduler"
+            className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white text-muted-foreground hover:text-foreground transition-all duration-200"
+          >
+            Scheduler
           </TabsTrigger>
         </TabsList>
 
@@ -404,6 +411,117 @@ export default function SettingsPage() {
                 </Button>
               </CardFooter>
             </form>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="scheduler" className="space-y-6">
+          <Card className="overflow-hidden border-primary/10">
+            <CardHeader className="bg-primary/5 border-b border-primary/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-primary flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Automated Scheduling
+                  </CardTitle>
+                  <CardDescription>Configure and monitor your automated posting pipeline.</CardDescription>
+                </div>
+                <Badge className="bg-primary text-white hover:bg-primary/90 rounded-full px-3">
+                  Vercel Pro Active
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-border/50 space-y-3">
+                  <div className="flex items-center gap-2 text-foreground font-semibold">
+                    <ShieldCheck className="h-5 w-5 text-green-500" />
+                    Vercel Cron Status
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Your Vercel Pro account enables minute-by-minute scheduling. We've configured your app to check for due posts every 60 seconds.
+                  </p>
+                  <div className="flex gap-2">
+                    <Badge variant="secondary" className="font-mono text-[10px]">*/1 * * * *</Badge>
+                    <Badge variant="secondary" className="font-mono text-[10px]">300s Timeout</Badge>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-border/50 space-y-3">
+                  <div className="flex items-center gap-2 text-foreground font-semibold">
+                    <RefreshCw className="h-5 w-5 text-blue-500" />
+                    Manual Control
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Need to push posts immediately? You can manually trigger the scheduler without waiting for the next cron cycle.
+                  </p>
+                  <Button 
+                    className="w-full shadow-sm rounded-xl"
+                    onClick={async () => {
+                      setIsUpdating(true);
+                      try {
+                        const res = await fetch('/api/cron/scheduler?secret=Artgwapito!1');
+                        const data = await res.json();
+                        if (data.success) {
+                          toast({ title: "Scheduler Success", description: data.message });
+                        } else {
+                          toast({ title: "Scheduler Failed", description: data.error, variant: "destructive" });
+                        }
+                      } catch (e) {
+                        toast({ title: "Error", description: "Could not reach the scheduler API.", variant: "destructive" });
+                      } finally {
+                        setIsUpdating(false);
+                      }
+                    }}
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Activity className="h-4 w-4 mr-2" />}
+                    Run Scheduler Now
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-border/50">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Scheduler Webhook URL</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      readOnly 
+                      className="font-mono text-xs bg-muted/30 rounded-xl"
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/cron/scheduler?secret=Artgwapito!1`} 
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="rounded-xl"
+                      onClick={() => {
+                        const url = `${window.location.origin}/api/cron/scheduler?secret=Artgwapito!1`;
+                        navigator.clipboard.writeText(url);
+                        toast({ title: "Copied!", description: "Webhook URL copied to clipboard." });
+                      }}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  <div className="flex gap-3">
+                    <Info className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-sm text-amber-800 dark:text-amber-200">
+                      <strong>Security Note:</strong> The scheduler secret identifies your account. Only provide this URL to trusted services like Vercel Cron.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-primary rounded-xl">
+                    <a href="https://vercel.com/dashboard" target="_blank" rel="noopener noreferrer">
+                      View Logs in Vercel <ExternalLink className="h-3 w-3 ml-1" />
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
           </Card>
         </TabsContent>
 

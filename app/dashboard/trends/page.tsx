@@ -10,14 +10,14 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/components/ui/use-toast"
-import { 
-  TrendingUp, 
-  RefreshCw, 
-  Instagram, 
-  Youtube, 
-  Video, 
-  MessageSquare, 
-  Lightbulb, 
+import {
+  TrendingUp,
+  RefreshCw,
+  Instagram,
+  Youtube,
+  Video,
+  MessageSquare,
+  Lightbulb,
   Users,
   Search,
   ArrowRight,
@@ -63,12 +63,12 @@ export default function TrendsPage() {
 
   const loadTrends = async () => {
     if (!user || !firebaseDb) return
-    
+
     setLoading(true)
     try {
       const docRef = doc(firebaseDb, "trends", user.uid)
       const docSnap = await getDoc(docRef)
-      
+
       if (docSnap.exists()) {
         setTrendsData(docSnap.data() as TrendsData)
       } else {
@@ -76,7 +76,7 @@ export default function TrendsPage() {
         const userDocRef = doc(firebaseDb, "users", user.uid)
         const userSnap = await getDoc(userDocRef)
         const userData = userSnap.data()
-        
+
         if (userData?.niche) {
           // Auto-sync if it's the first time
           handleSync()
@@ -99,9 +99,9 @@ export default function TrendsPage() {
       // In a real app, you might call your API route
       // Here we'll call the sync logic directly or via fetch to our internal API
       const response = await fetch(`/api/trends/sync?userId=${user.uid}`, {
-        method: "GET", 
+        method: "GET",
       })
-      
+
       if (response.ok) {
         await loadTrends()
         toast({
@@ -179,7 +179,7 @@ export default function TrendsPage() {
     <div className="relative space-y-8 pb-12">
       <AnimatePresence>
         {syncing && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
@@ -195,7 +195,7 @@ export default function TrendsPage() {
                 </div>
                 <h3 className="text-xs font-bold">Analyzing Niche</h3>
               </div>
-              <button 
+              <button
                 onClick={() => setSyncing(false)}
                 className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 title="Run in background"
@@ -203,7 +203,7 @@ export default function TrendsPage() {
                 <X className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
-            
+
             <p className="text-[10px] text-muted-foreground leading-relaxed">
               Our AI is scanning TikTok, Instagram, and YouTube. You can continue using the app.
             </p>
@@ -228,17 +228,17 @@ export default function TrendsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => router.push("/dashboard/settings?tab=trends")}
             className="rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-primary/20 hover:bg-primary/5 transition-all"
           >
             <Settings className="mr-2 h-4 w-4" />
             Config
           </Button>
-          <Button 
-            variant="default" 
-            onClick={handleSync} 
+          <Button
+            variant="default"
+            onClick={handleSync}
             disabled={syncing}
             className="rounded-full shadow-lg shadow-primary/20 transition-all"
           >
@@ -249,7 +249,7 @@ export default function TrendsPage() {
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-1 lg:grid-cols-3 gap-8"
@@ -273,9 +273,9 @@ export default function TrendsPage() {
                       <div className="flex justify-between items-start mb-2">
                         <Badge className={cn(
                           "rounded-full border-none",
-                          trend.platform === "TikTok" ? "bg-black text-white" : 
-                          trend.platform === "Instagram" ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white" :
-                          "bg-red-600 text-white"
+                          trend.platform === "TikTok" ? "bg-black text-white" :
+                            trend.platform === "Instagram" ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white" :
+                              "bg-red-600 text-white"
                         )}>
                           {trend.platform === "TikTok" && <Video className="h-3 w-3 mr-1" />}
                           {trend.platform === "Instagram" && <Instagram className="h-3 w-3 mr-1" />}
@@ -381,7 +381,7 @@ export default function TrendsPage() {
           </div>
         </motion.div>
       </AnimatePresence>
-      
+
       <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-8 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />

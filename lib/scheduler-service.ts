@@ -600,17 +600,16 @@ async function publishToTikTok(userId: string, post: any, preFetchedBlob: Blob |
       // TikTok uses 'title' as the video caption (max 150 chars for direct post)
       const caption = (post.content || post.title || post.description || "").substring(0, 150)
 
-      // IMPORTANT: Unaudited TikTok apps can ONLY post to private accounts with SELF_ONLY privacy.
-      // Until the TikTok app passes their audit, we must force SELF_ONLY.
-      // Once audited, the user's privacy selection will be respected.
+      // TikTok Privacy Mapping
       let privacyLevel = "SELF_ONLY"
       const requestedPrivacy = post.tiktokOptions?.privacy
+      
       if (requestedPrivacy === "public") {
-        privacyLevel = "SELF_ONLY" // Force SELF_ONLY for unaudited apps (PUBLIC_TO_EVERYONE is rejected)
-        console.log("TikTok: Note — forcing SELF_ONLY privacy (app not yet audited by TikTok). Video will be private.")
+        privacyLevel = "PUBLIC_TO_EVERYONE"
+        console.log("TikTok: Attempting PUBLIC post (requires audited app status)")
       } else if (requestedPrivacy === "friends") {
-        privacyLevel = "SELF_ONLY" // FRIENDS also requires audit
-        console.log("TikTok: Note — forcing SELF_ONLY privacy (app not yet audited by TikTok). Video will be private.")
+        privacyLevel = "MUTUAL_FOLLOW_FRIENDS"
+        console.log("TikTok: Attempting FRIENDS post (requires audited app status)")
       } else {
         privacyLevel = "SELF_ONLY"
       }

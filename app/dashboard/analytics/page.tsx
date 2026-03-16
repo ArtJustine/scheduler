@@ -101,15 +101,36 @@ function AnalyticsContent() {
 
     const processAccount = (data: any) => {
       if (!data || !data.connected) return
-      views += Number(data.views || 0)
-      followers += Number(data.followers || 0)
-      likes += Number(data.likes || 0)
-      posts += Number(data.posts || 0)
-      engagement += Number(data.engagement || 0)
+      
+      const pFollowers = Number(data.followers || 0)
+      const pPosts = Number(data.posts || 0)
+      const pLikes = Number(data.likes || 0)
+      const pViews = Number(data.views || data.impressions || 0)
+      
+      views += pViews
+      followers += pFollowers
+      likes += pLikes
+      posts += pPosts
+      
+      // If the platform doesn't provide a direct engagement metric, 
+      // calculate it based on likes + 10% of views (as a proxy for interactions)
+      const pEngagement = Number(data.engagement || 0)
+      if (pEngagement > 0) {
+        engagement += pEngagement
+      } else if (pFollowers > 0) {
+        // Industry standard estimate if not provided: (Likes + Comments) / Followers
+        // Here we use likes + 2% of views as a proxy for total interactions
+        const rate = ((pLikes + (pViews * 0.02)) / pFollowers) * 100
+        engagement += rate
+      }
     }
 
     if (platform === "all") {
-      Object.keys(accounts).forEach(p => processAccount(accounts[p]))
+      const platformKeys = Object.keys(accounts)
+      const connectedPlatformsNum = platformKeys.filter(p => accounts[p]?.connected).length
+      platformKeys.forEach(p => processAccount(accounts[p]))
+      // If "all", average out the engagement rate across connected platforms
+      if (connectedPlatformsNum > 1) engagement = engagement / connectedPlatformsNum
     } else if (accounts[platform]) {
       processAccount(accounts[platform])
     }
@@ -122,20 +143,20 @@ function AnalyticsContent() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div className="space-y-1">
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent italic">
+        <div className="space-y-1 pr-4">
+          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent italic">
             Performance.
           </h1>
-          <p className="text-muted-foreground font-medium">Detailed insights across your digital footprint</p>
+          <p className="text-xs md:text-sm text-muted-foreground font-medium">Real-time performance across your digital footprint</p>
         </div>
 
-        <div className="flex items-center gap-3 bg-muted/30 p-1.5 rounded-xl border border-border/50">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3 bg-muted/30 p-1.5 rounded-xl border border-border/50 shrink-0">
           <Select value={timeframe} onValueChange={setTimeframe}>
-            <SelectTrigger className="w-[130px] h-9 border-none bg-transparent hover:bg-muted/50 focus:ring-0">
-              <Calendar className="h-4 w-4 mr-2 text-primary" />
+            <SelectTrigger className="w-[120px] md:w-[140px] h-8 md:h-9 border-none bg-transparent hover:bg-muted/50 focus:ring-0 px-2 transition-all">
+              <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2 text-primary" />
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="item-aligned" className="z-[100]">
               <SelectItem value="week">Past Week</SelectItem>
               <SelectItem value="month">Past Month</SelectItem>
               <SelectItem value="quarter">Past Quarter</SelectItem>
@@ -146,11 +167,11 @@ function AnalyticsContent() {
 
           {connectedPlatforms.length > 0 && (
             <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
-              <SelectTrigger className="w-[150px] h-9 border-none bg-transparent hover:bg-muted/50 focus:ring-0">
-                <Zap className="h-4 w-4 mr-2 text-primary" />
+              <SelectTrigger className="w-[130px] md:w-[150px] h-8 md:h-9 border-none bg-transparent hover:bg-muted/50 focus:ring-0 px-2 transition-all">
+                <Zap className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2 text-primary" />
                 <SelectValue placeholder="Platform" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="item-aligned" className="z-[100]">
                 <SelectItem value="all">All Platforms</SelectItem>
                 {connectedPlatforms.map(platform => (
                   <SelectItem key={platform} value={platform} className="capitalize">

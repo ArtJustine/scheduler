@@ -5,53 +5,59 @@ interface PlatformEngagementCardProps {
   stats: {
     likes: number
     comments: number
+    views?: number
+    followers?: number
     saves?: number
   }
-  color?: string
 }
 
-export function PlatformEngagementCard({ platform, stats, color }: PlatformEngagementCardProps) {
-  // Get platform color
-  const getPlatformColor = () => {
-    return "var(--primary)"
+export function PlatformEngagementCard({ platform, stats }: PlatformEngagementCardProps) {
+  const getPlatformColors = (p: string) => {
+    const name = p.toLowerCase()
+    if (name.includes('tiktok')) return 'bg-teal-500'
+    if (name.includes('instagram')) return 'bg-pink-600'
+    if (name.includes('youtube')) return 'bg-red-600'
+    if (name.includes('threads')) return 'bg-zinc-800'
+    if (name.includes('linkedin')) return 'bg-blue-700'
+    return 'bg-primary'
   }
 
-  // Calculate total for percentage
-  const total = stats.likes + stats.comments + (stats.saves || 0)
+  // Calculate total interactions for percentage
+  const totalInteractions = stats.likes + stats.comments + (stats.saves || 0)
 
-  // Function to calculate percentage
   const getPercentage = (value: number) => {
-    if (total === 0) return "0%"
-    return `${Math.round((value / total) * 100)}%`
+    if (totalInteractions === 0) return "0%"
+    return `${Math.round((value / totalInteractions) * 100)}%`
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <Card className="overflow-hidden border-none bg-muted/20 hover:bg-muted/30 transition-all border border-border/50">
+      <CardHeader className="pb-4 border-b border-border/50">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-medium">{platform}</CardTitle>
-          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: getPlatformColor() }} />
+          <CardTitle className="text-sm font-bold tracking-tight uppercase">{platform}</CardTitle>
+          <div className={`h-2.5 w-2.5 rounded-full ${getPlatformColors(platform)} shadow-sm`} />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4">
+      <CardContent className="pt-6">
+        <div className="grid grid-cols-2 gap-y-6 gap-x-4">
           <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">Likes</span>
-            <span className="text-xl font-bold">{stats.likes.toLocaleString()}</span>
-            <span className="text-xs text-muted-foreground">{getPercentage(stats.likes)}</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Followers</span>
+            <span className="text-xl font-black">{(stats.followers || 0).toLocaleString()}</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">Comments</span>
-            <span className="text-xl font-bold">{stats.comments.toLocaleString()}</span>
-            <span className="text-xs text-muted-foreground">{getPercentage(stats.comments)}</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Reach</span>
+            <span className="text-xl font-black">{(stats.views || 0).toLocaleString()}</span>
           </div>
-          {stats.saves !== undefined && (
-            <div className="flex flex-col">
-              <span className="text-sm text-muted-foreground">Saves</span>
-              <span className="text-xl font-bold">{stats.saves.toLocaleString()}</span>
-              <span className="text-xs text-muted-foreground">{getPercentage(stats.saves)}</span>
-            </div>
-          )}
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Likes</span>
+            <span className="text-xl font-black">{stats.likes.toLocaleString()}</span>
+            <span className="text-[10px] font-medium text-muted-foreground">{getPercentage(stats.likes)} of interactions</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Comments</span>
+            <span className="text-xl font-black">{stats.comments.toLocaleString()}</span>
+            <span className="text-[10px] font-medium text-muted-foreground">{getPercentage(stats.comments)} of interactions</span>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -210,6 +210,130 @@ async function hydratePinterestFollowers(accounts: any, workspaceId?: string, us
   }
 }
 
+async function hydrateYouTubeStats(accounts: any, workspaceId?: string, userId?: string) {
+  const youtube = accounts?.youtube
+  if (!youtube || !youtube.connected || !youtube.accessToken) return accounts
+
+  const lastUpdated = youtube.updatedAt ? new Date(youtube.updatedAt).getTime() : 0
+  const isOld = Date.now() - lastUpdated > 3600000 // 1 hour
+
+  if (youtube.followers > 0 && !isOld) return accounts
+
+  try {
+    const { fetchYouTubeStats } = await import("@/lib/social-service")
+    const stats = await fetchYouTubeStats(youtube.accessToken)
+    if (!stats) return accounts
+
+    const updatedAt = new Date().toISOString()
+    const updatedYouTube = { ...youtube, ...stats, updatedAt }
+
+    if (workspaceId) {
+      const workspaceRef = doc(firebaseDb!, "workspaces", workspaceId)
+      await updateDoc(workspaceRef, {
+        "accounts.youtube.followers": stats.followers,
+        "accounts.youtube.posts": stats.posts,
+        "accounts.youtube.views": stats.views,
+        "accounts.youtube.updatedAt": updatedAt,
+        updatedAt,
+      })
+    } else if (userId) {
+      const userRef = doc(firebaseDb!, "users", userId)
+      await updateDoc(userRef, {
+        "youtube.followers": stats.followers,
+        "youtube.posts": stats.posts,
+        "youtube.views": stats.views,
+        "youtube.updatedAt": updatedAt,
+      })
+    }
+    return { ...accounts, youtube: updatedYouTube }
+  } catch (err) {
+    console.warn("hydrateYouTubeStats failed:", err)
+    return accounts
+  }
+}
+
+async function hydrateTikTokStats(accounts: any, workspaceId?: string, userId?: string) {
+  const tiktok = accounts?.tiktok
+  if (!tiktok || !tiktok.connected || !tiktok.accessToken) return accounts
+
+  const lastUpdated = tiktok.updatedAt ? new Date(tiktok.updatedAt).getTime() : 0
+  const isOld = Date.now() - lastUpdated > 3600000 // 1 hour
+
+  if (tiktok.followers > 0 && !isOld) return accounts
+
+  try {
+    const { fetchTikTokStats } = await import("@/lib/social-service")
+    const stats = await fetchTikTokStats(tiktok.accessToken)
+    if (!stats) return accounts
+
+    const updatedAt = new Date().toISOString()
+    const updatedTikTok = { ...tiktok, ...stats, updatedAt }
+
+    if (workspaceId) {
+      const workspaceRef = doc(firebaseDb!, "workspaces", workspaceId)
+      await updateDoc(workspaceRef, {
+        "accounts.tiktok.followers": stats.followers,
+        "accounts.tiktok.posts": stats.posts,
+        "accounts.tiktok.likes": stats.likes,
+        "accounts.tiktok.updatedAt": updatedAt,
+        updatedAt,
+      })
+    } else if (userId) {
+      const userRef = doc(firebaseDb!, "users", userId)
+      await updateDoc(userRef, {
+        "tiktok.followers": stats.followers,
+        "tiktok.posts": stats.posts,
+        "tiktok.likes": stats.likes,
+        "tiktok.updatedAt": updatedAt,
+      })
+    }
+    return { ...accounts, tiktok: updatedTikTok }
+  } catch (err) {
+    console.warn("hydrateTikTokStats failed:", err)
+    return accounts
+  }
+}
+
+async function hydrateInstagramStats(accounts: any, workspaceId?: string, userId?: string) {
+  const instagram = accounts?.instagram
+  if (!instagram || !instagram.connected || !instagram.accessToken || !instagram.id) return accounts
+
+  const lastUpdated = instagram.updatedAt ? new Date(instagram.updatedAt).getTime() : 0
+  const isOld = Date.now() - lastUpdated > 3600000 // 1 hour
+
+  if (instagram.followers > 0 && !isOld) return accounts
+
+  try {
+    const { fetchInstagramStats } = await import("@/lib/social-service")
+    const stats = await fetchInstagramStats(instagram.accessToken, instagram.id)
+    if (!stats) return accounts
+
+    const updatedAt = new Date().toISOString()
+    const updatedInstagram = { ...instagram, ...stats, updatedAt }
+
+    if (workspaceId) {
+      const workspaceRef = doc(firebaseDb!, "workspaces", workspaceId)
+      await updateDoc(workspaceRef, {
+        "accounts.instagram.followers": stats.followers,
+        "accounts.instagram.posts": stats.posts,
+        "accounts.instagram.updatedAt": updatedAt,
+        updatedAt,
+      })
+    } else if (userId) {
+      const userRef = doc(firebaseDb!, "users", userId)
+      await updateDoc(userRef, {
+        "instagram.followers": stats.followers,
+        "instagram.posts": stats.posts,
+        "instagram.updatedAt": updatedAt,
+      })
+    }
+    return { ...accounts, instagram: updatedInstagram }
+  } catch (err) {
+    console.warn("hydrateInstagramStats failed:", err)
+    return accounts
+  }
+}
+
 async function hydrateFacebookFollowers(accounts: any, workspaceId?: string, userId?: string) {
   const facebook = accounts?.facebook
   if (!facebook || !facebook.connected) return accounts
@@ -314,7 +438,10 @@ export async function getSocialAccounts(userId?: string) {
       const withThreads = await hydrateThreadsFollowers(normalized, workspace.id, uid)
       const withLinkedIn = await hydrateLinkedInFollowers(withThreads, workspace.id, uid)
       const withPinterest = await hydratePinterestFollowers(withLinkedIn, workspace.id, uid)
-      return await hydrateFacebookFollowers(withPinterest, workspace.id, uid)
+      const withFacebook = await hydrateFacebookFollowers(withPinterest, workspace.id, uid)
+      const withYouTube = await hydrateYouTubeStats(withFacebook, workspace.id, uid)
+      const withTikTok = await hydrateTikTokStats(withYouTube, workspace.id, uid)
+      return await hydrateInstagramStats(withTikTok, workspace.id, uid)
     }
 
     // Fallback for legacy data stored directly in users/{uid} (only if no workspace exists)
@@ -340,7 +467,10 @@ export async function getSocialAccounts(userId?: string) {
     const withThreads = await hydrateThreadsFollowers(normalized, undefined, uid)
     const withLinkedIn = await hydrateLinkedInFollowers(withThreads, undefined, uid)
     const withPinterest = await hydratePinterestFollowers(withLinkedIn, undefined, uid)
-    return await hydrateFacebookFollowers(withPinterest, undefined, uid)
+    const withFacebook = await hydrateFacebookFollowers(withPinterest, undefined, uid)
+    const withYouTube = await hydrateYouTubeStats(withFacebook, undefined, uid)
+    const withTikTok = await hydrateTikTokStats(withYouTube, undefined, uid)
+    return await hydrateInstagramStats(withTikTok, undefined, uid)
   } catch (error) {
     console.error("Error getting social accounts:", error)
     throw error

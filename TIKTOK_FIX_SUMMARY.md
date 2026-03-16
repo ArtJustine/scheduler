@@ -94,6 +94,42 @@ Go to: https://vercel.com/dashboard
   - `redirect_uri` (must match the one used in authorization)
 - **NOT Required**: `code_verifier`
 
+## Domain Verification
+
+If you are seeing "Your property could not be verified" on TikTok Developer Portal:
+
+### 1. **DNS TXT Record (Required)**
+TikTok is specifically looking for a DNS TXT record on your domain:
+- **Domain**: `chiyusocial.com`
+- **Type**: `TXT`
+- **Value**: `tiktok-developers-site-verification=zgDYjp9is7mmObhEghWencW7XqASt1nr`
+
+**How to add it in Vercel:**
+1. Go to your [Vercel Dashboard](https://vercel.com/dashboard).
+2. Select the `scheduler` project.
+3. Go to **Settings** → **Domains**.
+4. Click **Edit** next to `chiyusocial.com`.
+5. Look for **DNS Records** or **Add DNS Record**.
+6. Set **Type** to `TXT`.
+7. Set **Name** to `@` (or leave empty).
+8. Set **Value** to `tiktok-developers-site-verification=zgDYjp9is7mmObhEghWencW7XqASt1nr`.
+9. Click **Add**.
+
+### 2. **Meta Tag (Added Fallback)**
+I have updated `app/layout.tsx` to include the full signature. Once you push and deploy, your site will have:
+```html
+<meta name="tiktok-developers-site-verification" content="tiktok-developers-site-verification=zgDYjp9is7mmObhEghWencW7XqASt1nr">
+```
+
+### 3. **Verification Files (Added Fallback)**
+I have also created several fallback files in `/public` which some crawlers look for:
+- `/public/tiktok-developers-site-verification.txt`
+- `/public/zgDYjp9is7mmObhEghWencW7XqASt1nr.txt`
+
+### 4. **Check Propagation**
+After adding the DNS record, it might take a few minutes to hours. You can check it by running:
+`dig -t txt chiyusocial.com`
+
 ## Troubleshooting
 
 If you still get errors after following the steps above:

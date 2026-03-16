@@ -11,6 +11,8 @@ import {
   Legend,
   BarChart as RechartsBarChart,
   Bar,
+  AreaChart as RechartsAreaChart,
+  Area,
 } from "recharts"
 
 interface ChartData {
@@ -18,40 +20,81 @@ interface ChartData {
   instagram?: number
   youtube?: number
   tiktok?: number
+  value?: number
   [key: string]: any
 }
 
-interface LineChartProps {
+interface ChartProps {
   data: ChartData[]
   dataKey?: string
   color?: string
 }
 
-export function LineChart({ data, dataKey = "value", color = "#3b82f6" }: LineChartProps) {
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-background/95 backdrop-blur-md border border-border p-3 rounded-xl shadow-xl">
+        <p className="text-xs font-medium text-muted-foreground mb-2">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center gap-2 mb-1">
+            <div 
+              className="h-2 w-2 rounded-full" 
+              style={{ backgroundColor: entry.color || entry.fill }} 
+            />
+            <span className="text-sm font-bold capitalize">
+              {entry.name}: {entry.value.toLocaleString()}
+            </span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  return null
+}
+
+export function LineChart({ data, dataKey = "value", color = "hsl(var(--primary))" }: ChartProps) {
+  if (!data?.length) return null
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <RechartsLineChart
-        data={data}
-        margin={{
-          top: 20,
-          right: 30,
-          left: 20,
-          bottom: 10,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-        {/* Support legacy multi-line charts if needed, but primary use is now single dynamic platform */}
-        {data[0]?.instagram !== undefined && dataKey === "value" && (
+      <RechartsLineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <defs>
+          <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={color} stopOpacity={0.1}/>
+            <stop offset="95%" stopColor={color} stopOpacity={0}/>
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+        <XAxis 
+          dataKey="date" 
+          axisLine={false} 
+          tickLine={false} 
+          fontSize={10} 
+          tick={{ fill: "hsl(var(--muted-foreground))" }}
+          minTickGap={30}
+        />
+        <YAxis 
+          axisLine={false} 
+          tickLine={false} 
+          fontSize={10} 
+          tick={{ fill: "hsl(var(--muted-foreground))" }}
+          tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}
+        />
+        <Tooltip content={<CustomTooltip />} />
+        <Line 
+          name="Total"
+          type="monotone" 
+          dataKey={dataKey} 
+          stroke={color} 
+          strokeWidth={3} 
+          dot={false}
+          activeDot={{ r: 6, strokeWidth: 0, fill: color }} 
+        />
+        {data[0]?.tiktok !== undefined && dataKey === "value" && (
           <>
-            <Line type="monotone" dataKey="instagram" stroke="#E1306C" strokeWidth={2} />
-            <Line type="monotone" dataKey="youtube" stroke="#FF0000" strokeWidth={2} />
-            <Line type="monotone" dataKey="tiktok" stroke="#69C9D0" strokeWidth={2} />
+            <Line name="TikTok" type="monotone" dataKey="tiktok" stroke="#69C9D0" strokeWidth={2} dot={false} />
+            <Line name="Instagram" type="monotone" dataKey="instagram" stroke="#E1306C" strokeWidth={2} dot={false} />
+            <Line name="YouTube" type="monotone" dataKey="youtube" stroke="#FF0000" strokeWidth={2} dot={false} />
           </>
         )}
       </RechartsLineChart>
@@ -59,40 +102,80 @@ export function LineChart({ data, dataKey = "value", color = "#3b82f6" }: LineCh
   )
 }
 
-interface BarChartProps {
-  data: ChartData[]
-  dataKey?: string
-  color?: string
-}
-
-export function BarChart({ data, dataKey = "value", color = "#3b82f6" }: BarChartProps) {
+export function AreaChart({ data, dataKey = "value", color = "hsl(var(--primary))" }: ChartProps) {
+  if (!data?.length) return null
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <RechartsBarChart
-        data={data}
-        margin={{
-          top: 20,
-          right: 30,
-          left: 20,
-          bottom: 10,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Bar dataKey={dataKey} fill={color} radius={[4, 4, 0, 0]} />
-        {/* Support legacy multi-bar charts if needed */}
-        {data[0]?.instagram !== undefined && dataKey === "value" && (
-          <>
-            <Bar dataKey="instagram" fill="#E1306C" />
-            <Bar dataKey="youtube" fill="#FF0000" />
-            <Bar dataKey="tiktok" fill="#69C9D0" />
-          </>
-        )}
+      <RechartsAreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <defs>
+          <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
+            <stop offset="95%" stopColor={color} stopOpacity={0}/>
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+        <XAxis 
+          dataKey="date" 
+          axisLine={false} 
+          tickLine={false} 
+          fontSize={10} 
+          tick={{ fill: "hsl(var(--muted-foreground))" }}
+          minTickGap={30}
+        />
+        <YAxis 
+          axisLine={false} 
+          tickLine={false} 
+          fontSize={10} 
+          tick={{ fill: "hsl(var(--muted-foreground))" }}
+          tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}
+        />
+        <Tooltip content={<CustomTooltip />} />
+        <Area 
+          name="Total"
+          type="monotone" 
+          dataKey={dataKey} 
+          stroke={color} 
+          fillOpacity={1} 
+          fill="url(#areaGradient)" 
+          strokeWidth={2}
+        />
+      </RechartsAreaChart>
+    </ResponsiveContainer>
+  )
+}
+
+export function BarChart({ data, dataKey = "value", color = "hsl(var(--primary))" }: ChartProps) {
+  if (!data?.length) return null
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <RechartsBarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+        <XAxis 
+          dataKey="date" 
+          axisLine={false} 
+          tickLine={false} 
+          fontSize={10} 
+          tick={{ fill: "hsl(var(--muted-foreground))" }}
+          minTickGap={30}
+        />
+        <YAxis 
+          axisLine={false} 
+          tickLine={false} 
+          fontSize={10} 
+          tick={{ fill: "hsl(var(--muted-foreground))" }}
+        />
+        <Tooltip content={<CustomTooltip />} />
+        <Bar 
+          name="Total"
+          dataKey={dataKey} 
+          fill={color} 
+          radius={[4, 4, 0, 0]} 
+          maxBarSize={40}
+        />
       </RechartsBarChart>
     </ResponsiveContainer>
   )
 }
+

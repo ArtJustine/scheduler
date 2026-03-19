@@ -23,8 +23,6 @@ export async function GET(request: NextRequest) {
     const savedState = cookieStore.get("oauth_state")?.value
     const userId = cookieStore.get("oauth_user_id")?.value
     const storedRedirectUri = cookieStore.get("oauth_redirect_uri")?.value
-    const codeVerifier = cookieStore.get("oauth_code_verifier")?.value
-
     if (!code || !state || state !== savedState) {
       console.error("TikTok state mismatch or missing code", { code: !!code, state, savedState })
       return NextResponse.redirect(new URL("/dashboard/connections?error=invalid_tiktok_auth", request.url))
@@ -35,13 +33,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard/connections?error=user_not_found", request.url))
     }
 
-    if (!codeVerifier) {
-      console.error("TikTok code_verifier not found in cookies")
-      return NextResponse.redirect(new URL("/dashboard/connections?error=invalid_tiktok_auth", request.url))
-    }
-
-    // Exchange authorization code for access token with PKCE code_verifier
-    const tokenData = await tiktokOAuth.exchangeCodeForToken(code, storedRedirectUri, codeVerifier)
+    // Exchange authorization code for access token (No PKCE for web)
+    const tokenData = await tiktokOAuth.exchangeCodeForToken(code, storedRedirectUri)
 
     // Get user info and stats from TikTok
     let username = "TikTok User"
@@ -154,7 +147,6 @@ export async function GET(request: NextRequest) {
     response.cookies.delete("oauth_state")
     response.cookies.delete("oauth_user_id")
     response.cookies.delete("oauth_redirect_uri")
-    response.cookies.delete("oauth_code_verifier")
 
     return response
   } catch (error: any) {

@@ -28,10 +28,6 @@ export async function GET(request: NextRequest) {
     // Generate a unique state parameter for security (CSRF protection)
     const state = oauthHelpers.generateState()
 
-    // Generate PKCE code_verifier and code_challenge (required by TikTok)
-    const codeVerifier = oauthHelpers.generateCodeVerifier()
-    const codeChallenge = oauthHelpers.generateCodeChallenge(codeVerifier)
-
     // Determine the host for dynamic redirect URI
     let redirectUri = config.tiktok.redirectUri
 
@@ -42,11 +38,11 @@ export async function GET(request: NextRequest) {
 
     console.log("TikTok OAuth Redirect URI being used:", redirectUri)
 
-    // Build TikTok OAuth URL with PKCE
-    const tiktokAuthUrl = tiktokOAuth.getAuthUrl(state, redirectUri, codeChallenge)
+    // Build TikTok OAuth URL (No PKCE for web)
+    const tiktokAuthUrl = tiktokOAuth.getAuthUrl(state, redirectUri)
     console.log("TikTok Auth URL initiated:", tiktokAuthUrl)
 
-    // Store state, userId, redirectUri, and code_verifier in cookies
+    // Store state, userId, and redirectUri in cookies
     const response = NextResponse.redirect(tiktokAuthUrl)
     response.cookies.set("oauth_state", state, {
       httpOnly: true,
@@ -61,12 +57,6 @@ export async function GET(request: NextRequest) {
       sameSite: "lax",
     })
     response.cookies.set("oauth_redirect_uri", redirectUri, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 600,
-      sameSite: "lax",
-    })
-    response.cookies.set("oauth_code_verifier", codeVerifier, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 600,

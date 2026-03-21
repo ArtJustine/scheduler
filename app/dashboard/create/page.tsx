@@ -137,6 +137,9 @@ export default function CreatePostPage() {
   // LinkedIn Specific Options
   const [linkedinVisibility, setLinkedinVisibility] = useState<"PUBLIC" | "CONNECTIONS">("PUBLIC")
 
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState<number>(0)
+  const [isEditMode, setIsEditMode] = useState<boolean>(false)
+
   const timezoneOffset = (() => {
     try {
       const now = new Date()
@@ -186,9 +189,9 @@ export default function CreatePostPage() {
   }, [user])
 
   const togglePlatform = (platform: string) => {
-    setSelectedPlatforms(prev => {
+    setSelectedPlatforms((prev: string[]) => {
       if (prev.includes(platform)) {
-        const newPlatforms = prev.filter(p => p !== platform)
+        const newPlatforms = prev.filter((p: string) => p !== platform)
         if (newPlatforms.length === 0) return prev
         if (previewPlatform === platform && newPlatforms.length > 0) {
           setPreviewPlatform(newPlatforms[0])
@@ -201,7 +204,8 @@ export default function CreatePostPage() {
   }
   const handleEditImage = async () => {
     if (mediaUrls.length === 0) return
-    setImageToCrop({ url: mediaUrls[0], file: new File([], "edited-image.jpg") })
+    setIsEditMode(true)
+    setImageToCrop({ url: mediaUrls[selectedMediaIndex], file: new File([], "edited-image.jpg") })
     setCropOpen(true)
   }
 
@@ -212,6 +216,14 @@ export default function CreatePostPage() {
     const type = media[0].type
 
     setMediaUrls(prev => {
+      // If we're in edit mode, replace the selected image
+      if (isEditMode && type === "image") {
+        const updated = [...prev]
+        updated[selectedMediaIndex] = newUrls[0]
+        setIsEditMode(false)
+        return updated
+      }
+
       // If switching types (image -> video or vice versa), replace
       if (mediaType && mediaType !== type) {
         return newUrls
@@ -349,12 +361,12 @@ export default function CreatePostPage() {
       // Use a Promise to track completion more reliably
       await new Promise<void>((resolve, reject) => {
         uploadTask.on('state_changed',
-          (snapshot) => {
+          (snapshot: any) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
             setMediaUploadProgress(progress)
             console.log(`Manual upload progress: ${Math.round(progress)}%`)
           },
-          (error) => {
+          (error: any) => {
             console.error("Upload failed in task.on:", error)
             reject(error)
           },
@@ -368,7 +380,7 @@ export default function CreatePostPage() {
                 title: originalName,
                 type: type,
                 fileName: originalName,
-                fileSize: file.size,
+                fileSize: (file as any).size || 0,
                 storagePath: storageRef.fullPath,
               })
 
@@ -811,14 +823,30 @@ export default function CreatePostPage() {
                   {mediaType !== "video" ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {mediaUrls.map((url, index) => (
-                        <div key={index} className="border rounded-xl overflow-hidden relative group bg-black/5 aspect-square">
+                        <div 
+                          key={index} 
+                          onClick={() => setSelectedMediaIndex(index)}
+                          className={cn(
+                            "border rounded-xl overflow-hidden relative group bg-black/5 aspect-square cursor-pointer transition-all",
+                            selectedMediaIndex === index ? "ring-2 ring-primary ring-offset-2 z-10 scale-[0.98]" : "hover:border-primary/50"
+                          )}
+                        >
                           <img
                             src={url}
                             alt={`Media preview ${index + 1}`}
                             className="w-full h-full object-cover"
                           />
                           <button
-                            onClick={() => setMediaUrls(prev => prev.filter((_, i) => i !== index))}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setMediaUrls((prev: string[]) => {
+                                const newUrls = prev.filter((_: string, i: number) => i !== index)
+                                if (selectedMediaIndex >= newUrls.length) {
+                                  setSelectedMediaIndex(Math.max(0, newUrls.length - 1))
+                                }
+                                return newUrls
+                              })
+                            }}
                             className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="h-4 w-4" />
@@ -829,6 +857,9 @@ export default function CreatePostPage() {
                                 Primary
                               </Badge>
                             </div>
+                          )}
+                          {selectedMediaIndex === index && (
+                             <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
                           )}
                         </div>
                       ))}
@@ -1038,7 +1069,7 @@ export default function CreatePostPage() {
                       className="gap-2 h-12 px-6 rounded-full border-primary/20 hover:bg-primary/5 text-primary font-bold transition-all hover:scale-[1.05] active:scale-[0.95] dark:border-primary/40 dark:hover:bg-primary/10"
                     >
                       <Scissors className="h-5 w-5" />
-                      <span>Crop Image</span>
+                      <span>{mediaUrls.length > 1 ? `Crop Image ${selectedMediaIndex + 1}` : "Crop Image"}</span>
                     </Button>
                   )}
 

@@ -192,7 +192,7 @@ function LibraryContent() {
               Upload images or videos to your content library to use them in your posts.
             </DialogDescription>
           </DialogHeader>
-          <MediaUploader onUpload={() => {
+          <MediaUploader onUpload={(media) => {
             setIsUploadDialogOpen(false)
             loadLibraryData()
           }} />

@@ -78,7 +78,7 @@ export default function CreatePostPage() {
   const [content, setContent] = useState("")
   const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([])
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
-  const [mediaUrl, setMediaUrl] = useState("")
+  const [mediaUrls, setMediaUrls] = useState<string[]>([])
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null)
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(() => {
     const now = new Date()
@@ -200,34 +200,49 @@ export default function CreatePostPage() {
     })
   }
   const handleEditImage = async () => {
-    if (!mediaUrl) return
-    setImageToCrop({ url: mediaUrl, file: new File([], "edited-image.jpg") })
+    if (mediaUrls.length === 0) return
+    setImageToCrop({ url: mediaUrls[0], file: new File([], "edited-image.jpg") })
     setCropOpen(true)
   }
 
-  const handleMediaUpload = (url: string, type: "image" | "video") => {
-    setMediaUrl(url)
+  const handleMediaUpload = (media: { url: string; type: "image" | "video" }[]) => {
+    if (media.length === 0) return
+
+    const newUrls = media.map(m => m.url)
+    const type = media[0].type
+
+    setMediaUrls(prev => {
+      // If switching types (image -> video or vice versa), replace
+      if (mediaType && mediaType !== type) {
+        return newUrls
+      }
+      // If it's a video, replace (only one video allowed)
+      if (type === "video") {
+        return [newUrls[0]]
+      }
+      // If it's images, append to existing images
+      return [...prev, ...newUrls]
+    })
+    
     setMediaType(type)
 
     // Auto-detect post type based on media
-    if (url) {
-      const isVideo = type === "video"
-      if (isVideo) {
-        if (selectedPlatforms.includes("instagram")) setInstagramPostType("reel")
-        if (selectedPlatforms.includes("youtube") && youtubeAspectRatio === "9:16") setYoutubeAspectRatio("9:16")
-      } else {
-        if (selectedPlatforms.includes("instagram")) setInstagramPostType("post")
-      }
+    const isVideo = type === "video"
+    if (isVideo) {
+      if (selectedPlatforms.includes("instagram")) setInstagramPostType("reel")
+      if (selectedPlatforms.includes("youtube") && youtubeAspectRatio === "9:16") setYoutubeAspectRatio("9:16")
+    } else {
+      if (selectedPlatforms.includes("instagram")) setInstagramPostType("post")
     }
   }
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) {
-      console.log("No file selected in handleFileChange")
+    const files = e.target.files
+    if (!files || files.length === 0) {
+      console.log("No files selected in handleFileChange")
       return
     }
 
-    console.log("File selected for manual upload:", file.name, file.type, file.size)
+    console.log(`Selected ${files.length} files for manual upload`)
 
     try {
       if (!user) {
@@ -239,8 +254,11 @@ export default function CreatePostPage() {
         return
       }
 
-      // 1. Basic Validation (Matching MediaUploader)
-      if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      const firstFile = files[0]
+      const isVideo = firstFile.type.startsWith("video/")
+      const isImage = firstFile.type.startsWith("image/")
+
+      if (!isVideo && !isImage) {
         toast({
           title: "Invalid file type",
           description: "Please upload an image or video file",
@@ -249,37 +267,46 @@ export default function CreatePostPage() {
         return
       }
 
+      // Mirroring MediaUploader logic
+      const filesToUpload = isVideo ? [firstFile] : Array.from(files).filter(f => f.type.startsWith("image/"))
+      if (filesToUpload.length === 0) return
+
       const maxSize = 100 * 1024 * 1024 // 100MB
-      if (file.size > maxSize) {
+      const validFiles = filesToUpload.filter(f => f.size <= maxSize)
+      
+      if (validFiles.length !== filesToUpload.length) {
         toast({
-          title: "File too large",
-          description: "Please upload a file smaller than 100MB",
+          title: "File(s) too large",
+          description: "Some files are larger than 100MB and will be skipped.",
           variant: "destructive",
         })
-        return
       }
+
+      if (validFiles.length === 0) return
 
       if (!firebaseStorage) {
-        console.error("Firebase Storage not initialized")
         toast({
           title: "Upload Error",
-          description: "Storage service is not available. Please refresh and try again.",
+          description: "Storage service is not available.",
           variant: "destructive",
         })
         return
       }
 
-      if (file.type.startsWith("image/")) {
+      // If single image, allow cropping
+      if (validFiles.length === 1 && validFiles[0].type.startsWith("image/")) {
         const reader = new FileReader()
         reader.onload = () => {
-          setImageToCrop({ url: reader.result as string, file })
+          setImageToCrop({ url: reader.result as string, file: validFiles[0] })
           setCropOpen(true)
         }
-        reader.readAsDataURL(file)
-        return
+        reader.readAsDataURL(validFiles[0])
+      } else {
+        // Multiple images or a video - upload directly
+        for (const file of validFiles) {
+          await executeUpload(file, file.name)
+        }
       }
-
-      await executeUpload(file, file.name)
     } catch (err: any) {
       console.error("Manual upload process error:", err)
       toast({
@@ -345,7 +372,7 @@ export default function CreatePostPage() {
                 storagePath: storageRef.fullPath,
               })
 
-              handleMediaUpload(downloadURL, type)
+              handleMediaUpload([{ url: downloadURL, type }])
               toast({
                 title: "Upload Complete",
                 description: `${originalName} is ready.`,
@@ -571,7 +598,7 @@ export default function CreatePostPage() {
       return
     }
 
-    if (!content && !mediaUrl) {
+    if (!content && mediaUrls.length === 0) {
       setError("Please provide some content or media for your post.")
       setIsSubmitting(false)
       window.scrollTo({ top: 0, behavior: "smooth" })
@@ -580,7 +607,7 @@ export default function CreatePostPage() {
 
     // Use tracked mediaType (set at upload time) - more reliable than URL regex for Firebase Storage URLs
     const isVideo = mediaType === "video"
-    const hasMedia = !!mediaUrl
+    const hasMedia = mediaUrls.length > 0
 
     for (const platform of selectedPlatforms) {
       if (platform === "instagram" && !hasMedia) {
@@ -616,8 +643,9 @@ export default function CreatePostPage() {
         content,
         platforms: selectedPlatforms,
         platform: selectedPlatforms.length === 1 ? selectedPlatforms[0] : (selectedPlatforms.length > 1 ? "multiple" : "unknown"),
-        contentType: mediaUrl ? (mediaType === "video" ? "video" : "image") : "text",
-        mediaUrl,
+        contentType: hasMedia ? (mediaType === "video" ? "video" : "image") : "text",
+        mediaUrl: mediaUrls[0] || null,
+        mediaUrls: mediaUrls,
         thumbnailUrl,
         scheduledFor: (() => {
           try {
@@ -645,7 +673,7 @@ export default function CreatePostPage() {
 
       // Add Platform Specific Fields
       if (selectedPlatforms.includes("youtube")) {
-        postData.youtubePostType = youtubeAspectRatio === "community" ? "community" : (mediaUrl ? (youtubeAspectRatio === "9:16" ? "short" : "video") : "community")
+        postData.youtubePostType = youtubeAspectRatio === "community" ? "community" : (hasMedia ? (youtubeAspectRatio === "9:16" ? "short" : "video") : "community")
         postData.youtubeOptions = {
           playlist: youtubePlaylist,
           madeForKids: youtubeMadeForKids,
@@ -778,27 +806,46 @@ export default function CreatePostPage() {
               </div>
 
               {/* Media Preview */}
-              {mediaUrl && (
+              {mediaUrls.length > 0 && (
                 <div className="px-6 pb-6">
-                  <div className="border rounded-xl overflow-hidden relative group bg-black/5">
-                    {mediaType !== "video" ? (
-                      <div className="relative">
-                        <img
-                          src={mediaUrl}
-                          alt="Media preview"
-                          className="w-full h-auto max-h-[400px] object-contain"
-                        />
-                        <div className="absolute top-4 left-4">
-                          <Badge variant="secondary" className="text-[10px] backdrop-blur-md bg-white/70 dark:bg-black/70 border-none">
-                            Image Selected
-                          </Badge>
+                  {mediaType !== "video" ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {mediaUrls.map((url, index) => (
+                        <div key={index} className="border rounded-xl overflow-hidden relative group bg-black/5 aspect-square">
+                          <img
+                            src={url}
+                            alt={`Media preview ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => setMediaUrls(prev => prev.filter((_, i) => i !== index))}
+                            className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                          {index === 0 && (
+                            <div className="absolute top-2 left-2">
+                              <Badge variant="secondary" className="text-[10px] backdrop-blur-md bg-white/70 dark:bg-black/70 border-none">
+                                Primary
+                              </Badge>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ) : (
-                      <div className="relative">
+                      ))}
+                      <button
+                        onClick={() => setShowMediaUploadModal(true)}
+                        className="border-2 border-dashed rounded-xl flex flex-col items-center justify-center aspect-square hover:bg-muted/50 transition-colors"
+                      >
+                        <Plus className="h-6 w-6 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground mt-2">Add More</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border rounded-xl overflow-hidden relative group bg-black/10">
+                      <div className="relative group">
                         <video
                           ref={videoRef}
-                          src={mediaUrl}
+                          src={mediaUrls[0]}
                           controls
                           className="w-full h-auto max-h-[400px] object-contain mx-auto"
                         />
@@ -814,21 +861,21 @@ export default function CreatePostPage() {
                             {isCapturing ? "Capturing..." : "Set Frame as Thumbnail"}
                           </Button>
                         </div>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-4 right-4 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity rounded-full shadow-lg"
+                          onClick={() => {
+                            setMediaUrls([])
+                            setMediaType(null)
+                            setThumbnailUrl("")
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
-                    )}
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-4 right-4 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity rounded-full shadow-lg"
-                      onClick={() => {
-                        setMediaUrl("")
-                        setMediaType(null)
-                        setThumbnailUrl("")
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
+                    </div>
+                  )}
 
                   {/* Thumbnail Section */}
                   {(thumbnailUrl || mediaType === "video") && (
@@ -983,7 +1030,7 @@ export default function CreatePostPage() {
                   </Dialog>
                   
                   {/* Crop Image Option - High visibility next to Add Media */}
-                  {mediaUrl && mediaType === "image" && (
+                  {mediaUrls.length > 0 && mediaType === "image" && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -1001,6 +1048,7 @@ export default function CreatePostPage() {
                     ref={fileInputRef}
                     className="hidden"
                     accept="image/*,video/*"
+                    multiple
                     onChange={handleFileChange}
                   />
 
@@ -1084,7 +1132,7 @@ export default function CreatePostPage() {
                     <button
                       key={item.id}
                       onClick={() => {
-                        setMediaUrl(item.url)
+                        setMediaUrls([item.url])
                         setMediaType(item.type === "video" ? "video" : "image")
                         if (item.thumbnailUrl) {
                           setThumbnailUrl(item.thumbnailUrl)
@@ -1300,7 +1348,7 @@ export default function CreatePostPage() {
                       <Input
                         placeholder="vlog, tutorial, funny (max 500 chars)"
                         value={youtubeTags}
-                        onChange={(e) => setYoutubeTags(e.target.value)}
+                        onChange={(e: any) => setYoutubeTags(e.target.value)}
                         className="rounded-2xl h-11 border-muted/20 focus:ring-primary/20"
                       />
                     </div>
@@ -1581,17 +1629,17 @@ export default function CreatePostPage() {
                 previewView === "mobile" ? "w-[320px] h-[640px]" : "w-full min-h-[500px] border-none rounded-xl bg-black"
               )}>
                 <div className="absolute inset-0 bg-black flex items-center justify-center">
-                  {mediaUrl && mediaType === "video" ? (
+                  {mediaUrls.length > 0 && mediaType === "video" ? (
                     <>
-                      <video src={mediaUrl} className="w-full h-full object-cover opacity-50" />
+                      <video src={mediaUrls[0]} className="w-full h-full object-cover opacity-50" />
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="bg-black/20 backdrop-blur-sm p-4 rounded-full border border-white/10 group-hover:scale-110 transition-transform">
                           {getPlatformIcon(previewPlatform, "h-12 w-12 text-white/70")}
                         </div>
                       </div>
                     </>
-                  ) : mediaUrl ? (
-                    <img src={mediaUrl} className="w-full h-full object-cover opacity-50" />
+                  ) : mediaUrls.length > 0 ? (
+                    <img src={mediaUrls[0]} className="w-full h-full object-cover opacity-50" />
                   ) : (
                     <div className="flex items-center justify-center">
                       <div className="bg-gray-800/50 p-6 rounded-full border border-white/5">
@@ -1638,10 +1686,10 @@ export default function CreatePostPage() {
                 )}>
                   {thumbnailUrl ? (
                     <img src={thumbnailUrl} className="w-full h-full object-cover" />
-                  ) : mediaUrl ? (
+                  ) : mediaUrls.length > 0 ? (
                     mediaType !== "video" ?
-                      <img src={mediaUrl} className="w-full h-full object-contain" /> :
-                      <video src={mediaUrl} className="w-full h-full object-cover opacity-50" />
+                      <img src={mediaUrls[0]} className="w-full h-full object-contain" /> :
+                      <video src={mediaUrls[0]} className="w-full h-full object-cover opacity-50" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       {getPlatformIcon("youtube", "h-12 w-12 text-red-600 opacity-20")}
@@ -1688,10 +1736,10 @@ export default function CreatePostPage() {
                   "relative bg-slate-50",
                   instagramPostType === "reel" ? "h-[450px]" : "aspect-square"
                 )}>
-                  {mediaUrl ? (
+                  {mediaUrls.length > 0 ? (
                     mediaType !== "video" ?
-                      <img src={mediaUrl} className="w-full h-full object-cover" /> :
-                      <video src={mediaUrl} className="w-full h-full object-cover" controls />
+                      <img src={mediaUrls[0]} className="w-full h-full object-cover" /> :
+                      <video src={mediaUrls[0]} className="w-full h-full object-cover" controls />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center opacity-10">
                       <Instagram className="h-20 w-20" />
@@ -1730,12 +1778,12 @@ export default function CreatePostPage() {
                     </div>
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">{content || "Start a thread..."}</p>
 
-                    {mediaUrl && (
+                    {mediaUrls.length > 0 && (
                       <div className="rounded-xl overflow-hidden border border-muted/20">
                         {mediaType !== "video" ? (
-                          <img src={mediaUrl} className="w-full h-auto" />
+                          <img src={mediaUrls[0]} className="w-full h-auto" />
                         ) : (
-                          <video src={mediaUrl} className="w-full h-auto" controls />
+                          <video src={mediaUrls[0]} className="w-full h-auto" controls />
                         )}
                       </div>
                     )}
@@ -1770,12 +1818,12 @@ export default function CreatePostPage() {
                 <div className="px-4 py-3">
                   <p className="text-sm whitespace-pre-wrap leading-relaxed">{content || "What do you want to talk about?"}</p>
                 </div>
-                {mediaUrl && (
+                {mediaUrls.length > 0 && (
                   <div className="bg-slate-50 border-y border-muted/10">
                     {mediaType !== "video" ? (
-                      <img src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" />
+                      <img src={mediaUrls[0]} className="w-full h-auto max-h-[400px] object-contain" />
                     ) : (
-                      <video src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" controls />
+                      <video src={mediaUrls[0]} className="w-full h-auto max-h-[400px] object-contain" controls />
                     )}
                   </div>
                 )}
@@ -1816,12 +1864,12 @@ export default function CreatePostPage() {
                 <div className="px-4 pb-3">
                   <p className="text-sm whitespace-pre-wrap leading-relaxed">{content || "What's on your mind?"}</p>
                 </div>
-                {mediaUrl && (
+                {mediaUrls.length > 0 && (
                   <div className="bg-slate-50 border-y border-muted/10">
                     {mediaType !== "video" ? (
-                      <img src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" />
+                      <img src={mediaUrls[0]} className="w-full h-auto max-h-[400px] object-contain" />
                     ) : (
-                      <video src={mediaUrl} className="w-full h-auto max-h-[400px] object-contain" controls />
+                      <video src={mediaUrls[0]} className="w-full h-auto max-h-[400px] object-contain" controls />
                     )}
                   </div>
                 )}
@@ -1860,7 +1908,7 @@ export default function CreatePostPage() {
             ) : (
               <>
                 <div className="flex -space-x-2 mr-2">
-                  {selectedPlatforms.slice(0, 3).map((plat) => (
+                  {selectedPlatforms.slice(0, 3).map((plat: any) => (
                     <div key={plat} className="p-1.5 bg-white/10 rounded-full border border-white/20 backdrop-blur-sm">
                       {getPlatformIcon(plat, "h-4 w-4 text-white")}
                     </div>

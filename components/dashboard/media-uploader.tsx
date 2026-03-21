@@ -13,7 +13,7 @@ import { registerMediaMetadata } from "@/lib/firebase/media"
 import { ImageCropper } from "./image-cropper"
 
 interface MediaUploaderProps {
-  onUpload: (url: string, type: "image" | "video") => void
+  onUpload: (media: { url: string; type: "image" | "video" }[]) => void
 }
 
 export function MediaUploader({ onUpload }: MediaUploaderProps) {
@@ -49,11 +49,13 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
   }
 
   const handleFiles = async (files: FileList) => {
-    const file = files[0]
-    if (!file) return
+    if (files.length === 0) return
 
-    // Check if file is an image or video
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+    const firstFile = files[0]
+    const isVideo = firstFile.type.startsWith("video/")
+    const isImage = firstFile.type.startsWith("image/")
+
+    if (!isVideo && !isImage) {
       toast({
         title: "Invalid file type",
         description: "Please upload an image or video file",
@@ -62,39 +64,76 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
       return
     }
 
-    // Check file size (100MB limit)
-    const maxSize = 100 * 1024 * 1024 // 100MB
-    if (file.size > maxSize) {
+    // If it's a video, only allow one
+    if (isVideo && files.length > 1) {
       toast({
-        title: "File too large",
-        description: "Please upload a file smaller than 100MB",
-        variant: "destructive",
+        title: "Single video only",
+        description: "You can only upload one video at a time. Highlighting the first video selected.",
+        variant: "default",
       })
-      return
     }
 
-    if (file.type.startsWith("image/")) {
+    const filesToUpload = isVideo ? [firstFile] : Array.from(files).filter(f => f.type.startsWith("image/"))
+
+    if (filesToUpload.length === 0) return
+
+    // Check file sizes
+    const maxSize = 100 * 1024 * 1024 // 100MB
+    const oversizedFiles = filesToUpload.filter(f => f.size > maxSize)
+    if (oversizedFiles.length > 0) {
+      toast({
+        title: "File(s) too large",
+        description: "Some files are larger than 100MB and will be skipped.",
+        variant: "destructive",
+      })
+    }
+
+    const validFiles = filesToUpload.filter(f => f.size <= maxSize)
+    if (validFiles.length === 0) return
+
+    // If single image, allow cropping
+    if (validFiles.length === 1 && validFiles[0].type.startsWith("image/")) {
       const reader = new FileReader()
       reader.onload = () => {
-        setImageToCrop({ url: reader.result as string, file })
+        setImageToCrop({ url: reader.result as string, file: validFiles[0] })
         setCropOpen(true)
       }
-      reader.readAsDataURL(file)
+      reader.readAsDataURL(validFiles[0])
     } else {
-      await uploadFile(file, file.name)
+      // Multiple images or a video - upload directly
+      const uploadedMedia: { url: string; type: "image" | "video" }[] = []
+      
+      setIsUploading(true)
+      for (const file of validFiles) {
+        try {
+          const result = await uploadFile(file, file.name)
+          if (result) {
+            uploadedMedia.push(result)
+          }
+        } catch (error) {
+          console.error("Error uploading file:", file.name, error)
+        }
+      }
+      setIsUploading(false)
+
+      if (uploadedMedia.length > 0) {
+        onUpload(uploadedMedia)
+      }
     }
   }
 
   const handleCropComplete = async (croppedBlob: Blob) => {
     setCropOpen(false)
     if (imageToCrop) {
-      await uploadFile(croppedBlob, imageToCrop.file.name)
+      const result = await uploadFile(croppedBlob, imageToCrop.file.name)
+      if (result) {
+        onUpload([result])
+      }
     }
     setImageToCrop(null)
   }
 
-  const uploadFile = async (file: File | Blob, originalName: string) => {
-    setIsUploading(true)
+  const uploadFile = async (file: File | Blob, originalName: string): Promise<{ url: string; type: "image" | "video" } | null> => {
     setUploadProgress(0)
 
     try {
@@ -119,7 +158,7 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
       let lastProgressUpdate = 0
 
       // Use a promise to handle the upload completion/error more robustly
-      await new Promise<void>((resolve, reject) => {
+      return await new Promise<{ url: string; type: "image" | "video" } | null>((resolve, reject) => {
         // Safety timeout - if no progress after 30 seconds, fail it
         const timeout = setTimeout(() => {
           if (lastProgressUpdate === 0) {
@@ -131,13 +170,13 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
 
         uploadTask.on(
           "state_changed",
-          (snapshot) => {
+          (snapshot: any) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
             lastProgressUpdate = progress
-            console.log(`Upload progress: ${Math.round(progress)}%`)
+            console.log(`Upload progress for ${originalName}: ${Math.round(progress)}%`)
             setUploadProgress(progress)
           },
-          (error) => {
+          (error: any) => {
             clearTimeout(timeout)
             console.error("Firebase Storage upload error:", error)
             reject(error)
@@ -150,9 +189,10 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
               console.log("Download URL obtained:", downloadURL)
 
+              const type = originalName.toLowerCase().match(/\.(mp4|mov|avi|webm)$/) ? "video" : "image"
+
               // Register in library
               try {
-                const type = originalName.toLowerCase().match(/\.(mp4|mov|avi|webm)$/) ? "video" : "image"
                 await registerMediaMetadata({
                   url: downloadURL,
                   title: originalName,
@@ -163,15 +203,13 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
                 })
               } catch (regError) {
                 console.error("Failed to register media in library:", regError)
-                // We still call onUpload even if library registration fails
               }
 
-              onUpload(downloadURL, originalName.toLowerCase().match(/\.(mp4|mov|avi|webm)$/) ? "video" : "image")
               toast({
                 title: "Upload successful",
-                description: "Media uploaded and saved to library",
+                description: `${originalName} uploaded and saved to library`,
               })
-              resolve()
+              resolve({ url: downloadURL, type })
             } catch (err) {
               console.error("Error getting download URL:", err)
               reject(err)
@@ -197,10 +235,9 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
         description: errorMessage,
         variant: "destructive",
       })
+      return null
     } finally {
-      setIsUploading(false)
       setUploadProgress(0)
-      console.log("Media upload process finalized")
     }
   }
 
@@ -228,6 +265,7 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
               <input
                 type="file"
                 accept="image/*,video/*"
+                multiple
                 className="absolute inset-0 opacity-0 cursor-pointer"
                 onChange={handleFileInput}
                 disabled={isUploading}

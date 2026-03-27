@@ -136,7 +136,7 @@ export default function SignupPage() {
 
                 {error && <div className="text-sm text-red-500">{error}</div>}
 
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 rounded-full py-6 h-auto text-xl font-bold transition-all hover:scale-105 active:scale-95" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 rounded-full py-3 h-auto text-base font-bold transition-all hover:scale-105 active:scale-95" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Sign Up"}
                 </Button>
 
@@ -152,7 +152,7 @@ export default function SignupPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full rounded-full py-6 h-auto transition-all hover:bg-muted active:scale-95 flex items-center justify-center gap-3 border-muted-foreground/20 shadow-sm"
+                  className="w-full rounded-full py-3 h-auto transition-all hover:bg-muted active:scale-95 flex items-center justify-center gap-3 border-muted-foreground/20 shadow-sm"
                   onClick={handleGoogleSignup}
                   disabled={isLoading}
                 >
@@ -175,7 +175,7 @@ export default function SignupPage() {
                     />
                     <path d="M1 1h22v22H1z" fill="none" />
                   </svg>
-                  <span className="font-semibold text-lg">Google</span>
+                  <span className="font-semibold text-base">Google</span>
                 </Button>
               </form>
             </CardContent>

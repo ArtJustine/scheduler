@@ -118,7 +118,7 @@ export default function LoginPage() {
 
                 {error && <div className="text-sm text-red-500">{error}</div>}
 
-                <Button type="submit" className="w-full rounded-full bg-primary text-primary-foreground text-xl py-6 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0 shadow-lg shadow-primary/25" disabled={isLoading}>
+                <Button type="submit" className="w-full rounded-full bg-primary text-primary-foreground text-base py-3 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0 shadow-lg shadow-primary/25" disabled={isLoading}>
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
 
@@ -134,7 +134,7 @@ export default function LoginPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full rounded-full py-6 h-auto transition-all hover:bg-muted active:scale-95 flex items-center justify-center gap-3 border-muted-foreground/20 shadow-sm"
+                  className="w-full rounded-full py-3 h-auto transition-all hover:bg-muted active:scale-95 flex items-center justify-center gap-3 border-muted-foreground/20 shadow-sm"
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
                 >
@@ -157,7 +157,7 @@ export default function LoginPage() {
                     />
                     <path d="M1 1h22v22H1z" fill="none" />
                   </svg>
-                  <span className="font-semibold text-lg">Google</span>
+                  <span className="font-semibold text-base">Google</span>
                 </Button>
               </form>
             </CardContent>

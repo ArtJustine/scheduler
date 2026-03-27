@@ -138,7 +138,7 @@ export default function Home() {
 
             <div className="flex justify-center pt-4 md:pt-6 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
               <Link href="/waitlist">
-                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-lg md:text-xl px-8 md:px-12 py-6 md:py-8 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
+                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-base md:text-lg px-6 md:px-8 py-3 md:py-4 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
                   Try Chiyu for free
                 </Button>
               </Link>
@@ -269,7 +269,7 @@ export default function Home() {
 
             <div className="pt-8">
               <Link href="/waitlist">
-                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-lg md:text-xl px-8 md:px-12 py-6 md:py-8 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
+                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-base md:text-lg px-6 md:px-8 py-3 md:py-4 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
                   Join the Waitlist
                 </Button>
               </Link>
@@ -415,7 +415,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/waitlist">
-                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-lg md:text-xl px-8 md:px-12 py-6 md:py-8 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
+                <Button size="lg" className="rounded-full bg-primary text-primary-foreground text-base md:text-lg px-6 md:px-8 py-3 md:py-4 h-auto font-bold tracking-tight transition-all hover:scale-105 active:scale-95 border-0">
                   Get Started for Free
                 </Button>
               </Link>

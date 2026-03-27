@@ -1066,7 +1066,7 @@ export default function CreatePostPage() {
                       variant="outline"
                       size="sm"
                       onClick={handleEditImage}
-                      className="gap-2 h-12 px-6 rounded-full border-primary/20 hover:bg-primary/5 text-primary font-bold transition-all hover:scale-[1.05] active:scale-[0.95] dark:border-primary/40 dark:hover:bg-primary/10"
+                      className="gap-2 h-9 px-4 rounded-full border-primary/20 hover:bg-primary/5 text-primary font-bold transition-all hover:scale-[1.05] active:scale-[0.95] dark:border-primary/40 dark:hover:bg-primary/10"
                     >
                       <Scissors className="h-5 w-5" />
                       <span>{mediaUrls.length > 1 ? `Crop Image ${selectedMediaIndex + 1}` : "Crop Image"}</span>
@@ -1922,7 +1922,7 @@ export default function CreatePostPage() {
           </Tabs>
 
           <Button
-            className="w-full h-14 text-lg font-bold shadow-lg rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] gap-3"
+            className="w-full h-11 text-base font-bold shadow-lg rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] gap-3"
             onClick={() => handleSubmit()}
             disabled={isSubmitting || isUploadingMedia || !content || selectedPlatforms.length === 0}
           >

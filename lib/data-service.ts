@@ -19,7 +19,8 @@ import {
 import {
   getMediaLibrary as firebaseGetMediaLibrary,
   uploadMediaToLibrary as firebaseUploadMedia,
-  deleteMediaFromLibrary as firebaseDeleteMedia
+  deleteMediaFromLibrary as firebaseDeleteMedia,
+  deleteMultipleMediaFromLibrary as firebaseDeleteMultipleMedia
 } from "@/lib/firebase/media"
 import {
   getHashtagGroups as firebaseGetHashtagGroups,
@@ -161,6 +162,10 @@ export const uploadMedia = async (file: File, title: string, type: "image" | "vi
 
 export const deleteMedia = async (id: string) => {
   return await firebaseDeleteMedia(id)
+}
+
+export const deleteMultipleMedia = async (ids: string[]) => {
+  return await firebaseDeleteMultipleMedia(ids)
 }
 
 // Hashtag functions

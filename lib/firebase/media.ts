@@ -132,3 +132,24 @@ export async function deleteMediaFromLibrary(id: string) {
     throw error
   }
 }
+
+export async function deleteMultipleMediaFromLibrary(ids: string[]) {
+  if (!auth || !db || !storage) throw new Error("Firebase not initialized")
+
+  try {
+    const results = await Promise.all(
+      ids.map(async (id) => {
+        try {
+          return await deleteMediaFromLibrary(id)
+        } catch (error) {
+          console.error(`Error deleting media item ${id}:`, error)
+          return false
+        }
+      })
+    )
+    return results.every(res => res === true)
+  } catch (error) {
+    console.error("Error deleting multiple media items:", error)
+    throw error
+  }
+}

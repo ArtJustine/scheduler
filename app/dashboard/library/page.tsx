@@ -21,6 +21,7 @@ import { useAuth } from "@/lib/auth-provider"
 import {
   getMediaLibrary,
   deleteMedia,
+  deleteMultipleMedia,
   getHashtagGroups,
   getCaptionTemplates,
   createCaption,
@@ -79,11 +80,22 @@ function LibraryContent() {
   }, [user])
 
   const handleDeleteMedia = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this media?")) return
     try {
       await deleteMedia(id)
       setMediaItems(prev => prev.filter(item => item.id !== id))
     } catch (error) {
       console.error("Error deleting media:", error)
+    }
+  }
+
+  const handleDeleteMultipleMedia = async (ids: string[]) => {
+    if (!confirm(`Are you sure you want to delete ${ids.length} items?`)) return
+    try {
+      await deleteMultipleMedia(ids)
+      setMediaItems(prev => prev.filter(item => !ids.includes(item.id)))
+    } catch (error) {
+      console.error("Error deleting multiple media:", error)
     }
   }
 
@@ -155,7 +167,11 @@ function LibraryContent() {
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
                 </div>
               ) : mediaItems.length > 0 ? (
-                <MediaGrid items={mediaItems} onDelete={handleDeleteMedia} />
+                <MediaGrid 
+                  items={mediaItems} 
+                  onDelete={handleDeleteMedia} 
+                  onDeleteMultiple={handleDeleteMultipleMedia} 
+                />
               ) : (
                 <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-xl bg-muted/5">
                   <Plus className="h-8 w-8 text-muted-foreground mb-4 opacity-50" />

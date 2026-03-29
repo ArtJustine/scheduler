@@ -9,6 +9,7 @@ import {
     addDoc,
     updateDoc,
     setDoc,
+    deleteDoc,
     serverTimestamp
 } from "firebase/firestore"
 import { Workspace } from "@/types/workspace"
@@ -72,4 +73,9 @@ export async function getActiveWorkspace(userId: string): Promise<Workspace | nu
 export async function setActiveWorkspace(userId: string, workspaceId: string) {
     const userRef = doc(firebaseDb!, "users", userId)
     await setDoc(userRef, { activeWorkspaceId: workspaceId }, { merge: true })
+}
+
+export async function deleteWorkspace(workspaceId: string) {
+    const workspaceRef = doc(firebaseDb!, "workspaces", workspaceId)
+    await deleteDoc(workspaceRef)
 }

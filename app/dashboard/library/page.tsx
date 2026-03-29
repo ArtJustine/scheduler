@@ -80,7 +80,6 @@ function LibraryContent() {
   }, [user])
 
   const handleDeleteMedia = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this media?")) return
     try {
       await deleteMedia(id)
       setMediaItems(prev => prev.filter(item => item.id !== id))
@@ -90,7 +89,6 @@ function LibraryContent() {
   }
 
   const handleDeleteMultipleMedia = async (ids: string[]) => {
-    if (!confirm(`Are you sure you want to delete ${ids.length} items?`)) return
     try {
       await deleteMultipleMedia(ids)
       setMediaItems(prev => prev.filter(item => !ids.includes(item.id)))

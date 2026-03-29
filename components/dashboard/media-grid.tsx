@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { CheckCircle2, Download, Trash2, X } from "lucide-react"
+import { CheckCircle2, Download, Trash2, X, AlertTriangle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -12,6 +12,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import type { MediaItem } from "@/types/media"
@@ -26,23 +36,46 @@ export function MediaGrid({ items, onDelete, onDeleteMultiple }: MediaGridProps)
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isSelectionMode, setIsSelectionMode] = useState(false)
+  
+  // Custom Confirmation Dialog state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([])
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleClose = () => {
     setSelectedItem(null)
   }
 
-  const handleDelete = () => {
-    if (selectedItem && onDelete) {
-      onDelete(selectedItem.id)
-      setSelectedItem(null)
+  const handleDeleteClick = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
+    setPendingDeleteIds([id])
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleDeleteMultipleClick = () => {
+    if (selectedIds.size > 0) {
+      setPendingDeleteIds(Array.from(selectedIds))
+      setIsDeleteDialogOpen(true)
     }
   }
 
-  const handleDeleteMultiple = () => {
-    if (onDeleteMultiple && selectedIds.size > 0) {
-      onDeleteMultiple(Array.from(selectedIds))
-      setSelectedIds(new Set())
-      setIsSelectionMode(false)
+  const confirmDelete = async () => {
+    try {
+      setIsDeleting(true)
+      if (pendingDeleteIds.length === 1 && onDelete) {
+        await onDelete(pendingDeleteIds[0])
+        if (selectedItem?.id === pendingDeleteIds[0]) {
+          setSelectedItem(null)
+        }
+      } else if (pendingDeleteIds.length > 1 && onDeleteMultiple) {
+        await onDeleteMultiple(pendingDeleteIds)
+        setSelectedIds(new Set())
+        setIsSelectionMode(false)
+      }
+    } finally {
+      setIsDeleting(false)
+      setIsDeleteDialogOpen(false)
+      setPendingDeleteIds([])
     }
   }
 
@@ -105,7 +138,7 @@ export function MediaGrid({ items, onDelete, onDeleteMultiple }: MediaGridProps)
                 variant="destructive" 
                 size="sm" 
                 className="h-8 gap-2" 
-                onClick={handleDeleteMultiple}
+                onClick={handleDeleteMultipleClick}
                 disabled={selectedIds.size === 0}
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -220,7 +253,7 @@ export function MediaGrid({ items, onDelete, onDeleteMultiple }: MediaGridProps)
                   Download
                 </a>
               </Button>
-              <Button variant="destructive" size="sm" onClick={handleDelete}>
+              <Button variant="destructive" size="sm" onClick={() => selectedItem && handleDeleteClick(selectedItem.id)}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </Button>
@@ -228,7 +261,37 @@ export function MediaGrid({ items, onDelete, onDeleteMultiple }: MediaGridProps)
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2 text-destructive mb-2">
+              <AlertTriangle className="h-5 w-5" />
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete 
+              {pendingDeleteIds.length === 1 ? " this media item " : ` ${pendingDeleteIds.length} media items `}
+              from the library and remove them from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.preventDefault()
+                confirmDelete()
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete Permanently"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
+
 

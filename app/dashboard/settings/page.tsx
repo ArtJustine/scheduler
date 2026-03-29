@@ -14,19 +14,33 @@ import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/lib/auth-provider"
 import { updateUserProfile, getUserProfile } from "@/lib/firebase/auth"
 import { useTheme } from "next-themes"
-import { Sun, Moon, Laptop, ShieldCheck, Activity, RefreshCw, ExternalLink, Info } from "lucide-react"
+import { Sun, Moon, Laptop, ShieldCheck, Activity, RefreshCw, ExternalLink, Info, Trash2, AlertCircle } from "lucide-react"
 import { getSocialAccounts } from "@/lib/firebase/social-accounts"
+import { getActiveWorkspace, deleteWorkspace } from "@/lib/firebase/workspaces"
 import type { SocialAccounts } from "@/types/social"
 import { useRouter, useSearchParams } from "next/navigation"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function SettingsPage() {
   const { user } = useAuth()
   const { toast } = useToast()
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [name, setName] = useState(user?.displayName || "")
   const [email, setEmail] = useState(user?.email || "")
   const [niche, setNiche] = useState(user?.niche || "")
   const [competitors, setCompetitors] = useState<string[]>(user?.trendCompetitors || [])
+  const [activeWorkspace, setActiveWorkspace] = useState<any>(null)
   const { theme, setTheme } = useTheme()
   const [currentTheme, setCurrentTheme] = useState(theme)
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
@@ -34,37 +48,27 @@ export default function SettingsPage() {
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get("tab") || "profile"
 
-
   useEffect(() => {
-    const loadSocialAccounts = async () => {
+    const loadData = async () => {
+      if (!user) return
       try {
-        const accounts = await getSocialAccounts()
+        const [accounts, profile, ws] = await Promise.all([
+          getSocialAccounts(),
+          getUserProfile(),
+          getActiveWorkspace(user.uid)
+        ])
         setSocialAccounts(accounts)
-      } catch (error) {
-        console.error("Error loading social accounts:", error)
-      }
-    }
-
-    loadSocialAccounts()
-  }, [])
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (user) {
-        setName(user.displayName || "")
-        setEmail(user.email || "")
-        try {
-          const profile: any = await getUserProfile()
-          if (profile) {
-            setNiche(profile.niche || "")
-            setCompetitors(profile.trendCompetitors || [])
-          }
-        } catch (error) {
-          console.error("Error loading user profile:", error)
+        setActiveWorkspace(ws)
+        if (profile) {
+          setNiche((profile as any).niche || "")
+          setCompetitors((profile as any).trendCompetitors || [])
         }
+      } catch (error) {
+        console.error("Error loading settings data:", error)
       }
     }
-    loadProfile()
+
+    loadData()
   }, [user])
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -89,6 +93,30 @@ export default function SettingsPage() {
       })
     } finally {
       setIsUpdating(false)
+    }
+  }
+
+  const handleDeleteWorkspace = async () => {
+    if (!activeWorkspace) return
+    setIsDeleting(true)
+
+    try {
+      await deleteWorkspace(activeWorkspace.id)
+      toast({
+        title: "Workspace deleted",
+        description: "Your workspace has been permanently removed.",
+      })
+      // Redirect or reload to trigger auto-creation/assignment of another workspace
+      router.push("/dashboard")
+      router.refresh()
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Delete failed",
+        description: "There was a problem deleting your workspace.",
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -195,6 +223,53 @@ export default function SettingsPage() {
             <CardFooter>
               <Button>Change Password</Button>
             </CardFooter>
+          </Card>
+
+          <Card className="border-destructive/20 bg-destructive/5">
+            <CardHeader>
+              <CardTitle className="text-destructive flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Danger Zone
+              </CardTitle>
+              <CardDescription>
+                Destructive actions for your workspace.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 rounded-xl border border-destructive/20 bg-white/50 dark:bg-black/20">
+                <div className="space-y-1">
+                  <p className="font-semibold text-foreground">Delete this workspace</p>
+                  <p className="text-sm text-muted-foreground">
+                    All your posts, media, and connections in <strong>{activeWorkspace?.name || "this workspace"}</strong> will be permanently deleted.
+                  </p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="rounded-xl" disabled={!activeWorkspace || isDeleting}>
+                      {isDeleting ? "Deleting..." : "Delete Workspace"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the 
+                        <strong> {activeWorkspace?.name} </strong> workspace and all associated data.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDeleteWorkspace}
+                        className="bg-destructive text-white hover:bg-destructive/90"
+                      >
+                        Delete Permanently
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardContent>
           </Card>
         </TabsContent>
 

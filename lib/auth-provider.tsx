@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Set userId cookie for API routes that need it
       if (currentUser) {
-        document.cookie = `userId=${currentUser.uid}; path=/; max-age=3600; SameSite=Lax`
+        document.cookie = `userId=${currentUser.uid}; path=/; max-age=2592000; SameSite=Lax`
       } else {
         document.cookie = "userId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
       }

@@ -83,15 +83,19 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
 
     const getPlatformInfo = (pName: string) => {
         const p = pName.toLowerCase()
+        const iconPath = `/${p}.webp`
+        
         switch (p) {
-            case "facebook": return { name: "Facebook", icon: Facebook, color: "text-blue-600" }
-            case "twitter": return { name: "Twitter", icon: Twitter, color: "text-sky-500" }
-            case "instagram": return { name: "Instagram", icon: Instagram, color: "text-pink-600" }
-            case "youtube": return { name: "YouTube", icon: Youtube, color: "text-red-600" }
-            case "threads": return { name: "Threads", icon: MessageSquare, color: "text-zinc-900" }
-            case "pinterest": return { name: "Pinterest", icon: Share2, color: "text-red-700" }
-            case "tiktok": return { name: "TikTok", icon: Share2, color: "text-rose-600" }
-            default: return { name: pName || "Platform", icon: Share2, color: "text-primary" }
+            case "facebook": return { name: "Facebook", icon: iconPath, color: "text-blue-600" }
+            case "twitter": return { name: "Twitter", icon: iconPath, color: "text-sky-500" }
+            case "instagram": return { name: "Instagram", icon: iconPath, color: "text-pink-600" }
+            case "youtube": return { name: "YouTube", icon: iconPath, color: "text-red-600" }
+            case "threads": return { name: "Threads", icon: iconPath, color: "text-zinc-900" }
+            case "pinterest": return { name: "Pinterest", icon: iconPath, color: "text-red-700" }
+            case "tiktok": return { name: "TikTok", icon: iconPath, color: "text-rose-600" }
+            case "linkedin": return { name: "LinkedIn", icon: iconPath, color: "text-blue-700" }
+            case "bluesky": return { name: "Bluesky", icon: iconPath, color: "text-blue-600" }
+            default: return { name: pName || "Platform", icon: iconPath, color: "text-primary" }
         }
     }
 
@@ -108,8 +112,10 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
     if (!isConnected) {
         return (
             <div className="space-y-8 animate-in fade-in duration-500">
-                <div className="flex items-center gap-3">
-                    <info.icon className={`h-8 w-8 ${info.color}`} />
+                <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-slate-100">
+                        <img src={info.icon} alt={info.name} className="h-8 w-8 object-contain" />
+                    </div>
                     <h1 className="text-3xl font-bold tracking-tight">{info.name}</h1>
                 </div>
 
@@ -124,7 +130,7 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
                         </p>
                         <Button size="lg" className="h-14 px-8 text-lg rounded-xl" onClick={handleConnect}>
                             Connect a {info.name} page
-                            <info.icon className="ml-3 h-5 w-5" />
+                            <img src={info.icon} alt="" className="ml-3 h-6 w-6 object-contain brightness-0 invert" />
                         </Button>
                     </div>
 
@@ -148,8 +154,10 @@ export default function PlatformAnalyticsPage({ params }: PlatformPageProps) {
     return (
         <div className="space-y-8">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <info.icon className={`h-8 w-8 ${info.color}`} />
+                <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-white dark:bg-white flex items-center justify-center shadow-sm border border-slate-100">
+                        <img src={info.icon} alt={info.name} className="h-8 w-8 object-contain" />
+                    </div>
                     <h1 className="text-3xl font-bold tracking-tight">{info.name} Analytics</h1>
                 </div>
                 <Button variant="outline" size="sm" onClick={handleConnect}>

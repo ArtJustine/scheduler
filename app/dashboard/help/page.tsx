@@ -59,21 +59,30 @@ export default function HelpPage() {
                 </CardTitle>
                 <CardDescription>Optimize content for each platform</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <h3 className="font-medium">Instagram Best Practices</h3>
+                  <div className="flex items-center gap-2">
+                    <img src="/instagram.webp" alt="" className="h-5 w-5 object-contain" />
+                    <h3 className="font-medium">Instagram Best Practices</h3>
+                  </div>
                   <p className="text-sm text-muted-foreground">
                     Learn about optimal image sizes, hashtag strategies, and posting times.
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="font-medium">TikTok Content Strategy</h3>
+                  <div className="flex items-center gap-2">
+                    <img src="/tiktok.webp" alt="" className="h-5 w-5 object-contain" />
+                    <h3 className="font-medium">TikTok Content Strategy</h3>
+                  </div>
                   <p className="text-sm text-muted-foreground">
                     Understand TikTok's algorithm and create engaging short-form videos.
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="font-medium">YouTube Optimization</h3>
+                  <div className="flex items-center gap-2">
+                    <img src="/youtube.webp" alt="" className="h-5 w-5 object-contain" />
+                    <h3 className="font-medium">YouTube Optimization</h3>
+                  </div>
                   <p className="text-sm text-muted-foreground">
                     Optimize your YouTube videos for better discoverability and engagement.
                   </p>

@@ -84,50 +84,36 @@ const sidebarItems = [
 const socialChannels = [
   {
     title: "TikTok",
-    icon: Share2,
-    image: "/tiktok.webp",
     href: "/dashboard/platform/tiktok",
     color: "text-rose-600",
   },
   {
     title: "YouTube",
-    icon: Youtube,
-    image: "/youtube.webp",
     href: "/dashboard/platform/youtube",
     color: "text-red-600",
   },
   {
     title: "Instagram",
-    icon: Share2,
-    image: "/instagram.webp",
     href: "/dashboard/platform/instagram",
     color: "text-pink-600",
   },
   {
     title: "Threads",
-    icon: Share2,
-    image: "/threads.webp",
     href: "/dashboard/platform/threads",
     color: "text-slate-900 dark:text-white",
   },
   {
     title: "LinkedIn",
-    icon: Share2,
-    image: "/linkedin.webp",
     href: "/dashboard/platform/linkedin",
     color: "text-blue-700",
   },
   {
     title: "Pinterest",
-    icon: Share2,
-    image: "/pinterest.webp",
     href: "/dashboard/platform/pinterest",
     color: "text-red-600",
   },
   {
     title: "Bluesky",
-    icon: Share2,
-    image: "/bluesky.webp",
     href: "/dashboard/platform/bluesky",
     color: "text-blue-500",
   },
@@ -209,9 +195,13 @@ export function DashboardSidebar() {
 
   const getChannelDisplay = (channel: any) => {
     if (!channel || !channel.title) {
-      return { title: "Unknown", icon: Share2, image: channel?.image || null }
+      return { title: "Unknown", icon: null, image: null }
     }
-    const platform = channel.title?.toLowerCase()
+    
+    // Normalize platform name
+    let platform = channel.title.toLowerCase()
+    if (platform === 'twitter') platform = 'x'
+    
     const connected = connectedAccounts[platform]
 
     // Use synced icons from public folder
@@ -409,19 +399,19 @@ export function DashboardSidebar() {
                     return acc && (acc.connected || acc.accessToken || acc.access_token)
                   })
                   .map((channel) => {
-                    const { title, icon: Icon, image, platformIcon } = getChannelDisplay(channel)
+                    const { title, image, platformIcon } = getChannelDisplay(channel)
                     const active = pathname === channel.href
 
                     return (
                       <SidebarMenuItem key={channel.title} onMouseEnter={handleMouseEnter}>
                         <SidebarMenuButton asChild isActive={active} tooltip={title}>
                           <Link href={channel.href} className="flex items-center">
-                            <div className="relative h-5 w-5 mr-2 flex-shrink-0">
-                              {image ? (
-                                <div className={cn(
-                                  "h-full w-full rounded-full flex items-center justify-center overflow-hidden border border-white/10",
-                                  image.endsWith('.webp') ? "bg-white" : "bg-muted"
-                                )}>
+                            <div className="relative h-6 w-6 mr-2 flex-shrink-0">
+                              <div className={cn(
+                                "h-full w-full rounded-full flex items-center justify-center overflow-hidden border border-black/5 shadow-sm",
+                                (image && image.endsWith('.webp')) || !image ? "bg-white" : "bg-muted"
+                              )}>
+                                {image ? (
                                   <img
                                     src={image}
                                     alt={title}
@@ -433,22 +423,20 @@ export function DashboardSidebar() {
                                     onError={(e) => {
                                       if (!image.endsWith('.webp')) {
                                         const pName = channel.title?.toLowerCase();
-                                        (e.target as HTMLImageElement).src = `/${pName}.webp`;
+                                        (e.target as HTMLImageElement).src = `/${pName === 'twitter' ? 'x' : pName}.webp`;
                                         (e.target as HTMLImageElement).classList.add('h-[65%]', 'w-[65%]', 'object-contain');
                                         (e.target as HTMLImageElement).classList.remove('h-full', 'w-full', 'object-cover');
                                         (e.target as HTMLImageElement).parentElement?.classList.add('bg-white');
                                       }
                                     }}
                                   />
-                                </div>
-                              ) : (
-                                <div className={cn("h-full w-full rounded-full flex items-center justify-center bg-muted", channel.color)}>
-                                  {Icon && <Icon className="h-3 w-3" />}
-                                </div>
-                              )}
-                              {platformIcon && (
-                                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-white border border-black/5 p-[1px] shadow-sm flex items-center justify-center">
-                                  <img src={platformIcon} alt="" className="h-[80%] w-[80%] object-contain" />
+                                ) : (
+                                  <div className="h-full w-full bg-slate-100" />
+                                )}
+                              </div>
+                              {platformIcon && image && !image.endsWith('.webp') && (
+                                <div className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-white border border-black/10 p-[1.5px] shadow-sm flex items-center justify-center z-10">
+                                  <img src={platformIcon} alt="" className="h-full w-full object-contain" />
                                 </div>
                               )}
                             </div>

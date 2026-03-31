@@ -6,8 +6,9 @@ export interface BioLink {
     title: string
     url: string
     enabled: boolean
-    type?: 'link' | 'heading' | 'subheading' | 'social'
+    type?: 'link' | 'heading' | 'subheading' | 'social' | 'image'
     platform?: string
+    image?: string
     fontFamily?: string
     fontColor?: string
     backgroundColor?: string

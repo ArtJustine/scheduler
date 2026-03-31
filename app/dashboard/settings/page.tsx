@@ -366,8 +366,8 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="h-10 w-10 rounded-full bg-pink-500 flex items-center justify-center text-white font-bold">
-                    IG
+                  <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center border border-black/5 overflow-hidden p-2 shadow-sm">
+                    <img src="/instagram.webp" alt="Instagram" className="w-full h-full object-contain" />
                   </div>
                   <div>
                     <p className="font-medium">Instagram</p>
@@ -384,8 +384,8 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="h-10 w-10 rounded-full bg-black flex items-center justify-center text-white font-bold">
-                    TT
+                  <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center border border-black/5 overflow-hidden p-2 shadow-sm">
+                    <img src="/tiktok.webp" alt="TikTok" className="w-full h-full object-contain" />
                   </div>
                   <div>
                     <p className="font-medium">TikTok</p>
@@ -400,8 +400,8 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="h-10 w-10 rounded-full bg-red-600 flex items-center justify-center text-white font-bold">
-                    YT
+                  <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center border border-black/5 overflow-hidden p-2 shadow-sm">
+                    <img src="/youtube.webp" alt="YouTube" className="w-full h-full object-contain" />
                   </div>
                   <div>
                     <p className="font-medium">YouTube</p>

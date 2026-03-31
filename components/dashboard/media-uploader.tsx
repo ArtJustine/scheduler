@@ -257,6 +257,11 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
           <div className="space-y-2">
             <p className="text-sm font-medium">Drag and drop your media here</p>
             <p className="text-xs text-muted-foreground">Supports images and videos up to 100MB</p>
+            <div className="flex items-center justify-center gap-1.5 pt-1">
+              {['instagram', 'tiktok', 'youtube', 'x', 'facebook', 'linkedin'].map(p => (
+                <img key={p} src={`/${p}.webp`} alt="" className="h-3 w-3 object-contain opacity-40 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-default" />
+              ))}
+            </div>
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" disabled={isUploading} className="relative">

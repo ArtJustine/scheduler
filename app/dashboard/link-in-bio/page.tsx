@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-provider"
 import { getUserBioProfile, saveBioProfile, isUsernameAvailable, type BioLink } from "@/lib/firebase/link-in-bio"
 import { toast } from "sonner"
@@ -24,9 +23,13 @@ import {
     Eye,
     Heading1,
     Heading2,
-    Link as LinkIcon
+    Link as LinkIcon,
+    Image as ImageIcon,
+    Upload
 } from "lucide-react"
+import React, { useState, useEffect, useRef } from "react"
 import { getSocialAccounts } from "@/lib/data-service"
+import { uploadMediaToLibrary } from "@/lib/firebase/media"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -84,6 +87,9 @@ export default function LinkInBioPage() {
         { id: "1", title: "My YouTube Channel", url: "https://youtube.com", enabled: true, type: "link", layout: "classic" },
         { id: "2", title: "Latest Product Launch", url: "https://example.com", enabled: true, type: "link", layout: "classic" }
     ])
+    const [profileImage, setProfileImage] = useState<string | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    const [uploadingImageId, setUploadingImageId] = useState<string | null>(null)
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -103,6 +109,9 @@ export default function LinkInBioPage() {
                     setTheme(profile.theme || "Default")
                     if (profile.links && profile.links.length > 0) {
                         setLinks(profile.links)
+                    }
+                    if (profile.profileImage) {
+                        setProfileImage(profile.profileImage)
                     }
                 } else {
                     setDisplayName(user.displayName || "")
@@ -134,7 +143,7 @@ export default function LinkInBioPage() {
         const { active, over } = event;
 
         if (over && active.id !== over.id) {
-            setLinks((items) => {
+            setLinks((items: BioLink[]) => {
                 const oldIndex = items.findIndex((item) => item.id === active.id);
                 const newIndex = items.findIndex((item) => item.id === over.id);
                 
@@ -143,7 +152,34 @@ export default function LinkInBioPage() {
         }
     };
 
-    const addBlock = (type: 'link' | 'heading' | 'subheading' | 'social') => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, id?: string) => {
+        const file = e.target.files?.[0]
+        if (!file || !user) return
+
+        try {
+            setUploadingImageId(id || 'profile')
+            const result = await uploadMediaToLibrary({
+                file,
+                title: `Link-in-Bio ${id === 'profile' ? 'Profile' : 'Block'} Image`,
+                type: 'image'
+            })
+            
+            if (id === 'profile') {
+                setProfileImage(result.url)
+            } else if (id) {
+                updateLink(id, { image: result.url })
+            }
+            toast.success("Image uploaded successfully!")
+        } catch (error) {
+            console.error("Upload failed", error)
+            toast.error("Failed to upload image")
+        } finally {
+            setUploadingImageId(null)
+            if (e.target) e.target.value = ''
+        }
+    }
+
+    const addBlock = (type: 'link' | 'heading' | 'subheading' | 'social' | 'image') => {
         let defaultUrl = "https://"
         if (type === 'social') {
             if (socialAccounts?.instagram?.username) defaultUrl = `https://instagram.com/${socialAccounts.instagram.username}`
@@ -153,24 +189,24 @@ export default function LinkInBioPage() {
 
         const newLink: BioLink = {
             id: Math.random().toString(36).substr(2, 9),
-            title: type === 'heading' ? "My Heading" : type === 'subheading' ? "My Subheading" : type === 'social' ? 'instagram' : "New Link",
+            title: type === 'heading' ? "My Heading" : type === 'subheading' ? "My Subheading" : type === 'social' ? 'instagram' : (type === 'image' ? "Image" : "New Link"),
             url: type === 'social' ? defaultUrl : (type === 'link' ? "https://" : ""),
             enabled: true,
             type: type,
             platform: type === 'social' ? 'instagram' : undefined,
-            layout: type === 'link' ? 'classic' : 'center',
-            backgroundColor: type === 'link' ? '#ffffff' : undefined,
+            layout: type === 'link' ? 'classic' : (type === 'image' ? 'aspect-square' : 'center'),
+            backgroundColor: (type === 'link' || type === 'image') ? '#ffffff' : undefined,
             fontColor: '#000000'
         }
         setLinks([...links, newLink])
     }
 
     const removeLink = (id: string) => {
-        setLinks(links.filter(l => l.id !== id))
+        setLinks(links.filter((l: BioLink) => l.id !== id))
     }
 
     const updateLink = (id: string, updates: Partial<BioLink>) => {
-        setLinks(links.map(l => l.id === id ? { ...l, ...updates } : l))
+        setLinks(links.map((l: BioLink) => l.id === id ? { ...l, ...updates } : l))
     }
 
     const saveProfile = async () => {
@@ -195,7 +231,7 @@ export default function LinkInBioPage() {
                 bio,
                 theme,
                 links,
-                profileImage: user.photoURL || null
+                profileImage: profileImage || user.photoURL || null
             })
             toast.success("Digital identity updated successfully!")
         } catch (error) {
@@ -222,6 +258,13 @@ export default function LinkInBioPage() {
                         <Save className="mr-2 h-4 w-4" />
                         {isLoading ? "Saving..." : "Save Changes"}
                     </Button>
+                    <input 
+                        type="file" 
+                        className="hidden" 
+                        ref={fileInputRef} 
+                        onChange={(e) => handleImageUpload(e, uploadingImageId || undefined)} 
+                        accept="image/*"
+                    />
                 </div>
             </div>
 
@@ -266,6 +309,9 @@ export default function LinkInBioPage() {
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => addBlock('social')}>
                                             <Share2 className="mr-2 h-4 w-4" /> Social Icon
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => addBlock('image')}>
+                                            <ImageIcon className="mr-2 h-4 w-4" /> Image
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -414,6 +460,70 @@ export default function LinkInBioPage() {
                                                         </div>
                                                     </div>
                                                 )}
+
+                                                {link.type === 'image' && (
+                                                    <div className="grid gap-4">
+                                                        <div className="flex items-center gap-4">
+                                                            <div 
+                                                                className="h-20 w-32 bg-muted rounded-md overflow-hidden relative cursor-pointer group"
+                                                                onClick={() => {
+                                                                    setUploadingImageId(link.id)
+                                                                    fileInputRef.current?.click()
+                                                                }}
+                                                            >
+                                                                {link.image ? (
+                                                                    <img src={link.image} alt="Block image" className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="w-full h-full flex items-center justify-center">
+                                                                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                                                                    </div>
+                                                                )}
+                                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <Upload className="h-5 w-5 text-white" />
+                                                                </div>
+                                                                {uploadingImageId === link.id && (
+                                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                                        <div className="h-4 w-4 border-2 border-white border-t-transparent animate-spin rounded-full" />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex-1 space-y-2">
+                                                                <Input
+                                                                    value={link.title}
+                                                                    onChange={(e) => updateLink(link.id, { title: e.target.value })}
+                                                                    placeholder="Alt Text / Title"
+                                                                    className="font-semibold text-base border-none p-0 h-auto focus-visible:ring-0"
+                                                                />
+                                                                <Input
+                                                                    value={link.url}
+                                                                    onChange={(e) => updateLink(link.id, { url: e.target.value })}
+                                                                    placeholder="Optional Link (on click)"
+                                                                    className="text-sm text-muted-foreground border-none p-0 h-auto focus-visible:ring-0"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-4 items-center">
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">Shape</Label>
+                                                                <select 
+                                                                    className="w-full text-sm rounded bg-background border p-1"
+                                                                    value={link.layout || 'aspect-square'}
+                                                                    onChange={(e) => updateLink(link.id, { layout: e.target.value })}
+                                                                >
+                                                                    <option value="aspect-square">Square</option>
+                                                                    <option value="aspect-video">Wide (16:9)</option>
+                                                                    <option value="rounded-full">Circle</option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">Padding</Label>
+                                                                <div className="flex items-center gap-2">
+                                                                    <input type="color" className="h-6 w-6 rounded border-0 p-0" value={link.backgroundColor || '#ffffff'} onChange={(e) => updateLink(link.id, { backgroundColor: e.target.value })} />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="flex flex-col items-center gap-2">
                                                 <input
@@ -449,11 +559,26 @@ export default function LinkInBioPage() {
                                 </CardHeader>
                                 <CardContent className="space-y-6">
                                     <div className="flex items-center gap-6">
-                                        <div className="h-20 w-20 rounded-full bg-primary/20 flex items-center justify-center border-2 border-dashed border-primary/40 relative group cursor-pointer">
-                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 rounded-full transition-opacity">
+                                        <div 
+                                            className="h-20 w-20 rounded-full bg-primary/20 flex items-center justify-center border-2 border-dashed border-primary/40 relative group cursor-pointer overflow-hidden"
+                                            onClick={() => {
+                                                setUploadingImageId('profile')
+                                                fileInputRef.current?.click()
+                                            }}
+                                        >
+                                            {profileImage ? (
+                                                <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <ImageIcon className="h-8 w-8 text-primary/40" />
+                                            )}
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <span className="text-[10px] text-white font-bold">CHANGE</span>
                                             </div>
-                                            <Badge className="absolute -bottom-1 -right-1">PRO</Badge>
+                                            {uploadingImageId === 'profile' && (
+                                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                    <div className="h-4 w-4 border-2 border-white border-t-transparent animate-spin rounded-full" />
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex-1 space-y-4">
                                             <div className="grid gap-2">
@@ -522,7 +647,7 @@ export default function LinkInBioPage() {
                                     <div className="grid gap-2">
                                         <Label>Your Chiyu Handle</Label>
                                         <div className="flex items-center">
-                                            <span className="bg-muted px-3 py-2 rounded-l-md border border-r-0 text-muted-foreground text-sm font-medium">chiyu.io/u/</span>
+                                            <span className="bg-muted px-3 py-2 rounded-l-md border border-r-0 text-muted-foreground text-sm font-medium">chiyusocial.com/u/</span>
                                             <Input
                                                 value={username}
                                                 onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
@@ -537,7 +662,7 @@ export default function LinkInBioPage() {
                                             <Share2 className="text-primary h-5 w-5" />
                                             <div>
                                                 <p className="text-sm font-bold">Public Shareable Link</p>
-                                                <p className="text-xs text-muted-foreground">https://chiyu.io/u/{username}</p>
+                                                <p className="text-xs text-muted-foreground">https://chiyusocial.com/u/{username}</p>
                                             </div>
                                         </div>
                                         <Button 
@@ -581,12 +706,16 @@ export default function LinkInBioPage() {
                             </div>
 
                             <div className="relative z-10 flex flex-col items-center flex-1">
-                                <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary to-purple-500 mb-4 shadow-xl border-4 border-slate-900" />
+                                {profileImage ? (
+                                    <img src={profileImage} alt="Profile" className="h-20 w-20 rounded-full object-cover mb-4 shadow-xl border-4 border-slate-900" />
+                                ) : (
+                                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary to-purple-500 mb-4 shadow-xl border-4 border-slate-900" />
+                                )}
                                 <h4 className="text-lg font-bold text-white mb-1">{displayName || "Your Name"}</h4>
                                 <p className="text-xs text-slate-400 mb-8 text-center">{bio || "Add a bio to tell the world about yourself"}</p>
 
                                 <div className="w-full space-y-3">
-                                    {links.filter(l => l.enabled).map(link => {
+                                    {links.filter((l: BioLink) => l.enabled).map((link: BioLink) => {
                                         if (link.type === 'heading' || link.type === 'subheading') {
                                             return (
                                                 <div 
@@ -606,21 +735,55 @@ export default function LinkInBioPage() {
                                         }
 
                                         if (link.type === 'social') {
+                                            const platform = link.platform?.toLowerCase() || 'instagram'
+                                            const iconSrc = `/${platform === 'twitter' || platform === 'x' ? 'x' : platform}.webp`
+                                            
                                             return (
                                                 <a 
                                                     key={link.id}
                                                     href={link.url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="w-full py-3 px-4 rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold hover:scale-[1.02] transition-transform duration-300"
+                                                    className="w-full py-3 px-4 rounded-2xl flex items-center justify-center gap-3 text-sm font-semibold hover:scale-[1.02] transition-transform duration-300"
                                                     style={{
                                                         backgroundColor: link.backgroundColor || '#000000',
                                                         color: link.fontColor || '#ffffff',
                                                     }}
                                                 >
-                                                    <Share2 className="h-4 w-4" />
+                                                    <div className="h-5 w-5 bg-white rounded-full flex items-center justify-center overflow-hidden p-1">
+                                                        <img src={iconSrc} alt={platform} className="w-full h-full object-contain" />
+                                                    </div>
                                                     <span className="capitalize">{link.platform || 'Social'}</span>
                                                 </a>
+                                            )
+                                        }
+
+                                        if (link.type === 'image') {
+                                            const Component = link.url ? 'a' : 'div'
+                                            const props = link.url ? { href: link.url, target: '_blank', rel: 'noopener noreferrer' } : {}
+                                            
+                                            return (
+                                                <Component 
+                                                    key={link.id}
+                                                    {...props}
+                                                    className={`w-full overflow-hidden hover:scale-[1.02] transition-transform duration-300 block ${
+                                                        link.layout === 'rounded-full' ? 'aspect-square rounded-full' : 
+                                                        link.layout === 'aspect-video' ? 'aspect-video rounded-2xl' : 
+                                                        'aspect-square rounded-2xl'
+                                                    }`}
+                                                    style={{
+                                                        backgroundColor: link.backgroundColor || '#ffffff',
+                                                        padding: link.backgroundColor ? '4px' : '0'
+                                                    }}
+                                                >
+                                                    {link.image ? (
+                                                        <img src={link.image} alt={link.title} className="w-full h-full object-cover rounded-[inherit]" title={link.title} />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center bg-white/10 text-white/50 text-xs font-bold uppercase tracking-widest">
+                                                            Image Placeholder
+                                                        </div>
+                                                    )}
+                                                </Component>
                                             )
                                         }
 

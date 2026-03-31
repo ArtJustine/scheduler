@@ -523,7 +523,7 @@ export default function CreatePostPage() {
         id: "tiktok",
         title: "TikTok Best Practices",
         content: "Keep videos between 15-60 seconds and use trending hashtags for better reach.",
-        icon: <Music2 className="h-5 w-5" />,
+        icon: getPlatformIcon("tiktok"),
         color: "bg-primary/10 text-primary"
       })
     }
@@ -534,7 +534,7 @@ export default function CreatePostPage() {
         content: instagramPostType === "reel"
           ? "Reels should be 9:16 aspect ratio and under 90 seconds for best engagement."
           : "Posts work best as square (1:1) or portrait (4:5) images.",
-        icon: <Instagram className="h-5 w-5" />,
+        icon: getPlatformIcon("instagram"),
         color: "bg-pink-50 text-pink-600"
       })
     }
@@ -543,7 +543,7 @@ export default function CreatePostPage() {
         id: "threads",
         title: "Threads Posting",
         content: "Threads is great for text-first content. Images and videos up to 5 minutes are supported.",
-        icon: <Share2 className="h-5 w-5" />,
+        icon: getPlatformIcon("threads"),
         color: "bg-slate-100 text-slate-800"
       })
     }
@@ -553,7 +553,7 @@ export default function CreatePostPage() {
           id: "youtube-shorts",
           title: "YouTube Shorts",
           content: "Ensure content is vertical (9:16) and under 60 seconds to be categorized as a Short.",
-          icon: <Youtube className="h-5 w-5" />,
+          icon: getPlatformIcon("youtube"),
           color: "bg-red-50 text-red-600"
         })
       } else if (youtubeAspectRatio === "community") {
@@ -561,7 +561,7 @@ export default function CreatePostPage() {
           id: "youtube-community",
           title: "YouTube Community Post",
           content: "Use engaging text or images. Community posts are great for interacting with your audience without video.",
-          icon: <Youtube className="h-5 w-5" />,
+          icon: getPlatformIcon("youtube"),
           color: "bg-red-100 text-red-600"
         })
       } else {
@@ -569,7 +569,7 @@ export default function CreatePostPage() {
           id: "youtube-long",
           title: "YouTube Long-form",
           content: "High-quality 16:9 4K videos perform best. Add a compelling thumbnail and description.",
-          icon: <Youtube className="h-5 w-5" />,
+          icon: getPlatformIcon("youtube"),
           color: "bg-red-50 text-red-600"
         })
       }
@@ -579,7 +579,7 @@ export default function CreatePostPage() {
         id: "linkedin",
         title: "LinkedIn Professional Tips",
         content: "Professional and educational content performs best. Use 3-5 relevant hashtags and keep the tone professional.",
-        icon: <Linkedin className="h-5 w-5" />,
+        icon: getPlatformIcon("linkedin"),
         color: "bg-blue-50 text-blue-700"
       })
     }

@@ -277,9 +277,9 @@ export default function TrendsPage() {
                             trend.platform === "Instagram" ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white" :
                               "bg-red-600 text-white"
                         )}>
-                          {trend.platform === "TikTok" && <Video className="h-3 w-3 mr-1" />}
-                          {trend.platform === "Instagram" && <Instagram className="h-3 w-3 mr-1" />}
-                          {trend.platform === "YouTube" && <Youtube className="h-3 w-3 mr-1" />}
+                          {trend.platform === "TikTok" && <img src="/tiktok.webp" alt="" className="h-3 w-3 mr-1 object-contain brightness-0 invert" />}
+                          {trend.platform === "Instagram" && <img src="/instagram.webp" alt="" className="h-3 w-3 mr-1 object-contain brightness-0 invert" />}
+                          {trend.platform === "YouTube" && <img src="/youtube.webp" alt="" className="h-3 w-3 mr-1 object-contain brightness-0 invert" />}
                           {trend.platform}
                         </Badge>
                         <Badge variant="outline" className="text-[10px] uppercase font-bold text-muted-foreground/60">

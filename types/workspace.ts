@@ -1,3 +1,13 @@
+export interface WorkspaceSettings {
+    niche?: string;
+    trendCompetitors?: string[];
+    notifications?: {
+        email?: boolean;
+        postReminders?: boolean;
+        analyticsUpdates?: boolean;
+    };
+}
+
 export interface Workspace {
     id: string;
     name: string;
@@ -5,6 +15,7 @@ export interface Workspace {
     memberIds: string[];
     createdAt: string;
     updatedAt: string;
+    settings?: WorkspaceSettings;
     accounts: {
         instagram?: any;
         youtube?: any;

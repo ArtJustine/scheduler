@@ -2,7 +2,7 @@ name: Scheduled Post Trigger
 
 on:
   schedule:
-    # GitHub Actions minimum is every 5 minutes
+    # Runs every 5 minutes — works on all GitHub plans (free & paid)
     - cron: "*/5 * * * *"
   # Allow manual trigger from the GitHub Actions UI for testing
   workflow_dispatch:

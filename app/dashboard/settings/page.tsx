@@ -12,12 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/lib/auth-provider"
-import { updateUserProfile, getUserProfile } from "@/lib/firebase/auth"
+import { updateUserProfile } from "@/lib/firebase/auth"
 import { useTheme } from "next-themes"
-import { Sun, Moon, Laptop, ShieldCheck, Activity, RefreshCw, ExternalLink, Info, Trash2, AlertCircle } from "lucide-react"
+import { Sun, Moon, Laptop, ShieldCheck, Activity, RefreshCw, ExternalLink, Info, AlertCircle, Github } from "lucide-react"
 import { getSocialAccounts } from "@/lib/firebase/social-accounts"
-import { getActiveWorkspace, deleteWorkspace } from "@/lib/firebase/workspaces"
+import { getActiveWorkspace, deleteWorkspace, updateWorkspaceSettings } from "@/lib/firebase/workspaces"
 import type { SocialAccounts } from "@/types/social"
+import type { WorkspaceSettings } from "@/types/workspace"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
   AlertDialog,
@@ -36,14 +37,20 @@ export default function SettingsPage() {
   const { toast } = useToast()
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isSavingNotifications, setIsSavingNotifications] = useState(false)
   const [name, setName] = useState(user?.displayName || "")
   const [email, setEmail] = useState(user?.email || "")
-  const [niche, setNiche] = useState(user?.niche || "")
-  const [competitors, setCompetitors] = useState<string[]>(user?.trendCompetitors || [])
   const [activeWorkspace, setActiveWorkspace] = useState<any>(null)
   const { theme, setTheme } = useTheme()
-  const [currentTheme, setCurrentTheme] = useState(theme)
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({})
+
+  // Workspace-scoped settings
+  const [niche, setNiche] = useState("")
+  const [competitors, setCompetitors] = useState<string[]>([])
+  const [notifEmail, setNotifEmail] = useState(true)
+  const [notifPostReminders, setNotifPostReminders] = useState(true)
+  const [notifAnalytics, setNotifAnalytics] = useState(false)
+
   const router = useRouter()
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get("tab") || "profile"
@@ -52,16 +59,19 @@ export default function SettingsPage() {
     const loadData = async () => {
       if (!user) return
       try {
-        const [accounts, profile, ws] = await Promise.all([
+        const [accounts, ws] = await Promise.all([
           getSocialAccounts(),
-          getUserProfile(),
-          getActiveWorkspace(user.uid)
+          getActiveWorkspace(user.uid),
         ])
         setSocialAccounts(accounts)
         setActiveWorkspace(ws)
-        if (profile) {
-          setNiche((profile as any).niche || "")
-          setCompetitors((profile as any).trendCompetitors || [])
+
+        if (ws?.settings) {
+          setNiche(ws.settings.niche || "")
+          setCompetitors(ws.settings.trendCompetitors || [])
+          setNotifEmail(ws.settings.notifications?.email ?? true)
+          setNotifPostReminders(ws.settings.notifications?.postReminders ?? true)
+          setNotifAnalytics(ws.settings.notifications?.analyticsUpdates ?? false)
         }
       } catch (error) {
         console.error("Error loading settings data:", error)
@@ -74,47 +84,68 @@ export default function SettingsPage() {
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsUpdating(true)
-
     try {
-      await updateUserProfile({ 
-        displayName: name, 
-        niche, 
-        trendCompetitors: competitors.filter(c => c.trim() !== "") 
-      })
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-      })
+      await updateUserProfile({ displayName: name })
+      toast({ title: "Profile updated", description: "Your profile has been updated successfully." })
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Update failed",
-        description: "There was a problem updating your profile.",
-      })
+      toast({ variant: "destructive", title: "Update failed", description: "There was a problem updating your profile." })
     } finally {
       setIsUpdating(false)
+    }
+  }
+
+  const handleTrendsConfigSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!activeWorkspace) {
+      toast({ variant: "destructive", title: "No workspace", description: "No active workspace found." })
+      return
+    }
+    setIsUpdating(true)
+    try {
+      await updateWorkspaceSettings(activeWorkspace.id, {
+        niche,
+        trendCompetitors: competitors.filter(c => c.trim() !== ""),
+      })
+      toast({ title: "Trends config saved", description: "Saved for this workspace." })
+    } catch (error) {
+      toast({ variant: "destructive", title: "Save failed", description: "Could not save trends configuration." })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleNotificationsSave = async () => {
+    if (!activeWorkspace) {
+      toast({ variant: "destructive", title: "No workspace", description: "No active workspace found." })
+      return
+    }
+    setIsSavingNotifications(true)
+    try {
+      await updateWorkspaceSettings(activeWorkspace.id, {
+        notifications: {
+          email: notifEmail,
+          postReminders: notifPostReminders,
+          analyticsUpdates: notifAnalytics,
+        },
+      })
+      toast({ title: "Preferences saved", description: "Notification preferences updated for this workspace." })
+    } catch (error) {
+      toast({ variant: "destructive", title: "Save failed", description: "Could not save notification preferences." })
+    } finally {
+      setIsSavingNotifications(false)
     }
   }
 
   const handleDeleteWorkspace = async () => {
     if (!activeWorkspace) return
     setIsDeleting(true)
-
     try {
       await deleteWorkspace(activeWorkspace.id)
-      toast({
-        title: "Workspace deleted",
-        description: "Your workspace has been permanently removed.",
-      })
-      // Redirect or reload to trigger auto-creation/assignment of another workspace
+      toast({ title: "Workspace deleted", description: "Your workspace has been permanently removed." })
       router.push("/dashboard")
       router.refresh()
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Delete failed",
-        description: "There was a problem deleting your workspace.",
-      })
+      toast({ variant: "destructive", title: "Delete failed", description: "There was a problem deleting your workspace." })
     } finally {
       setIsDeleting(false)
     }
@@ -124,7 +155,14 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Manage your account settings and preferences</p>
+        <p className="text-muted-foreground">
+          Manage your account settings and preferences
+          {activeWorkspace && (
+            <span className="ml-2 text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              Workspace: {activeWorkspace.name}
+            </span>
+          )}
+        </p>
       </div>
 
       <Tabs defaultValue={defaultTab} className="space-y-6">
@@ -173,12 +211,13 @@ export default function SettingsPage() {
           </TabsTrigger>
         </TabsList>
 
+        {/* ── Profile ── */}
         <TabsContent value="profile" className="space-y-6">
           <Card>
             <form onSubmit={handleProfileUpdate}>
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
-                <CardDescription>Update your profile information</CardDescription>
+                <CardDescription>Update your personal display name</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -200,6 +239,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        {/* ── Account ── */}
         <TabsContent value="account" className="space-y-6">
           <Card>
             <CardHeader>
@@ -231,9 +271,7 @@ export default function SettingsPage() {
                 <AlertCircle className="h-5 w-5" />
                 Danger Zone
               </CardTitle>
-              <CardDescription>
-                Destructive actions for your workspace.
-              </CardDescription>
+              <CardDescription>Destructive actions for your workspace.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-4 rounded-xl border border-destructive/20 bg-white/50 dark:bg-black/20">
@@ -253,13 +291,13 @@ export default function SettingsPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the 
+                        This action cannot be undone. This will permanently delete the
                         <strong> {activeWorkspace?.name} </strong> workspace and all associated data.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction 
+                      <AlertDialogAction
                         onClick={handleDeleteWorkspace}
                         className="bg-destructive text-white hover:bg-destructive/90"
                       >
@@ -273,6 +311,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        {/* ── Appearance ── */}
         <TabsContent value="appearance" className="space-y-6">
           <Card>
             <CardHeader>
@@ -318,11 +357,16 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        {/* ── Notifications — workspace-scoped ── */}
         <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Notification Preferences</CardTitle>
-              <CardDescription>Manage how you receive notifications</CardDescription>
+              <CardDescription>
+                Manage notifications for{" "}
+                <span className="font-semibold text-foreground">{activeWorkspace?.name || "this workspace"}</span>.
+                Each workspace has its own notification settings.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -332,7 +376,11 @@ export default function SettingsPage() {
                     Receive email notifications about your scheduled posts
                   </p>
                 </div>
-                <Switch id="email-notifications" defaultChecked />
+                <Switch
+                  id="email-notifications"
+                  checked={notifEmail}
+                  onCheckedChange={setNotifEmail}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -341,27 +389,42 @@ export default function SettingsPage() {
                     Get reminders before your posts are scheduled to go live
                   </p>
                 </div>
-                <Switch id="post-reminders" defaultChecked />
+                <Switch
+                  id="post-reminders"
+                  checked={notifPostReminders}
+                  onCheckedChange={setNotifPostReminders}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="analytics-updates">Analytics Updates</Label>
                   <p className="text-sm text-muted-foreground">Receive weekly analytics updates for your posts</p>
                 </div>
-                <Switch id="analytics-updates" />
+                <Switch
+                  id="analytics-updates"
+                  checked={notifAnalytics}
+                  onCheckedChange={setNotifAnalytics}
+                />
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save Preferences</Button>
+              <Button onClick={handleNotificationsSave} disabled={isSavingNotifications || !activeWorkspace}>
+                {isSavingNotifications ? "Saving..." : "Save Preferences"}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
 
+        {/* ── Connections ── */}
         <TabsContent value="connections" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Social Media Connections</CardTitle>
-              <CardDescription>Connect your social media accounts</CardDescription>
+              <CardDescription>
+                Connections for{" "}
+                <span className="font-semibold text-foreground">{activeWorkspace?.name || "this workspace"}</span>.
+                Each workspace has its own set of connected accounts.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -422,21 +485,27 @@ export default function SettingsPage() {
             </CardFooter>
           </Card>
         </TabsContent>
+
+        {/* ── Trends Config — workspace-scoped ── */}
         <TabsContent value="trends" className="space-y-6">
           <Card>
-            <form onSubmit={handleProfileUpdate}>
+            <form onSubmit={handleTrendsConfigSave}>
               <CardHeader>
                 <CardTitle>Trends Configuration</CardTitle>
-                <CardDescription>Configure how we find trends for you using AI.</CardDescription>
+                <CardDescription>
+                  AI trends config for{" "}
+                  <span className="font-semibold text-foreground">{activeWorkspace?.name || "this workspace"}</span>.
+                  Each workspace tracks its own niche and competitors independently.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="trends-niche">My Niche / Industry</Label>
-                  <Input 
-                    id="trends-niche" 
-                    placeholder="e.g. Minimalist Interior Design, AI Tech, Fitness Coaching" 
-                    value={niche} 
-                    onChange={(e) => setNiche(e.target.value)} 
+                  <Input
+                    id="trends-niche"
+                    placeholder="e.g. Minimalist Interior Design, AI Tech, Fitness Coaching"
+                    value={niche}
+                    onChange={(e) => setNiche(e.target.value)}
                   />
                   <p className="text-sm text-muted-foreground">The primary topic you want to track.</p>
                 </div>
@@ -444,23 +513,23 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <Label>Competitor References (Links/Handles)</Label>
                   <p className="text-sm text-muted-foreground">Add links to websites or social media pages you want AI to analyze as competition.</p>
-                  
+
                   <div className="space-y-3">
                     {competitors.map((comp, index) => (
                       <div key={index} className="flex gap-2">
-                        <Input 
-                          placeholder="e.g. youtube.com/c/competitor or @competitor" 
-                          value={comp} 
+                        <Input
+                          placeholder="e.g. youtube.com/c/competitor or @competitor"
+                          value={comp}
                           onChange={(e) => {
                             const newComps = [...competitors]
                             newComps[index] = e.target.value
                             setCompetitors(newComps)
                           }}
                         />
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
                           className="text-destructive"
                           onClick={() => setCompetitors(competitors.filter((_, i) => i !== index))}
                         >
@@ -468,10 +537,10 @@ export default function SettingsPage() {
                         </Button>
                       </div>
                     ))}
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
                       className="w-full border-dashed"
                       onClick={() => setCompetitors([...competitors, ""])}
                     >
@@ -481,7 +550,7 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" disabled={isUpdating}>
+                <Button type="submit" disabled={isUpdating || !activeWorkspace}>
                   {isUpdating ? "Saving..." : "Save Trends Config"}
                 </Button>
               </CardFooter>
@@ -489,6 +558,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        {/* ── Scheduler — GitHub Actions ── */}
         <TabsContent value="scheduler" className="space-y-6">
           <Card className="overflow-hidden border-primary/10">
             <CardHeader className="bg-primary/5 border-b border-primary/10">
@@ -500,8 +570,9 @@ export default function SettingsPage() {
                   </CardTitle>
                   <CardDescription>Configure and monitor your automated posting pipeline.</CardDescription>
                 </div>
-                <Badge className="bg-primary text-white hover:bg-primary/90 rounded-full px-3">
-                  Vercel Pro Active
+                <Badge className="bg-green-600 text-white hover:bg-green-700 rounded-full px-3 flex items-center gap-1.5">
+                  <Github className="h-3.5 w-3.5" />
+                  GitHub Actions
                 </Badge>
               </div>
             </CardHeader>
@@ -510,14 +581,14 @@ export default function SettingsPage() {
                 <div className="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-border/50 space-y-3">
                   <div className="flex items-center gap-2 text-foreground font-semibold">
                     <ShieldCheck className="h-5 w-5 text-green-500" />
-                    Vercel Cron Status
+                    Cron Status
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Your Vercel Pro account enables minute-by-minute scheduling. We've configured your app to check for due posts every 60 seconds.
+                    Scheduling is powered by a GitHub Actions workflow that triggers every 5 minutes — compatible with all plans, no Vercel Pro required.
                   </p>
                   <div className="flex gap-2">
-                    <Badge variant="secondary" className="font-mono text-[10px]">*/1 * * * *</Badge>
-                    <Badge variant="secondary" className="font-mono text-[10px]">300s Timeout</Badge>
+                    <Badge variant="secondary" className="font-mono text-[10px]">*/5 * * * *</Badge>
+                    <Badge variant="secondary" className="font-mono text-[10px]">GitHub Actions</Badge>
                   </div>
                 </div>
 
@@ -527,14 +598,15 @@ export default function SettingsPage() {
                     Manual Control
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Need to push posts immediately? You can manually trigger the scheduler without waiting for the next cron cycle.
+                    Need to push posts immediately? Trigger the scheduler right now without waiting for the next cron cycle.
                   </p>
-                  <Button 
+                  <Button
                     className="w-full shadow-sm rounded-xl"
                     onClick={async () => {
                       setIsUpdating(true);
                       try {
-                        const res = await fetch('/api/cron/scheduler?secret=Artgwapito!1');
+                        const secret = process.env.NEXT_PUBLIC_CRON_SECRET || ""
+                        const res = await fetch(`/api/cron/scheduler${secret ? `?secret=${secret}` : ""}`)
                         const data = await res.json();
                         if (data.success) {
                           toast({ title: "Scheduler Success", description: data.message });
@@ -559,17 +631,17 @@ export default function SettingsPage() {
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Scheduler Webhook URL</Label>
                   <div className="flex gap-2">
-                    <Input 
-                      readOnly 
+                    <Input
+                      readOnly
                       className="font-mono text-xs bg-muted/30 rounded-xl"
-                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/cron/scheduler?secret=Artgwapito!1`} 
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/cron/scheduler`}
                     />
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       className="rounded-xl"
                       onClick={() => {
-                        const url = `${window.location.origin}/api/cron/scheduler?secret=Artgwapito!1`;
+                        const url = `${window.location.origin}/api/cron/scheduler`;
                         navigator.clipboard.writeText(url);
                         toast({ title: "Copied!", description: "Webhook URL copied to clipboard." });
                       }}
@@ -579,19 +651,22 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                   <div className="flex gap-3">
-                    <Info className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="text-sm text-amber-800 dark:text-amber-200">
-                      <strong>Security Note:</strong> The scheduler secret identifies your account. Only provide this URL to trusted services like Vercel Cron.
+                    <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-800 dark:text-blue-200">
+                      <strong>GitHub Actions Setup:</strong> The workflow at{" "}
+                      <code className="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">.github/workflows/cron-scheduler.yml</code>{" "}
+                      pings this endpoint every 5 minutes using your <code className="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">CRON_SECRET</code>{" "}
+                      stored as a GitHub Actions secret.
                     </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end">
                   <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-primary rounded-xl">
-                    <a href="https://vercel.com/dashboard" target="_blank" rel="noopener noreferrer">
-                      View Logs in Vercel <ExternalLink className="h-3 w-3 ml-1" />
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                      View GitHub Actions Logs <ExternalLink className="h-3 w-3 ml-1" />
                     </a>
                   </Button>
                 </div>

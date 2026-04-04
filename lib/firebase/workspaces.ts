@@ -12,7 +12,7 @@ import {
     deleteDoc,
     serverTimestamp
 } from "firebase/firestore"
-import { Workspace } from "@/types/workspace"
+import { Workspace, WorkspaceSettings } from "@/types/workspace"
 
 export async function getUserWorkspaces(userId: string): Promise<Workspace[]> {
     const workspacesRef = collection(firebaseDb!, "workspaces")
@@ -33,7 +33,16 @@ export async function createWorkspace(userId: string, name: string): Promise<str
         memberIds: [userId],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        accounts: {}
+        accounts: {},
+        settings: {
+            niche: "",
+            trendCompetitors: [],
+            notifications: {
+                email: true,
+                postReminders: true,
+                analyticsUpdates: false,
+            },
+        },
     }
 
     const docRef = await addDoc(workspacesRef, newWorkspace)
@@ -78,4 +87,27 @@ export async function setActiveWorkspace(userId: string, workspaceId: string) {
 export async function deleteWorkspace(workspaceId: string) {
     const workspaceRef = doc(firebaseDb!, "workspaces", workspaceId)
     await deleteDoc(workspaceRef)
+}
+
+export async function getWorkspaceSettings(workspaceId: string): Promise<WorkspaceSettings> {
+    const workspaceRef = doc(firebaseDb!, "workspaces", workspaceId)
+    const workspaceDoc = await getDoc(workspaceRef)
+    if (workspaceDoc.exists()) {
+        return (workspaceDoc.data().settings as WorkspaceSettings) || {}
+    }
+    return {}
+}
+
+export async function updateWorkspaceSettings(workspaceId: string, settings: Partial<WorkspaceSettings>) {
+    const workspaceRef = doc(firebaseDb!, "workspaces", workspaceId)
+    // Use dot-notation updates to merge nested settings fields
+    const updates: Record<string, any> = { updatedAt: new Date().toISOString() }
+    if (settings.niche !== undefined) updates["settings.niche"] = settings.niche
+    if (settings.trendCompetitors !== undefined) updates["settings.trendCompetitors"] = settings.trendCompetitors
+    if (settings.notifications !== undefined) {
+        if (settings.notifications.email !== undefined) updates["settings.notifications.email"] = settings.notifications.email
+        if (settings.notifications.postReminders !== undefined) updates["settings.notifications.postReminders"] = settings.notifications.postReminders
+        if (settings.notifications.analyticsUpdates !== undefined) updates["settings.notifications.analyticsUpdates"] = settings.notifications.analyticsUpdates
+    }
+    await updateDoc(workspaceRef, updates)
 }
